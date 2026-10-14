@@ -20,6 +20,7 @@ fake_clients <- function(package = c("a", "b"), module = toupper(package)) {
     module = module,
     path = file.path("bindings", package),
     trim = rep(TRUE, length(package)),
+    hash = paste0("hash-", package),
     stringsAsFactors = FALSE
   )
 }

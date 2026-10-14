@@ -12,8 +12,9 @@ jlbind_clients(lib.loc = NULL)
 \value{
 A data frame with one row per package and the columns \code{package},
 \code{version}, \code{module} (the name of its Julia binding package), \code{path} (where
-the binding package is) and \code{trim} (\code{FALSE} if it sets
-\code{Config/jlbind/trim: false}).
+the binding package is), \code{trim} (\code{FALSE} if it sets
+\code{Config/jlbind/trim: false}) and \code{hash} (a hash of the binding package's
+files, which the library records to tell when it is out of date).
 }
 \description{
 Lists the installed packages that \code{\link[=install_library]{install_library()}} will compile. A package

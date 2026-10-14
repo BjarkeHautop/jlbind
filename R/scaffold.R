@@ -254,7 +254,7 @@ update_entrypoints <- function(path = ".") {
     " *",
     " * JLBIND_ENTRY(name, number of arguments, parameters, arguments): each is",
     " * registered as the .Call routine `C_<name>`, forwarding to the library's",
-    " * `<JLBIND_PREFIX><name>`.",
+    " * `<JLBIND_PREFIX><name>_<number of arguments>`.",
     " */",
     "",
     paste0("#define JLBIND_PREFIX \"", info$module, "_\""),

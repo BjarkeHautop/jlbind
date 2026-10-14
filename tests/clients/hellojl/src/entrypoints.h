@@ -4,7 +4,7 @@
  *
  * JLBIND_ENTRY(name, number of arguments, parameters, arguments): each is
  * registered as the .Call routine `C_<name>`, forwarding to the library's
- * `<JLBIND_PREFIX><name>`.
+ * `<JLBIND_PREFIX><name>_<number of arguments>`.
  */
 
 #define JLBIND_PREFIX "HelloBindings_"

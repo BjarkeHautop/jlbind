@@ -13,7 +13,8 @@
 #' details.
 #'
 #' The library is rebuilt only if it is out of date: built from other versions
-#' of the packages, by another version of jlbind or Julia, or with `develop`.
+#' of the packages or other Julia code in them, by another version of jlbind or
+#' Julia, or with `develop`.
 #' If a library is already loaded, restart R to use the new one.
 #'
 #' @param packages Names of the installed packages to build. By default, every
@@ -271,7 +272,8 @@ build_library <- function(
   meta <- data.frame(
     Package = clients$package,
     Version = clients$version,
-    Module = clients$module
+    Module = clients$module,
+    Hash = clients$hash
   )
   write.dcf(meta[!left_out, , drop = FALSE], file.path(out, "clients"))
   excluded <- meta[left_out, , drop = FALSE]
@@ -360,7 +362,7 @@ build_library <- function(
 }
 
 # The clients a library in `dir` was built from (a data frame with Package,
-# Version, Module), or NULL if it records none.
+# Version, Module, Hash), or NULL if it records none.
 .read_clients <- function(dir) {
   file <- file.path(dir, "clients")
   if (!file.exists(file)) {
@@ -370,7 +372,7 @@ build_library <- function(
 }
 
 # The clients left out of the library in `dir` (a data frame with Package,
-# Version, Module, Conflicts), or NULL if it records none.
+# Version, Module, Hash, Conflicts), or NULL if it records none.
 .read_excluded <- function(dir) {
   file <- file.path(dir, "excluded")
   if (!file.exists(file) || !length(readLines(file, warn = FALSE))) {
@@ -380,8 +382,9 @@ build_library <- function(
 }
 
 # Was the library in `dir` built by this version of jlbind and Julia version
-# `julia` from exactly these versions of these clients (counting those it left
-# out), and with no local checkouts?
+# `julia` from exactly these versions of these clients, with the same binding
+# package files (counting the clients it left out), and with no local
+# checkouts?
 .up_to_date <- function(dir, clients, julia) {
   built <- .read_clients(dir)
   build <- file.path(dir, "build")
@@ -393,6 +396,7 @@ build_library <- function(
     return(FALSE)
   }
   info <- read.dcf(build, fields = c("jlbind", "Julia", "Develop"))
+  excluded <- .read_excluded(dir)
   identical(
     info[, "jlbind"][[1L]],
     as.character(utils::packageVersion("jlbind"))
@@ -401,9 +405,10 @@ build_library <- function(
     (is.na(info[, "Develop"]) || !nzchar(info[, "Develop"])) &&
     setequal(
       paste(
-        c(built$Package, .read_excluded(dir)$Package),
-        c(built$Version, .read_excluded(dir)$Version)
+        c(built$Package, excluded$Package),
+        c(built$Version, excluded$Version),
+        c(built$Hash, excluded$Hash)
       ),
-      paste(clients$package, clients$version)
+      paste(clients$package, clients$version, clients$hash)
     )
 }

@@ -18,8 +18,9 @@
 #'
 #' @return A data frame with one row per package and the columns `package`,
 #'   `version`, `module` (the name of its Julia binding package), `path` (where
-#'   the binding package is) and `trim` (`FALSE` if it sets
-#'   `Config/jlbind/trim: false`).
+#'   the binding package is), `trim` (`FALSE` if it sets
+#'   `Config/jlbind/trim: false`) and `hash` (a hash of the binding package's
+#'   files, which the library records to tell when it is out of date).
 #' @export
 #' @examples
 #' jlbind_clients()
@@ -59,8 +60,20 @@ jlbind_clients <- function(lib.loc = NULL) {
     version = unname(desc[, "Version"]),
     module = .binding_name(binding),
     path = binding,
-    trim = .parse_trim(desc[, .trim_field], desc[, "Package"])
+    trim = .parse_trim(desc[, .trim_field], desc[, "Package"]),
+    hash = .binding_hash(binding)
   )
+}
+
+# A hash of the files of the binding package in `dir`. The library records it
+# for each client, so install_library() rebuilds it when a client is
+# reinstalled with changed Julia code but the same version.
+.binding_hash <- function(dir) {
+  files <- sort(list.files(dir, recursive = TRUE), method = "radix")
+  record <- tempfile()
+  on.exit(unlink(record))
+  writeLines(paste(files, tools::md5sum(file.path(dir, files))), record)
+  unname(tools::md5sum(record))
 }
 
 # The `Config/jlbind/trim` field: trimmed unless it says otherwise.
@@ -95,6 +108,7 @@ jlbind_clients <- function(lib.loc = NULL) {
     module = col("module"),
     path = col("path"),
     trim = vapply(infos, `[[`, TRUE, "trim"),
+    hash = col("hash"),
     stringsAsFactors = FALSE
   )
 }

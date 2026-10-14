@@ -7,9 +7,10 @@
  * The library is built after this package is installed and loaded by jlbind
  * with dyn.load(), so it cannot be linked into this shared object. Instead
  * each entrypoint in entrypoints.h is registered here as the .Call routine
- * `C_<name>`, which forwards to the library's `<module>_<name>` through a
- * function pointer that jlbind_bind() resolves once the library is loaded,
- * called by jlbind::bind_client() from the package's .onLoad().
+ * `C_<name>`, which forwards to the library's `<module>_<name>_<n>` (`<n>`
+ * being its number of arguments) through a function pointer that
+ * jlbind_bind() resolves once the library is loaded, called by
+ * jlbind::bind_client() from the package's .onLoad().
  */
 
 #include <R.h>
@@ -76,7 +77,7 @@ static SEXP jlbind_bind(SEXP dll)
     const char *name = CHAR(STRING_ELT(dll, 0));
     (void)name;
 #define JLBIND_ENTRY(entry, n, params, args)                                   \
-    jlbind_fn found_##entry = find(name, JLBIND_PREFIX #entry);
+    jlbind_fn found_##entry = find(name, JLBIND_PREFIX #entry "_" #n);
     JLBIND_ENTRIES
 #undef JLBIND_ENTRY
 #define JLBIND_ENTRY(entry, n, params, args)                                   \

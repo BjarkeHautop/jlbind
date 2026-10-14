@@ -33,12 +33,13 @@
 # top level, so it is never installed with the package.
 .dev_dir <- ".jlbind"
 
-# The library build_library() wrote into the sources of `pkg`, or NULL. A
-# namespace's path is the source directory when it was loaded with
-# pkgload::load_all(), and an installed package has no .dev_dir.
+# The library build_library() wrote into the sources of `pkg`, or NULL. For a
+# loaded package, find.package() gives the directory it was loaded from: the
+# sources when it was loaded with pkgload::load_all(), and an installed
+# package has no .dev_dir.
 .dev_library <- function(pkg) {
   path <- file.path(
-    getNamespaceInfo(pkg, "path"),
+    find.package(pkg),
     .dev_dir,
     .library_file()
   )
@@ -320,7 +321,7 @@ library_info <- function() {
   dll <- .state$dll
   objects <- NULL
   if (!is.null(dll)) {
-    count <- getNativeSymbolInfo("JLBind_object_count", dll)
+    count <- getNativeSymbolInfo("JLBind_object_count_0", dll)
     objects <- .Call(count)
   }
   list(

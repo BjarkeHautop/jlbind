@@ -72,11 +72,12 @@ Three layers, spread across R, Julia and C:
 - **`inst/julia/JLBind/`** — Julia package that clients' binding packages depend
   on: R C API via `ccall` (`rapi.jl`), `from_sexp`/`to_sexp` conversions
   (`convert.jl`), `RRef{T}` external-pointer registry (`refs.jl`), and the
-  `@rcall` macro (`rcall.jl`) that exports `<Module>_<f>` as a `@ccallable`,
-  returning errors as a `jlbind_error` character vector rather than unwinding.
-  `set_threads.c` is compiled into the library and called via `.C`. JLBind is
-  not registered: builds `Pkg.develop` the copy shipped in the installed R
-  package.
+  `@rcall` macro (`rcall.jl`) that exports `<Module>_<f>_<nargs>` as a
+  `@ccallable`, returning errors as a `jlbind_error` character vector rather
+  than unwinding. The argument count in the name makes a client whose shim
+  disagrees with the library fail to bind rather than crash. `set_threads.c` is
+  compiled into the library and called via `.C`. JLBind is not registered:
+  builds `Pkg.develop` the copy shipped in the installed R package.
 - **`inst/julia/build.jl`** — the compile step, invoked by the R side. It copies
   everything to writable scratch dirs, generates a `JLBindImage` package
   importing JLBind and every binding package, seeds dependencies from the first
@@ -84,14 +85,16 @@ Three layers, spread across R, Julia and C:
   with JuliaC in a separate environment.
 - **R side (`R/`)** — `library.R`: `install_library()` / `build_library()`
   (finds clients, runs `build.jl`, stores the library under
-  `R_user_dir("jlbind", "data")/library/` with the client versions it was built
-  from). `clients.R`: client discovery via the `Config/jlbind` DESCRIPTION
-  field. `runtime.R`: `bind_client(pkg)` called from a client's `.onLoad`, loads
-  the library once, sets threads, binds a client only if the library was built
-  from its installed version. `scaffold.R`: `use_jlbind()` and
-  `update_entrypoints()`, which scans `@rcall` declarations (with
-  comments/strings blanked, so they must be literal top-level `@rcall`s) and
-  writes `src/entrypoints.h`. `julia.R`: locating Julia.
+  `R_user_dir("jlbind", "data")/library/` with the client versions and binding
+  package hashes (`.binding_hash()`) it was built from, so it is rebuilt when a
+  client's Julia code changes without a version bump). `clients.R`: client
+  discovery via the `Config/jlbind` DESCRIPTION field. `runtime.R`:
+  `bind_client(pkg)` called from a client's `.onLoad`, loads the library once,
+  sets threads, binds a client only if the library was built from its installed
+  version. `scaffold.R`: `use_jlbind()` and `update_entrypoints()`, which scans
+  `@rcall` declarations (with comments/strings blanked, so they must be literal
+  top-level `@rcall`s) and writes `src/entrypoints.h`. `julia.R`: locating
+  Julia.
 
 Each client carries a generated C shim: `src/jlbind.c` (from
 `inst/templates/init.c`) plus `src/entrypoints.h` (an X-macro list of

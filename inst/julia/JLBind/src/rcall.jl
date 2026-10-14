@@ -1,8 +1,11 @@
 """
     @rcall f(a::A, b::B, ...)::R
 
-Export the R entrypoint `<module>_f(a::SEXP, b::SEXP, ...)::SEXP`, where
-`<module>` is the name of the binding package the declaration is in. It
+Export the R entrypoint `<module>_f_<n>(a::SEXP, b::SEXP, ...)::SEXP`, where
+`<module>` is the name of the binding package the declaration is in and `<n>`
+the number of arguments. The count in the name means a client's C shim, which
+must pass exactly that many, finds no entrypoint in a library built from a
+declaration with another count, rather than one it would crash calling. It
 converts each argument with `from_sexp(A, a)`, calls `f`, and converts the
 result with `to_sexp(::R)`; an argument or result type `RRef{T}` passes a
 Julia object by reference instead (see [`RRef`](@ref)). The compiled library
@@ -36,7 +39,7 @@ macro rcall(sig)
         push!(argtypes, a.args[2])
     end
     prefix = nameof(Base.moduleroot(__module__))
-    cname = Symbol(prefix, :_, fname)
+    cname = Symbol(prefix, :_, fname, :_, length(argnames))
     from = GlobalRef(JLBind, :from_sexp)
     params = [:($n::$SEXP) for n in argnames]
     converted = [:($from($T, $n)) for (n, T) in zip(argnames, argtypes)]

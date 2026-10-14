@@ -15,7 +15,7 @@ local_install <- function(..., env = parent.frame()) {
     }
   }
   # Under pkgload, jlbind is not installed; install the sources being tested.
-  jlbind_path <- getNamespaceInfo("jlbind", "path")
+  jlbind_path <- find.package("jlbind")
   libpath <- c(lib, .Library)
   if (
     file.exists(file.path(jlbind_path, "DESCRIPTION")) &&

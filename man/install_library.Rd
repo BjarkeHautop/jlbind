@@ -52,7 +52,8 @@ conflict, the one listed later by \code{\link[=jlbind_clients]{jlbind_clients()}
 details.
 
 The library is rebuilt only if it is out of date: built from other versions
-of the packages, by another version of jlbind or Julia, or with \code{develop}.
+of the packages or other Julia code in them, by another version of jlbind or
+Julia, or with \code{develop}.
 If a library is already loaded, restart R to use the new one.
 }
 \examples{

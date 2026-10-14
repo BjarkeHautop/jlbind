@@ -246,3 +246,37 @@ test_that("library_info() lists the clients built, left out and bound", {
   expect_true(clients$bound)
   expect_equal(nrow(.info_clients(NULL, NULL, character())), 0L)
 })
+
+test_that("a binding package's hash follows its files", {
+  dir <- withr::local_tempdir()
+  dir.create(file.path(dir, "src"))
+  writeLines('name = "X"', file.path(dir, "Project.toml"))
+  writeLines("f(x) = x", file.path(dir, "src", "X.jl"))
+  hash <- .binding_hash(dir)
+  expect_equal(.binding_hash(dir), hash)
+  writeLines("f(x, y) = x", file.path(dir, "src", "X.jl"))
+  changed <- .binding_hash(dir)
+  expect_false(identical(changed, hash))
+  writeLines("g() = 1", file.path(dir, "src", "more.jl"))
+  expect_false(identical(.binding_hash(dir), changed))
+})
+
+test_that("a library is out of date once a client's Julia code changes", {
+  dir <- withr::local_tempdir()
+  clients <- data.frame(package = "a", version = "1.0", hash = "h1")
+  file.create(file.path(dir, .library_file()))
+  write.dcf(
+    data.frame(Package = "a", Version = "1.0", Module = "A", Hash = "h1"),
+    file.path(dir, "clients")
+  )
+  write.dcf(
+    data.frame(
+      jlbind = as.character(utils::packageVersion("jlbind")),
+      Julia = "1.13.1"
+    ),
+    file.path(dir, "build")
+  )
+  expect_true(.up_to_date(dir, clients, "1.13.1"))
+  clients$hash <- "h2"
+  expect_false(.up_to_date(dir, clients, "1.13.1"))
+})
