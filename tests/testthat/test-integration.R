@@ -76,6 +76,7 @@ test_that("two clients share one compiled library", {
         fail = tryCatch(fail("custom failure"), error = conditionMessage),
         bad_type = tryCatch(greet(1), error = conditionMessage),
         na = tryCatch(shift(c(1, NA)), error = conditionMessage),
+        nan = tryCatch(shift(c(1, NaN)), error = conditionMessage),
         class = class(c1),
         counter = increment(c1),
         counters = vapply(counters(3), increment, 1, by = 100),
@@ -123,6 +124,7 @@ test_that("two clients share one compiled library", {
   expect_false(res$negate)
   expect_equal(res$bad_type, "expected a character string")
   expect_equal(res$na, "expected numbers, not NA")
+  expect_equal(res$nan, "expected numbers, not NaN")
   expect_equal(res$class, "counter")
   expect_equal(res$counter, 16)
   expect_equal(res$counters, c(101, 102, 103))

@@ -214,8 +214,18 @@ end
 cp(joinpath(IMAGE, "Manifest.toml"), joinpath(OUT, "Manifest.toml"); force = true)
 
 # JuliaC gets its own environment, so it is never compiled into the library.
+# Use an installed JuliaC offline, and go online only to install it.
 Pkg.activate(; temp = true)
-Pkg.add(Pkg.PackageSpec(name = "JuliaC", version = "0.3"))
+juliac = Pkg.PackageSpec(name = "JuliaC", version = "0.3")
+try
+    Pkg.offline(true)
+    Pkg.add(juliac)
+catch
+    Pkg.offline(false)
+    Pkg.add(juliac)
+finally
+    Pkg.offline(false)
+end
 
 using JuliaC
 

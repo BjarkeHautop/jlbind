@@ -80,9 +80,13 @@ function from_sexp(::Type{Float64}, x::SEXP)
         return Float64(i)
     end
     v = unsafe_load(real_ptr(x))
-    isnan(v) && throw(ArgumentError("expected a number, not NA"))
+    isnan(v) && throw(ArgumentError("expected a number, not " * _nan_name(v)))
     return v
 end
+
+# How R prints the NaN `v`: NA_real_ is a NaN whose low word is 1954 (what
+# R_IsNA checks).
+_nan_name(v::Float64) = reinterpret(UInt64, v) % UInt32 == 0x000007a2 ? "NA" : "NaN"
 
 function _whole(v::Float64)
     isinteger(v) && abs(v) <= 2.0^53 ||
@@ -99,7 +103,8 @@ function _doubles(x::SEXP)
     t = rtypeof(x)
     if t == REALSXP
         unsafe_copyto!(pointer(out), real_ptr(x), n)
-        any(isnan, out) && throw(ArgumentError("expected numbers, not NA"))
+        i = findfirst(isnan, out)
+        i === nothing || throw(ArgumentError("expected numbers, not " * _nan_name(out[i])))
     elseif t == INTSXP
         p = int_ptr(x)
         for i = 1:n

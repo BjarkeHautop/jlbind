@@ -323,6 +323,9 @@ library_info <- function() {
   if (!is.null(dll)) {
     count <- getNativeSymbolInfo("JLBind_object_count_0", dll)
     objects <- .Call(count)
+    if (inherits(objects, "jlbind_error")) {
+      stop(objects[[1L]], call. = FALSE)
+    }
   }
   list(
     path = if (!is.null(dll)) .state$path,

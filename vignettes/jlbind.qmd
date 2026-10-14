@@ -213,9 +213,10 @@ value using `to_sexp()`. The built-in conversions are:
   | `RRef{T}`                          | A reference to a Julia object  | A reference to a Julia object    |
   | `Vector{RRef{T}}`                  |                                | A list of references             |
 
-`NA` is an error wherever a value is expected. Likewise, an `Int64` argument
-must be a whole number. Julia's `Int64` values become R doubles because R's
-standard integers are only 32 bits; return `Int32` if you need an R integer.
+`NA` is an error wherever a value is expected, and so is `NaN` in a numeric
+argument. Likewise, an `Int64` argument must be a whole number. Julia's `Int64`
+values become R doubles because R's standard integers are only 32 bits; return
+`Int32` if you need an R integer.
 
 A binding package can support additional types by defining methods for
 `JLBind.from_sexp(::Type{T}, x::SEXP)` and `JLBind.to_sexp(x::T)`. `JLBind` also
