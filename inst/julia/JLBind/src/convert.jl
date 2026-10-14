@@ -32,6 +32,8 @@ end
 function _string_at(x::SEXP, i::Int)
     c = string_elt(x, i)
     _isna_string(c) && throw(ArgumentError("expected a string, not NA"))
+    # R refuses to translate such a string, with an R error.
+    _isbytes(c) && throw(ArgumentError("expected text, not a string in \"bytes\" encoding"))
     return _utf8(c)
 end
 
@@ -57,16 +59,27 @@ function from_sexp(::Type{Vector{Symbol}}, x::SEXP)
     return Symbol[_symbol(_string_at(x, i - 1)) for i = 1:rlength(x)]
 end
 
+# The scalars are read directly rather than with R's `asLogical`/`asReal`,
+# which raise R errors (e.g. on a raw vector) and coercion warnings (an error
+# under `options(warn = 2)`) that would unwind through Julia.
 function from_sexp(::Type{Bool}, x::SEXP)
+    _check_type(x, LGLSXP, "TRUE or FALSE")
     _check_scalar(x, "logical value")
-    v = ccall(@R(Rf_asLogical), Cint, (SEXP,), x)
+    v = unsafe_load(logical_ptr(x))
     v == typemin(Cint) && throw(ArgumentError("expected TRUE or FALSE, not NA"))
     return v != 0
 end
 
 function from_sexp(::Type{Float64}, x::SEXP)
+    t = rtypeof(x)
+    t == REALSXP || t == INTSXP || throw(ArgumentError("expected a number"))
     _check_scalar(x, "number")
-    v = ccall(@R(Rf_asReal), Float64, (SEXP,), x)
+    if t == INTSXP
+        i = unsafe_load(int_ptr(x))
+        i == typemin(Cint) && throw(ArgumentError("expected a number, not NA"))
+        return Float64(i)
+    end
+    v = unsafe_load(real_ptr(x))
     isnan(v) && throw(ArgumentError("expected a number, not NA"))
     return v
 end

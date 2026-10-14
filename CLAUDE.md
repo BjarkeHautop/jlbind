@@ -97,12 +97,14 @@ Each client carries a generated C shim: `src/jlbind.c` (from
 `inst/templates/init.c`) plus `src/entrypoints.h` (an X-macro list of
 `JLBIND_ENTRY(name, nargs, params, args)`). The shim registers each routine
 itself and forwards to the combined library through function pointers resolved
-when jlbind calls the client's `jlbind_bind` routine.
+when jlbind calls the client's `jlbind_bind` routine. `src/Makevars` (from
+`.set_makevars()`) makes `jlbind.o` depend on `entrypoints.h`, since make would
+otherwise reuse a stale `jlbind.o` after `update_entrypoints()`.
 
 The test clients in `tests/clients/{hellojl,counterjl}` are scaffolded output:
-their `src/jlbind.c`, `src/entrypoints.h` and `R/jlbind.R` correspond to
-`inst/templates/` and `update_entrypoints()`. When changing a template or the
-header generator, update the test clients to match.
+their `src/jlbind.c`, `src/entrypoints.h`, `src/Makevars` and `R/jlbind.R`
+correspond to `inst/templates/` and `update_entrypoints()`. When changing a
+template or the header generator, update the test clients to match.
 
 ## Constraints to keep in mind
 

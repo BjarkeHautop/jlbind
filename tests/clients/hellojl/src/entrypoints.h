@@ -16,4 +16,6 @@
     JLBIND_ENTRY(fail, 1, (SEXP a1), (a1)) \
     JLBIND_ENTRY(threads, 0, (void), ()) \
     JLBIND_ENTRY(upper, 1, (SEXP a1), (a1)) \
-    JLBIND_ENTRY(evens, 1, (SEXP a1), (a1))
+    JLBIND_ENTRY(evens, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(negate, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(with_nul, 1, (SEXP a1), (a1))

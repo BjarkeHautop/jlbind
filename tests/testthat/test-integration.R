@@ -38,7 +38,31 @@ test_that("two clients share one compiled library", {
       invisible(new_counter(0)) # drops the released handles
       f <- tempfile()
       saveRDS(c1, f)
+      err <- function(expr) tryCatch(expr, error = conditionMessage)
+      bytes <- "\xe9"
+      Encoding(bytes) <- "bytes"
+      # Arguments R itself cannot convert must fail in Julia, not by an R
+      # error unwinding through Julia, after which the next Julia exception
+      # (`fail` below) crashes R.
+      bad <- list(
+        raw = err(evens(as.raw(4))),
+        list = err(evens(list(4))),
+        string = err(evens("4")),
+        warn2 = local({
+          op <- options(warn = 2)
+          on.exit(options(op))
+          err(evens("x"))
+        }),
+        logical_number = err(negate(1)),
+        logical_raw = err(negate(as.raw(1))),
+        logical_na = err(negate(NA)),
+        bytes = err(greet(bytes)),
+        nul = err(with_nul("a"))
+      )
       list(
+        bad = bad,
+        int_arg = evens(4L),
+        negate = negate(TRUE),
         before = before,
         found = sort(found),
         bound = c(jlbind::is_bound("hellojl"), jlbind::is_bound("counterjl")),
@@ -81,6 +105,22 @@ test_that("two clients share one compiled library", {
   expect_identical(res$evens, c(2L, 4L, 6L))
   expect_equal(res$threads, 2)
   expect_equal(res$fail, "custom failure")
+  expect_equal(
+    res$bad,
+    list(
+      raw = "expected a number",
+      list = "expected a number",
+      string = "expected a number",
+      warn2 = "expected a number",
+      logical_number = "expected TRUE or FALSE",
+      logical_raw = "expected TRUE or FALSE",
+      logical_na = "expected TRUE or FALSE, not NA",
+      bytes = "expected text, not a string in \"bytes\" encoding",
+      nul = "cannot return a string containing NUL to R"
+    )
+  )
+  expect_identical(res$int_arg, c(2L, 4L))
+  expect_false(res$negate)
   expect_equal(res$bad_type, "expected a character string")
   expect_equal(res$na, "expected numbers, not NA")
   expect_equal(res$class, "counter")

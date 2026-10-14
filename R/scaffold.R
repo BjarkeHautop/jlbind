@@ -5,7 +5,9 @@
 #' * A Julia binding package in `inst/<dir>`, with one example function,
 #'   `hello()`. An existing binding package is left alone.
 #' * The C code that registers the package's routines: `src/jlbind.c` and
-#'   `src/entrypoints.h` (written by [update_entrypoints()]).
+#'   `src/entrypoints.h` (written by [update_entrypoints()]), and a rule in
+#'   `src/Makevars` (created if needed) that recompiles `jlbind.c` when
+#'   `entrypoints.h` changes.
 #' * `R/jlbind.R`, with an `.onLoad()` that calls [bind_client()], and the
 #'   roxygen tag for `useDynLib()`. If the package already has an `.onLoad()`,
 #'   add `jlbind::bind_client(pkgname)` to it yourself.
@@ -98,6 +100,7 @@ use_jlbind <- function(path = ".", module = NULL, dir = "julia") {
   if (!file.exists(file.path(src, ".gitignore"))) {
     writeLines(c("*.o", "*.so", "*.dll"), file.path(src, ".gitignore"))
   }
+  .set_makevars(src)
 
   .set_description(desc_file, dir)
   update_entrypoints(path)
@@ -398,6 +401,41 @@ update_entrypoints <- function(path = ".") {
     i <- j
   }
   paste(ch, collapse = "")
+}
+
+# make rebuilds jlbind.o only when jlbind.c is newer, so after
+# update_entrypoints() rewrites entrypoints.h, an install from sources that
+# still hold a jlbind.o would leave the new routines out. This rule makes
+# jlbind.o depend on the header too.
+.makevars_rule <- "jlbind.o: entrypoints.h"
+
+# Adds .makevars_rule to src/Makevars (created if missing) and to an existing
+# Makevars.win or Makevars.ucrt, which Windows reads instead. R reads Makevars
+# before its own makefile, whose `all` target must stay the default, so
+# `all: $(SHLIB)` goes first in a Makevars that has no `all` target.
+.set_makevars <- function(src) {
+  files <- file.path(src, c("Makevars", "Makevars.win", "Makevars.ucrt"))
+  files <- files[c(TRUE, file.exists(files[-1L]))]
+  for (f in files) {
+    lines <- if (file.exists(f)) readLines(f, warn = FALSE)
+    if (.makevars_rule %in% lines) {
+      next
+    }
+    if (!any(grepl("^all[ \t]*:", lines))) {
+      lines <- c("all: $(SHLIB)", if (length(lines)) "", lines)
+    }
+    writeLines(
+      c(
+        lines,
+        "",
+        "# Added by jlbind::use_jlbind(): recompile jlbind.c whenever",
+        "# jlbind::update_entrypoints() rewrites the header it includes.",
+        .makevars_rule
+      ),
+      f
+    )
+  }
+  invisible(NULL)
 }
 
 # Adds the jlbind fields to a package's DESCRIPTION.

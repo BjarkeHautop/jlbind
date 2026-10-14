@@ -26,7 +26,9 @@ Adds what a package needs to call Julia code through jlbind.
 \item A Julia binding package in \verb{inst/<dir>}, with one example function,
 \code{hello()}. An existing binding package is left alone.
 \item The C code that registers the package's routines: \code{src/jlbind.c} and
-\code{src/entrypoints.h} (written by \code{\link[=update_entrypoints]{update_entrypoints()}}).
+\code{src/entrypoints.h} (written by \code{\link[=update_entrypoints]{update_entrypoints()}}), and a rule in
+\code{src/Makevars} (created if needed) that recompiles \code{jlbind.c} when
+\code{entrypoints.h} changes.
 \item \code{R/jlbind.R}, with an \code{.onLoad()} that calls \code{\link[=bind_client]{bind_client()}}, and the
 roxygen tag for \code{useDynLib()}. If the package already has an \code{.onLoad()},
 add \code{jlbind::bind_client(pkgname)} to it yourself.

@@ -52,7 +52,9 @@ jlbind:
 - `inst/julia/`, containing a Julia binding package named after the R package
   with a `Bindings` suffix (for example, `MyPkgBindings`), including an example
   function.
-- `src/jlbind.c` and `src/entrypoints.h`, which register the native routines.
+- `src/jlbind.c` and `src/entrypoints.h`, which register the native routines,
+  and a rule in `src/Makevars` that recompiles `jlbind.c` whenever
+  `entrypoints.h` changes.
 - `R/jlbind.R`, which calls `jlbind::bind_client()` from `.onLoad()` and
   includes the roxygen tag for `useDynLib()`.
 - The `Config/jlbind` and `Imports: jlbind` fields in `DESCRIPTION`.

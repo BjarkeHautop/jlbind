@@ -1,10 +1,15 @@
 # R's C API, called directly: the library is loaded into the R process, so
 # every symbol below resolves against the already-loaded libR (`@R`).
 #
-# R signals allocation failures by longjmp, which must never cross Julia
-# frames; the only R calls made here that can do so are allocations, which
-# fail only when R is out of memory. Every other failure is a Julia exception,
-# which `@rcall` returns to R as a `jlbind_error` object, raised there.
+# R signals errors (and warnings, under `options(warn = 2)`) by longjmp, which
+# must never cross Julia frames: Julia's state is left corrupt, and R crashes
+# on the next Julia exception. So R functions that can raise one are only
+# called once their arguments are checked (e.g. `STRING_ELT` on a character
+# vector, `Rf_translateCharUTF8` on a string not in "bytes" encoding,
+# `Rf_mkCharLenCE` on a string without NUL), and never R's coercions
+# (`Rf_asReal` and the like). What is left are allocations, which fail only
+# when R is out of memory. Every other failure is a Julia exception, which
+# `@rcall` returns to R as a `jlbind_error` object, raised there.
 
 """
     SEXP
@@ -21,6 +26,7 @@ const STRSXP = Cint(16)
 const VECSXP = Cint(19)
 const EXTPTRSXP = Cint(22)
 const CE_UTF8 = Cint(1)
+const CE_BYTES = Cint(3)
 
 """
     @R(name)
@@ -88,6 +94,7 @@ set_attrib(x::SEXP, name::SEXP, value::SEXP) =
 # The UTF-8 text of a CHARSXP (an element of a character vector).
 _utf8(charsxp::SEXP) = ccall(@R(Rf_translateCharUTF8), Ptr{UInt8}, (SEXP,), charsxp)
 _isna_string(charsxp::SEXP) = charsxp == @r_global(R_NaString)
+_isbytes(charsxp::SEXP) = ccall(@R(Rf_getCharCE), Cint, (SEXP,), charsxp) == CE_BYTES
 
 """
     mkchar(s::Union{String,Symbol}) -> SEXP
@@ -96,7 +103,11 @@ The R string (CHARSXP) for `s`, an element for `set_string_elt`. Strings of
 symbols are cached: R hashes every string it makes, which dominates the cost
 of returning many names, while a symbol is looked up here by identity.
 """
-mkchar(s::String) = GC.@preserve s _mkchar(pointer(s), sizeof(s))
+function mkchar(s::String)
+    # R strings cannot hold NUL; R would raise an R error.
+    occursin('\0', s) && throw(ArgumentError("cannot return a string containing NUL to R"))
+    return GC.@preserve s _mkchar(pointer(s), sizeof(s))
+end
 _mkchar(p::Ptr{UInt8}, n::Integer) =
     ccall(@R(Rf_mkCharLenCE), SEXP, (Ptr{UInt8}, Cint, Cint), p, n, CE_UTF8)
 

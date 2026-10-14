@@ -1,0 +1,5 @@
+all: $(SHLIB)
+
+# Added by jlbind::use_jlbind(): recompile jlbind.c whenever
+# jlbind::update_entrypoints() rewrites the header it includes.
+jlbind.o: entrypoints.h

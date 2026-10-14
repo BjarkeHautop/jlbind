@@ -92,6 +92,50 @@ test_that("use_jlbind() refuses a package that registers routines itself", {
   )
 })
 
+test_that("use_jlbind() makes jlbind.o depend on entrypoints.h", {
+  pkg <- local_client()
+  expect_equal(
+    readLines(file.path(pkg, "src", "Makevars")),
+    c(
+      "all: $(SHLIB)",
+      "",
+      "# Added by jlbind::use_jlbind(): recompile jlbind.c whenever",
+      "# jlbind::update_entrypoints() rewrites the header it includes.",
+      "jlbind.o: entrypoints.h"
+    )
+  )
+})
+
+test_that("use_jlbind() adds its rule to existing Makevars files", {
+  dir <- withr::local_tempdir()
+  writeLines(
+    c("Package: mk", "Version: 1.0", "Title: x"),
+    file.path(dir, "DESCRIPTION")
+  )
+  src <- file.path(dir, "src")
+  dir.create(src)
+  writeLines("PKG_LIBS = -lm", file.path(src, "Makevars"))
+  writeLines(
+    c("all: $(SHLIB) extra", "extra:", "\techo hi"),
+    file.path(src, "Makevars.win")
+  )
+  suppressMessages(use_jlbind(dir))
+
+  makevars <- readLines(file.path(src, "Makevars"))
+  # `all` comes before the rule, so it stays make's default target.
+  expect_equal(makevars[1:3], c("all: $(SHLIB)", "", "PKG_LIBS = -lm"))
+  expect_equal(makevars[[length(makevars)]], .makevars_rule)
+  win <- readLines(file.path(src, "Makevars.win"))
+  expect_equal(win[1:3], c("all: $(SHLIB) extra", "extra:", "\techo hi"))
+  expect_equal(sum(win == .makevars_rule), 1L)
+  expect_false(file.exists(file.path(src, "Makevars.ucrt")))
+
+  # Running it again changes nothing.
+  suppressMessages(use_jlbind(dir))
+  expect_equal(readLines(file.path(src, "Makevars")), makevars)
+  expect_equal(readLines(file.path(src, "Makevars.win")), win)
+})
+
 test_that("a package without the DESCRIPTION field is not a client", {
   dir <- withr::local_tempdir()
   writeLines(c("Package: plain", "Version: 1.0"), file.path(dir, "DESCRIPTION"))

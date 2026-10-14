@@ -11,6 +11,8 @@ fail(msg::String) = throw(ArgumentError(msg))
 threads() = Int64(Threads.nthreads())
 upper(xs::Vector{Symbol}) = [Symbol(uppercase(String(x))) for x in xs]
 evens(n::Int64) = Int32[i for i = 2:2:n]
+negate(x::Bool) = !x
+with_nul(s::String) = s * "\0"
 
 @rcall greet(name::String)::String
 @rcall shift(x::Vector{Float64}, by::Union{Nothing,Float64})::Vector{Float64}
@@ -19,5 +21,7 @@ evens(n::Int64) = Int32[i for i = 2:2:n]
 @rcall threads()::Int64
 @rcall upper(xs::Vector{Symbol})::Vector{Symbol}
 @rcall evens(n::Int64)::Vector{Int32}
+@rcall negate(x::Bool)::Bool
+@rcall with_nul(s::String)::String
 
 end
