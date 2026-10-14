@@ -19,7 +19,7 @@ jlbind, since they're all compiled into one library.}
 \code{path}, invisibly.
 }
 \description{
-Adds what a package needs to call Julia code through jlbind:
+Adds what a package needs to call Julia code through jlbind.
 }
 \details{
 \itemize{

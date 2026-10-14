@@ -1,7 +1,9 @@
-url: https://bjarkehautop.github.io/jlbind/
-template:
-  bootstrap: 5
+# Configuration for altdown::build_site(). See ?altdown::build_site for
+# all fields, including `articles:` (navbar order) and `quarto:` (extra
+# Quarto settings).
 
+# Groups the function reference index, in the same shape as pkgdown's
+# `reference:` field.
 reference:
   - title: "Building the library"
     desc: "Compile the Julia code of the installed packages that use jlbind."
@@ -22,6 +24,3 @@ reference:
     contents:
       - use_jlbind
       - update_entrypoints
-
-redirects:
-  - ["articles/writing-clients.html", "articles/jlbind.html"]

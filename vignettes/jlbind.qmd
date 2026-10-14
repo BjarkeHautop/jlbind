@@ -14,7 +14,7 @@ functions to R through native `.Call()` routines.
 This vignette explains how to add Julia functions to your own R package with
 jlbind. An R package that uses jlbind is called a *client*. For how jlbind
 compares with other ways of calling Julia from R, see
-[Performance](https://bjarkehautop.github.io/jlbind/articles/performance.html).
+[Performance](https://bjarkehautop.github.io/jlbind/vignettes/articles/performance.html).
 
 An R process can load only one compiled Julia library[^privatize]. By default,
 jlbind therefore compiles the Julia code of *all* installed clients into one

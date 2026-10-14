@@ -1,6 +1,6 @@
 #' Set up a package to use jlbind
 #'
-#' Adds what a package needs to call Julia code through jlbind:
+#' Adds what a package needs to call Julia code through jlbind.
 #'
 #' * A Julia binding package in `inst/<dir>`, with one example function,
 #'   `hello()`. An existing binding package is left alone.

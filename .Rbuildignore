@@ -11,9 +11,9 @@
 ^\.vscode$
 ^tests/clients/[^/]+/src/.*\.(o|so|dll|dylib)$
 ^\.github$
-^_pkgdown\.yml$
 ^docs$
-^pkgdown$
 ^vignettes/\.quarto$
 ^vignettes/.*_files$
 ^vignettes/articles$
+^altdoc$
+^_quarto$

@@ -15,7 +15,7 @@ This vignette explains how the shared library works and how to use an R package
 built with jlbind. To add Julia functions to your own R package, see [Get
 started with jlbind](jlbind.html). For how jlbind compares with other ways of
 calling Julia from R, see
-[Performance](https://bjarkehautop.github.io/jlbind/articles/performance.html).
+[Performance](https://bjarkehautop.github.io/jlbind/vignettes/articles/performance.html).
 
 ## How it works
 

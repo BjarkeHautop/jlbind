@@ -12,8 +12,17 @@ the binding packages of *every* installed client into one shared library that
 all of them bind to. `vignettes/jlbind.qmd` (Get started: writing a client) and
 `vignettes/using-clients.qmd` (installing and using clients) are the user-facing
 guides (rendered with Quarto); keep them in sync with user-visible behavior.
-`vignettes/articles/performance.qmd` is a pkgdown-only article whose data comes
+`vignettes/articles/performance.qmd` is a website-only article whose data comes
 from `vignettes/articles/performance/benchmark.R`.
+
+The website is built with [altdoc](https://altdoc.etiennebacher.com/), themed
+with [altdown](https://github.com/BjarkeHautop/altdown) and with hover tooltips
+from [reftip](https://github.com/BjarkeHautop/reftip). Build it with
+`altdown::build_site()` (output in `docs/`). `altdoc/altdown.yml` groups the
+reference index; new functions must be added there. The navbar is generated:
+`jlbind.qmd` is "Get started" and every other vignette, including
+`vignettes/articles/`, goes under "Articles". The other files in `altdoc/` are
+generated on every build and gitignored.
 
 ## Commands
 
@@ -53,7 +62,7 @@ Linux/Windows/macOS and with the latest Julia 1.x on Linux, all with the
 integration test enabled, and once on Linux without Julia, which is what CRAN
 sees — everything except the integration test must pass without Julia.
 `test-coverage.yaml` runs covr with Julia 1.13 and `JLBIND_TEST_BUILD=true` and
-uploads to Codecov; `pkgdown.yaml` builds and deploys the site.
+uploads to Codecov; `altdoc.yaml` builds and deploys the site.
 
 ## Architecture
 

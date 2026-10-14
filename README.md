@@ -12,7 +12,7 @@ jlbind compiles Julia code into a shared library with
 [JuliaC.jl](https://github.com/JuliaLang/JuliaC.jl) (by default with
 `--trim=safe`), and R calls it through R's official C API. Thus, there is almost
 no overhead (see
-[Performance](https://bjarkehautop.github.io/jlbind/articles/performance.html)).
+[Performance](https://bjarkehautop.github.io/jlbind/vignettes/articles/performance.html)).
 
 Several R packages using jlbind can be installed side by side: their Julia code
 is compiled into one shared library.
@@ -40,7 +40,7 @@ This compiles the Julia code of every installed package that uses jlbind and may
 take a few minutes. Run it again whenever you install or update one of them.
 
 See [Using packages built on
-jlbind](https://bjarkehautop.github.io/jlbind/articles/using-clients.html) for
+jlbind](https://bjarkehautop.github.io/jlbind/vignettes/using-clients.html) for
 threads, troubleshooting and Julia dependency versions.
 
 ## Writing a package that uses jlbind
@@ -66,7 +66,7 @@ greet <- function(name) .Call(C_greet, name)
 ```
 
 See [Get started with
-jlbind](https://bjarkehautop.github.io/jlbind/articles/jlbind.html) for a full
+jlbind](https://bjarkehautop.github.io/jlbind/vignettes/jlbind.html) for a full
 walkthrough.
 
 ## Contributing

@@ -8,3 +8,15 @@ inst/julia/JLBind/Manifest.toml
 *.dylib
 .Rhistory
 docs
+altdoc/freeze.rds
+altdoc/pkgdown.yml
+_quarto/*
+!_quarto/_freeze/
+altdoc/quarto_website.yml
+altdoc/index.md
+altdoc/reference.qmd
+altdoc/authors.qmd
+altdoc/altdown.scss
+altdoc/altdown-header.html
+altdoc/altdown-after-body.html
+altdoc/altdown-pre-render.R
