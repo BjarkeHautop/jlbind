@@ -1,0 +1,11 @@
+pandoc: 3.8.3
+pkgdown: 2.2.1.9000
+pkgdown_sha: edeaffaf3a19330d0749ca8c5021dc3709e6c959
+articles:
+  jlbind: jlbind.html
+  articles/performance: performance.html
+  writing-clients: writing-clients.html
+last_built: 2026-10-14T08:03Z
+urls:
+  reference: https://bjarkehautop.github.io/jlbind/reference
+  article: https://bjarkehautop.github.io/jlbind/articles
