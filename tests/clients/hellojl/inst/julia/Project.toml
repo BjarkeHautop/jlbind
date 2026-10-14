@@ -1,0 +1,9 @@
+name = "HelloBindings"
+uuid = "35c22c9e-e49c-4fcf-8c0a-7ff7e6d96b31"
+version = "0.1.0"
+
+[deps]
+JLBind = "afbbfe3b-b84d-4508-8d61-b26819a6ee14"
+
+[compat]
+julia = "1.13"

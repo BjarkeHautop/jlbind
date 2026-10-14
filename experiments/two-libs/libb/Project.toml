@@ -1,0 +1,5 @@
+name = "libb"
+uuid = "0b3c6b8e-2a0e-4d55-9f0e-7d6b1f6a0002"
+version = "0.1.0"
+[compat]
+julia = "1.13"

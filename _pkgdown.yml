@@ -1,0 +1,24 @@
+url: https://bjarkehautop.github.io/jlbind/
+template:
+  bootstrap: 5
+
+reference:
+  - title: "Building the library"
+    desc: "Compile the Julia code of the installed packages that use jlbind."
+    contents:
+      - install_backend
+      - build_library
+      - jlbind_clients
+
+  - title: "At run time"
+    desc: "Bind a package to the compiled library, and check on it."
+    contents:
+      - bind
+      - is_bound
+      - backend_info
+
+  - title: "Package development"
+    desc: "Set up a package to use jlbind."
+    contents:
+      - use_jlbind
+      - update_entrypoints

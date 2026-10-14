@@ -1,0 +1,7 @@
+greet <- function(name) .Call(C_greet, name)
+shift <- function(x, by = NULL) .Call(C_shift, x, by)
+describe <- function(x) .Call(C_describe, x)
+fail <- function(msg) .Call(C_fail, msg)
+threads <- function() .Call(C_threads)
+upper <- function(xs) .Call(C_upper, xs)
+evens <- function(n) .Call(C_evens, n)

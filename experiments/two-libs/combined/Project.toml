@@ -1,0 +1,11 @@
+name = "combined"
+uuid = "0b3c6b8e-2a0e-4d55-9f0e-7d6b1f6a0003"
+version = "0.1.0"
+
+[deps]
+liba = "0b3c6b8e-2a0e-4d55-9f0e-7d6b1f6a0001"
+libb = "0b3c6b8e-2a0e-4d55-9f0e-7d6b1f6a0002"
+
+[sources]
+liba = {path = "../liba"}
+libb = {path = "../libb"}

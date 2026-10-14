@@ -1,0 +1,9 @@
+name = "CounterBindings"
+uuid = "3292aef8-ef02-43fa-a7c8-8b985cdffd5b"
+version = "0.1.0"
+
+[deps]
+JLBind = "afbbfe3b-b84d-4508-8d61-b26819a6ee14"
+
+[compat]
+julia = "1.13"

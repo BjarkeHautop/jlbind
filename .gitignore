@@ -1,0 +1,10 @@
+experiments/**/out/
+experiments/**/Manifest.toml
+inst/julia/JLBind/Manifest.toml
+*.log
+*.o
+*.so
+*.dll
+*.dylib
+.Rhistory
+docs

@@ -1,0 +1,30 @@
+Package: jlbind
+Title: Bind R Packages to Compiled Julia Code
+Version: 0.0.0.9000
+Authors@R:
+    person("Bjarke Hautop", "Kristensen", , "bjarke.hautop@gmail.com", role = c("aut", "cre"))
+Description: Write parts of an R package in 'Julia' and call them from R
+    without a running 'Julia' session. The 'Julia' code is compiled with
+    'juliac' into a shared library that R calls directly through its C
+    API, so calls have almost no overhead.
+License: MIT + file LICENSE
+URL: https://github.com/BjarkeHautop/jlbind, https://bjarkehautop.github.io/jlbind/
+BugReports: https://github.com/BjarkeHautop/jlbind/issues
+Encoding: UTF-8
+Roxygen: list(markdown = TRUE)
+Depends:
+    R (>= 4.0.0)
+Imports:
+    parallel,
+    tools,
+    utils
+Suggests:
+    callr,
+    quarto,
+    testthat (>= 3.0.0),
+    withr
+VignetteBuilder: quarto
+Config/Needs/website: ggplot2, scales
+Config/testthat/edition: 3
+SystemRequirements: Julia (>= 1.13)
+Config/roxygen2/version: 8.1.0

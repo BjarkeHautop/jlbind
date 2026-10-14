@@ -1,0 +1,11 @@
+Package: counterjl
+Title: A Test Client of jlbind
+Version: 0.1.0
+Authors@R: person("jlbind", "authors", role = c("aut", "cre"), email = "noreply@example.com")
+Description: A package that calls Julia through jlbind, for jlbind's tests.
+License: MIT
+Encoding: UTF-8
+Config/jlbind: julia
+Imports: jlbind
+SystemRequirements: Julia (>= 1.13), needed to build the compiled library with
+    jlbind::install_backend()

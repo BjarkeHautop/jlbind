@@ -1,0 +1,7 @@
+flavor = "gfm"
+
+[linters]
+r = "jarl"
+
+[formatters]
+r = "air"

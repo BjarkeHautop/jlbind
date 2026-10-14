@@ -1,0 +1,197 @@
+---
+title: "Performance"
+---
+
+```{r}
+#| include: false
+
+library(ggplot2)
+
+dir <- "performance"
+startup <- read.csv(file.path(dir, "startup.csv"))
+calls <- read.csv(file.path(dir, "calls.csv"))
+versions <- read.csv(file.path(dir, "versions.csv"))
+
+interfaces <- c("jlbind", "JuliaCall", "JuliaConnectoR")
+colors <- c(
+  jlbind = "#2a78d6",
+  JuliaCall = "#eb6834",
+  JuliaConnectoR = "#1baf7a"
+)
+
+# Format a time in seconds with a sensible unit.
+fmt_time <- function(s) {
+  ifelse(
+    s < 1e-3,
+    sprintf("%.3g µs", s * 1e6),
+    ifelse(s < 1, sprintf("%.3g ms", s * 1e3), sprintf("%.3g s", s))
+  )
+}
+
+startup_med <- tapply(startup$seconds, startup$interface, median)[interfaces]
+greet <- calls[calls$task == "greet", ]
+greet_med <- setNames(greet$median, greet$interface)[interfaces]
+shift <- calls[calls$task == "shift", ]
+shift_at <- function(n) {
+  setNames(shift$median[shift$n == n], shift$interface[shift$n == n])[
+    interfaces
+  ]
+}
+```
+
+jlbind calls Julia code that was compiled ahead of time, through one `.Call()`
+per function. The alternatives,
+[JuliaCall](https://github.com/JuliaInterop/JuliaCall) and
+[JuliaConnectoR](https://github.com/stefan-m-lenz/JuliaConnectoR), run Julia
+itself: JuliaCall embeds a Julia session in the R process, and JuliaConnectoR
+starts one in a separate process and talks to it over a socket. This article
+compares the three on the same Julia functions.
+
+In short, on this machine, jlbind is ready to use
+`r round(startup_med[["JuliaConnectoR"]] / startup_med[["jlbind"]])` to
+`r round(startup_med[["JuliaCall"]] / startup_med[["jlbind"]])` times sooner,
+and a call costs `r fmt_time(greet_med[["jlbind"]])` rather than
+`r fmt_time(greet_med[["JuliaCall"]])` (JuliaCall) or
+`r fmt_time(greet_med[["JuliaConnectoR"]])` (JuliaConnectoR).
+
+## The benchmarks
+
+The functions are the same as in the `hellojl` test client in jlbind's
+repository:
+
+```julia
+greet(name::String) = "Hello, " * name * "!"
+shift(x::Vector{Float64}, by::Float64) = x .+ by
+```
+
+jlbind calls them through `hellojl`, compiled into a jlbind library. JuliaCall
+and JuliaConnectoR evaluate the same definitions and call them with
+`julia_call()` and `juliaFun()`. Each interface runs in fresh R processes, since
+jlbind and JuliaCall can't share one.
+
+- **Startup**: the time from loading the package to the result of the first
+  call, `greet("world")`, in a new R process (R's own startup excluded),
+  repeated `r max(startup$rep)` times.
+- **Call overhead**: the median time of `greet("world")`, a string in and a
+  string out, after the first call.
+- **Data transfer**: the median time of `shift(x, 1)` for numeric vectors `x` of
+  length 10 to 10^7^, which copies `x` to Julia and the result back.
+
+The benchmark script is
+[`vignettes/articles/performance/benchmark.R`](https://github.com/BjarkeHautop/jlbind/blob/main/vignettes/articles/performance/benchmark.R).
+The results below were run on:
+
+```{r}
+#| echo: false
+
+knitr::kable(versions, col.names = c("", ""))
+```
+
+## Startup
+
+```{r}
+#| echo: false
+
+knitr::kable(
+  data.frame(
+    Interface = interfaces,
+    Median = fmt_time(startup_med),
+    Min = fmt_time(tapply(startup$seconds, startup$interface, min)[interfaces]),
+    Max = fmt_time(tapply(startup$seconds, startup$interface, max)[interfaces])
+  ),
+  align = "lrrr",
+  row.names = FALSE
+)
+```
+
+For jlbind, startup is loading the compiled library and binding the package's
+routines. JuliaCall and JuliaConnectoR start Julia, and compile each function
+the first time it is called. With a real Julia package instead of two one-line
+functions, compiling and loading the package typically take much longer than
+here.
+
+## Call overhead
+
+```{r}
+#| echo: false
+
+knitr::kable(
+  data.frame(
+    Interface = interfaces,
+    `Time per call` = fmt_time(greet_med),
+    `Relative to jlbind` = sprintf("%.0f×", greet_med / greet_med[["jlbind"]]),
+    check.names = FALSE
+  ),
+  align = "lrr",
+  row.names = FALSE
+)
+```
+
+A jlbind call is a `.Call()` into the compiled library, where the arguments are
+converted with R's C API and the function is called directly. JuliaCall converts
+arguments and looks up the function at run time in the embedded session.
+JuliaConnectoR serializes the call to a separate Julia process and the result
+back, so each call costs a round trip.
+
+## Data transfer
+
+```{r}
+#| echo: false
+#| fig-width: 7
+#| fig-height: 4.2
+#| fig-alt: >-
+#|   Median time of shift(x, 1) against the length of x, on log scales, for
+#|   jlbind, JuliaCall and JuliaConnectoR. jlbind is fastest at every length.
+
+shift$interface <- factor(shift$interface, levels = interfaces)
+starts <- shift[shift$n == min(shift$n), ]
+
+ggplot(shift, aes(n, median, color = interface)) +
+  geom_line(linewidth = 0.8) +
+  geom_point(size = 2.2, shape = 21, fill = "white", stroke = 1) +
+  geom_text(
+    data = starts,
+    aes(label = interface),
+    hjust = 1,
+    nudge_x = -0.12,
+    size = 3.5,
+    color = "#52514e"
+  ) +
+  scale_x_log10(
+    breaks = 10^(1:7),
+    labels = scales::label_math(10^.x, format = log10),
+    expand = expansion(mult = c(0.3, 0.03))
+  ) +
+  scale_y_log10(breaks = 10^(-6:0), labels = fmt_time) +
+  scale_color_manual(values = colors) +
+  labs(x = "Length of x", y = "Median time of shift(x, 1)", color = NULL) +
+  theme_minimal(base_size = 12) +
+  theme(
+    legend.position = "top",
+    legend.justification = "left",
+    panel.grid.minor = element_blank(),
+    panel.grid.major = element_line(color = "#e8e7e3", linewidth = 0.3),
+    axis.text = element_text(color = "#52514e"),
+    axis.title = element_text(color = "#52514e")
+  )
+```
+
+```{r}
+#| echo: false
+
+wide <- reshape(
+  shift[c("interface", "n", "median")],
+  idvar = "n",
+  timevar = "interface",
+  direction = "wide"
+)
+names(wide) <- sub("median.", "", names(wide), fixed = TRUE)
+wide[interfaces] <- lapply(wide[interfaces], fmt_time)
+wide$n <- format(wide$n, big.mark = ",", scientific = FALSE, trim = TRUE)
+knitr::kable(
+  wide,
+  col.names = c("Length", interfaces),
+  align = "rrrr",
+  row.names = FALSE
+)
+```

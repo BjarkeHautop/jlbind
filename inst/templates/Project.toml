@@ -1,0 +1,12 @@
+name = "{{module}}"
+uuid = "{{uuid}}"
+version = "0.1.0"
+
+# The binding package of the R package {{package}}, compiled into the library
+# that jlbind::install_backend() builds. Only runtime dependencies belong here.
+
+[deps]
+JLBind = "afbbfe3b-b84d-4508-8d61-b26819a6ee14"
+
+[compat]
+julia = "1.13"

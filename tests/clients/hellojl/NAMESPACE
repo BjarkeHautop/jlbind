@@ -1,0 +1,8 @@
+useDynLib(hellojl, .registration = TRUE, .fixes = "C_")
+export(greet)
+export(shift)
+export(describe)
+export(fail)
+export(threads)
+export(upper)
+export(evens)
