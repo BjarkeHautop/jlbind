@@ -154,16 +154,14 @@ test_that("a client is trimmed unless Config/jlbind/trim says otherwise", {
   expect_error(.client_info(pkg), "must be true or false")
 })
 
-test_that("UUIDs are version 4 and leave the random stream alone", {
-  set.seed(1)
-  a <- runif(1)
-  set.seed(1)
-  u <- .uuid4()
-  expect_equal(runif(1), a)
+test_that("UUIDs are version 3 and derived from the module name", {
+  u <- .uuid3("FooBindings")
   expect_match(
     u,
-    "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+    "^[0-9a-f]{8}-[0-9a-f]{4}-3[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
   )
+  expect_identical(.uuid3("FooBindings"), u)
+  expect_false(.uuid3("BarBindings") == u)
 })
 
 test_that("use_jlbind() needs a package and a valid module name", {

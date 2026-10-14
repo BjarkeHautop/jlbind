@@ -63,7 +63,7 @@ use_jlbind <- function(path = ".", module = NULL, dir = "julia") {
     if (!grepl("^[A-Za-z][A-Za-z0-9_]*$", module)) {
       stop("`module` must be a valid Julia package name.", call. = FALSE)
     }
-    vars <- list(package = pkg, module = module, uuid = .uuid4())
+    vars <- list(package = pkg, module = module, uuid = .uuid3(module))
     dir.create(
       file.path(binding, "src"),
       recursive = TRUE,
@@ -492,7 +492,6 @@ update_entrypoints <- function(path = ".") {
   writeLines(.fill(.template(name), vars), to)
 }
 
-# A random (version 4) UUID, leaving the session's random numbers as they were.
 # Appends `line` to the file unless it has it, creating the file if needed.
 .add_line <- function(file, line) {
   lines <- if (file.exists(file)) readLines(file, warn = FALSE)
@@ -502,15 +501,17 @@ update_entrypoints <- function(path = ".") {
   invisible(NULL)
 }
 
-.uuid4 <- function() {
-  if (exists(".Random.seed", globalenv())) {
-    seed <- get(".Random.seed", globalenv())
-    on.exit(assign(".Random.seed", seed, globalenv()))
-  }
-  set.seed(NULL)
-  hex <- sample(c(0:9, letters[1:6]), 32L, replace = TRUE)
-  hex[13L] <- "4"
-  hex[17L] <- sample(c("8", "9", "a", "b"), 1L)
+# A name-based (version 3) UUID for a binding package. Module names must be
+# unique across clients anyway, so deriving the UUID from the name needs no
+# Julia and no random numbers.
+.uuid3 <- function(module) {
+  f <- tempfile()
+  on.exit(unlink(f))
+  writeBin(charToRaw(paste0("jlbind:", module)), f)
+  hex <- strsplit(unname(tools::md5sum(f)), "")[[1L]]
+  hex[13L] <- "3"
+  variant <- bitwOr(bitwAnd(strtoi(hex[17L], 16L), 3L), 8L)
+  hex[17L] <- sprintf("%x", variant)
   s <- paste(hex, collapse = "")
   paste(
     substr(s, 1L, 8L),
