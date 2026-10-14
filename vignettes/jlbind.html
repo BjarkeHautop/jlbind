@@ -1,0 +1,1321 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.10.19">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+
+<title>Get started with jlbind – jlbind 0.0.0.9000</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+
+
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script>
+<script src="../site_libs/quarto-nav/headroom.min.js"></script>
+<script src="../site_libs/clipboard/clipboard.min.js"></script>
+<script src="../site_libs/quarto-search/autocomplete.umd.js"></script>
+<script src="../site_libs/quarto-search/fuse.min.js"></script>
+<script src="../site_libs/quarto-search/quarto-search.js"></script>
+<meta name="quarto:offset" content="../">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script>
+<script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
+<script src="../site_libs/quarto-html/popper.min.js"></script>
+<script src="../site_libs/quarto-html/tippy.umd.min.js"></script>
+<script src="../site_libs/quarto-html/anchor.min.js"></script>
+<link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script>
+<link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-6f1807773e46e89979bbe455adae23f4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-fe45675247739dffee76f114a0f81a45.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-6f1807773e46e89979bbe455adae23f4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": " Search for",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script>
+<!--
+Quarto's own dark-mode toggle always defaults new visitors to whichever theme
+is listed first (light), ignoring the OS/browser `prefers-color-scheme`
+setting - there's no config for this, so seed its localStorage sentinel
+ourselves before its own before-body script reads it. Runs in <head>, ahead of
+any painted content, so there's no light-then-dark flash. Only acts when the
+visitor has never toggled here before - an explicit past choice always wins.
+-->
+<script>
+(function () {
+  try {
+    if (
+      window.localStorage.getItem("quarto-color-scheme") === null &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+    ) {
+      window.localStorage.setItem("quarto-color-scheme", "alternate");
+    }
+  } catch (e) {
+    // localStorage unavailable (e.g. file:// preview, blocked
+    // storage) - fall back to Quarto's own light default.
+  }
+})();
+</script>
+
+
+<!-- reftip -->
+<style>
+.reftip-float{display:none;position:fixed;z-index:10000;min-width:220px;max-width:420px;background:var(--bs-body-bg,#1e1e1e);color:var(--bs-body-color,#eee);border:1px solid var(--bs-border-color,#444);border-radius:6px;padding:.5em .75em;font-size:.85em;line-height:1.4;box-shadow:0 4px 14px rgba(0,0,0,.35);white-space:normal;text-align:left;font-weight:normal;font-style:normal;}
+.reftip-float .reftip-sig{display:block;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:600;color:var(--bs-link-color,#9cdcfe);margin-bottom:.35em;background-color:transparent;padding:0;border-radius:0;}
+.reftip-float .reftip-brief{margin:0;color:var(--bs-secondary-color,#ccc);}
+a.reftip-ref{cursor:help;}
+</style>
+</head>
+
+<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+      // Hack to workaround the fact that safari doesn't
+      // properly recolor the scrollbar when toggling (#1455)
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        window.scrollTo(0, 1);
+        setTimeout(() => {
+          window.scrollTo(0, 0);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script>
+
+<div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top">
+    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
+      <div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">jlbind 0.0.0.9000</span>
+    </a>
+  </div>
+            <div id="quarto-search" class="" title="Search"></div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" role="menu" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+  <li class="nav-item">
+    <a class="nav-link active" href="../vignettes/jlbind.html" aria-current="page"> 
+<span class="menu-text">Get started</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../reference.html"> 
+<span class="menu-text">Reference</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-articles" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Articles</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-articles">    
+        <li>
+    <a class="dropdown-item" href="../vignettes/using-clients.html">
+ <span class="dropdown-text">Using packages built on jlbind</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/articles/performance.html">
+ <span class="dropdown-text">Performance</span></a>
+  </li>  
+    </ul>
+  </li>
+</ul>
+            <ul class="navbar-nav navbar-nav-scroll ms-auto">
+  <li class="nav-item compact">
+    <a class="nav-link" href="https://github.com/BjarkeHautop/jlbind"> <i class="bi bi-github" role="img" aria-label="GitHub">
+</i> 
+<span class="menu-text"></span></a>
+  </li>  
+</ul>
+          </div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+  <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
+</div>
+      </div> <!-- /container-fluid -->
+    </nav>
+</header>
+<!-- content -->
+<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" class="toc-active">
+    <h2 id="toc-title">On this page</h2>
+   
+  <ul>
+  <li><a href="#set-up" id="toc-set-up" class="nav-link active" data-scroll-target="#set-up">Set up</a></li>
+  <li><a href="#declare-julia-functions" id="toc-declare-julia-functions" class="nav-link" data-scroll-target="#declare-julia-functions">Declare Julia functions</a></li>
+  <li><a href="#call-them-from-r" id="toc-call-them-from-r" class="nav-link" data-scroll-target="#call-them-from-r">Call them from R</a></li>
+  <li><a href="#build-and-test-locally" id="toc-build-and-test-locally" class="nav-link" data-scroll-target="#build-and-test-locally">Build and test locally</a></li>
+  <li><a href="#tests-and-cran" id="toc-tests-and-cran" class="nav-link" data-scroll-target="#tests-and-cran">Tests and CRAN</a></li>
+  <li><a href="#types" id="toc-types" class="nav-link" data-scroll-target="#types">Types</a>
+  <ul class="collapse">
+  <li><a href="#julia-objects-in-r" id="toc-julia-objects-in-r" class="nav-link" data-scroll-target="#julia-objects-in-r">Julia objects in R</a></li>
+  </ul></li>
+  <li><a href="#errors" id="toc-errors" class="nav-link" data-scroll-target="#errors">Errors</a></li>
+  <li><a href="#compilation-constraints-trimming" id="toc-compilation-constraints-trimming" class="nav-link" data-scroll-target="#compilation-constraints-trimming">Compilation constraints (trimming)</a>
+  <ul class="collapse">
+  <li><a href="#abstract-types" id="toc-abstract-types" class="nav-link" data-scroll-target="#abstract-types">Abstract types</a></li>
+  </ul></li>
+  </ul>
+</nav>
+    </div>
+<!-- main -->
+<main class="content" id="quarto-document-content">
+
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Get started with jlbind</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header>
+
+
+<p>jlbind lets an R package call Julia code without starting a separate Julia session. It compiles Julia code into a shared library using <a href="https://github.com/JuliaLang/JuliaC.jl">JuliaC.jl</a>, then exposes Julia functions to R through native <code>.Call()</code> routines.</p>
+<p>This vignette explains how to add Julia functions to your own R package with jlbind. An R package that uses jlbind is called a <em>client</em>. For how jlbind compares with other ways of calling Julia from R, see <a href="https://bjarkehautop.github.io/jlbind/vignettes/articles/performance.html">Performance</a>.</p>
+<p>An R process can load only one compiled Julia library<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. By default, jlbind therefore compiles the Julia code of <em>all</em> installed clients into one shared library, which each user builds with <code><a class="reftip-ref" data-reftip="t1" href="../man/install_library.html">jlbind::install_library()</a></code>. Your client then shares a library, and a set of Julia dependency versions, with every other client the user has installed. Users can instead build a separate library for some clients, but then those clients can’t be loaded in the same R session. <a href="using-clients.html">Using packages built on jlbind</a> describes how this works and what your users need to do.</p>
+<section id="set-up" class="level2">
+<h2 class="anchored" data-anchor-id="set-up">Set up</h2>
+<p>From your R package’s directory, run:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="reftip-ref" data-reftip="t2" href="../man/use_jlbind.html">use_jlbind</a></span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This creates the files and configuration needed to connect the package to jlbind:</p>
+<ul>
+<li><code>inst/julia/</code>, containing a Julia binding package named after the R package with a <code>Bindings</code> suffix (for example, <code>MyPkgBindings</code>), including an example function.</li>
+<li><code>src/jlbind.c</code> and <code>src/entrypoints.h</code>, which register the native routines.</li>
+<li><code>R/jlbind.R</code>, which calls <code><a class="reftip-ref" data-reftip="t3" href="../man/bind_client.html">jlbind::bind_client()</a></code> from <code>.onLoad()</code> and includes the roxygen tag for <code>useDynLib()</code>.</li>
+<li>The <code>Config/jlbind</code> and <code>Imports: jlbind</code> fields in <code>DESCRIPTION</code>.</li>
+<li>A <code>.jlbind/</code> directory for development builds, added to <code>.Rbuildignore</code> and <code>.gitignore</code>.</li>
+</ul>
+<p>If your package already defines <code>.onLoad()</code>, add <code><a class="reftip-ref" data-reftip="t3" href="../man/bind_client.html">jlbind::bind_client(pkgname)</a></code> to the existing function yourself. Then run <code>devtools::document()</code> to update <code>NAMESPACE</code>.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Give the Julia binding package a unique name</strong></p>
+<p>All clients are compiled into the same library, so their Julia package names must not collide. Choose a binding package name that is unique among all R packages using jlbind, not just within your own R package.</p>
+<p>That is why the default name is the R package name with a <code>Bindings</code> suffix.</p>
+</div>
+</div>
+</section>
+<section id="declare-julia-functions" class="level2">
+<h2 class="anchored" data-anchor-id="declare-julia-functions">Declare Julia functions</h2>
+<p>Inside the binding package, declare each function that R should be able to call using <code>@rcall</code>. Each declaration specifies the argument types and return type expected by the binding.</p>
+<p>For example:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> MyPkgBindings</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">JLBind</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">greet</span>(name<span class="op">::</span><span class="dt">String</span>) <span class="op">=</span> <span class="st">"Hello, "</span> <span class="op">*</span> name <span class="op">*</span> <span class="st">"!"</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">shift</span>(x<span class="op">::</span><span class="dt">Vector{Float64}</span>, by<span class="op">::</span><span class="dt">Union{Nothing,Float64}</span>) <span class="op">=</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    by <span class="op">===</span> <span class="cn">nothing</span> ? x <span class="op">:</span> x <span class="op">.+</span> by</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">greet</span>(name<span class="op">::</span><span class="dt">String</span>)<span class="op">::</span><span class="dt">String</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">shift</span>(x<span class="op">::</span><span class="dt">Vector{Float64}</span>, by<span class="op">::</span><span class="dt">Union{Nothing,Float64}</span>)<span class="op">::</span><span class="dt">Vector{Float64}</span></span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The binding package is an ordinary Julia package. Declare its dependencies in <code>Project.toml</code> and import them as usual. In many cases, the actual computation lives in an existing Julia package, and the binding package only needs to declare the functions R should call and handle any necessary conversions.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Important
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Write <code>@rcall</code> declarations literally at the top level</strong></p>
+<p>jlbind discovers <code>@rcall</code> declarations by scanning the Julia source files; it does not execute the module to find them. Keep the declarations at the top level of the module’s files rather than generating them dynamically or placing them inside functions or other runtime constructs.</p>
+</div>
+</div>
+</section>
+<section id="call-them-from-r" class="level2">
+<h2 class="anchored" data-anchor-id="call-them-from-r">Call them from R</h2>
+<p>Whenever you add or change <code>@rcall</code> declarations, regenerate the native routine list:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="reftip-ref" data-reftip="t4" href="../man/update_entrypoints.html">update_entrypoints</a></span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Each declared Julia function <code>f</code> becomes a native routine called <code>C_f</code>, which you can call from R using <code>.Call()</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>greet <span class="ot">&lt;-</span> <span class="cf">function</span>(name) <span class="fu">.Call</span>(C_greet, name)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>shift <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">by =</span> <span class="cn">NULL</span>) <span class="fu">.Call</span>(C_shift, x, by)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>The Julia side checks and converts the arguments, so the R wrappers can stay small. Use them to provide R-friendly defaults and documentation.</p>
+</section>
+<section id="build-and-test-locally" class="level2">
+<h2 class="anchored" data-anchor-id="build-and-test-locally">Build and test locally</h2>
+<p>During development, you usually want to build the library from your package’s source rather than from the installed clients. Run:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="reftip-ref" data-reftip="t5" href="../man/build_library.html">build_library</a></span>()</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">load_all</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>By default, <code><a class="reftip-ref" data-reftip="t5" href="../man/build_library.html">build_library()</a></code> writes the library to <code>.jlbind/</code> in your package’s source directory. That directory is excluded from the installed package. When you load the package with <code>devtools::load_all()</code>, jlbind uses this development library instead of the one created by <code><a class="reftip-ref" data-reftip="t1" href="../man/install_library.html">install_library()</a></code>.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Note
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>The development library is only used when your package loads first</strong></p>
+<p>The <code>.jlbind/</code> library is selected only if your package is the first package using jlbind to be loaded in the R session. If another client has already loaded a different library, rebuilding your development library will not switch the active one. Restart R, then load your package first to test the new build.</p>
+</div>
+</div>
+<p>If you need to use a library stored elsewhere, set the <code>JLBIND_LIBRARY</code> environment variable to its path before loading the package.</p>
+<p>You can also test against an unreleased version of a Julia dependency by providing a local checkout through <code>develop</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="reftip-ref" data-reftip="t5" href="../man/build_library.html">build_library</a></span>(<span class="at">develop =</span> <span class="st">"~/dev/SomePackage.jl"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Tip
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p><strong>Pin the dependency versions</strong></p>
+<p>Include a <code>Manifest.toml</code> next to the binding package’s <code>Project.toml</code> with the Julia dependency versions known to compile with your package. <a href="https://cran.r-project.org/web/packages/policies.html">CRAN’s policy</a> asks that downloaded libraries be a fixed version rather than the latest.</p>
+</div>
+</div>
+</section>
+<section id="tests-and-cran" class="level2">
+<h2 class="anchored" data-anchor-id="tests-and-cran">Tests and CRAN</h2>
+<p>CRAN’s check machines do not have Julia installed, so your package must install and pass <code>R CMD check</code> without a compiled Julia library.</p>
+<p>In tests, skip anything that needs the library:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="fu">skip_if_not</span>(jlbind<span class="sc">::</span><span class="fu"><a class="reftip-ref" data-reftip="t6" href="../man/is_bound.html">is_bound</a></span>(<span class="st">"mypkg"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>In examples, wrap calls that require the library in <code>if (jlbind::is_bound("mypkg"))</code>.</p>
+</section>
+<section id="types" class="level2">
+<h2 class="anchored" data-anchor-id="types">Types</h2>
+<p><code>@rcall</code> converts each argument using <code>from_sexp()</code> and converts the return value using <code>to_sexp()</code>. The built-in conversions are:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 35%">
+<col style="width: 31%">
+<col style="width: 33%">
+</colgroup>
+<thead>
+<tr class="header">
+<th>Julia</th>
+<th>R argument</th>
+<th>R result</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>String</code>, <code>Symbol</code></td>
+<td>A single string</td>
+<td>A character vector of length one</td>
+</tr>
+<tr class="even">
+<td><code>Vector{String}</code>, <code>Vector{Symbol}</code></td>
+<td>A character vector</td>
+<td>A character vector</td>
+</tr>
+<tr class="odd">
+<td><code>Float64</code></td>
+<td>A single number</td>
+<td>A double</td>
+</tr>
+<tr class="even">
+<td><code>Int64</code></td>
+<td>A single whole number</td>
+<td>A double</td>
+</tr>
+<tr class="odd">
+<td><code>Int32</code></td>
+<td></td>
+<td>An integer</td>
+</tr>
+<tr class="even">
+<td><code>Bool</code></td>
+<td><code>TRUE</code> or <code>FALSE</code></td>
+<td>A logical</td>
+</tr>
+<tr class="odd">
+<td><code>Vector{Float64}</code>, <code>Vector{Int64}</code></td>
+<td>A numeric vector</td>
+<td>A double vector</td>
+</tr>
+<tr class="even">
+<td><code>Vector{Int32}</code></td>
+<td></td>
+<td>An integer vector</td>
+</tr>
+<tr class="odd">
+<td><code>Vector{Bool}</code></td>
+<td>A logical vector</td>
+<td>A logical vector</td>
+</tr>
+<tr class="even">
+<td><code>Matrix{Float64}</code></td>
+<td></td>
+<td>A double matrix</td>
+</tr>
+<tr class="odd">
+<td><code>Union{Nothing,T}</code></td>
+<td><code>NULL</code>, or a value of type <code>T</code></td>
+<td><code>NULL</code>, or a value of type <code>T</code></td>
+</tr>
+<tr class="even">
+<td><code>Nothing</code></td>
+<td></td>
+<td><code>NULL</code></td>
+</tr>
+<tr class="odd">
+<td>Other <code>Vector</code>s, <code>Tuple</code>s</td>
+<td></td>
+<td>A list</td>
+</tr>
+<tr class="even">
+<td><code>NamedTuple</code></td>
+<td></td>
+<td>A named list</td>
+</tr>
+<tr class="odd">
+<td><code>RRef{T}</code></td>
+<td>A reference to a Julia object</td>
+<td>A reference to a Julia object</td>
+</tr>
+<tr class="even">
+<td><code>Vector{RRef{T}}</code></td>
+<td></td>
+<td>A list of references</td>
+</tr>
+</tbody>
+</table>
+<p><code>NA</code> is an error wherever a value is expected. Likewise, an <code>Int64</code> argument must be a whole number. Julia’s <code>Int64</code> values become R doubles because R’s standard integers are only 32 bits; return <code>Int32</code> if you need an R integer.</p>
+<p>A binding package can support additional types by defining methods for <code>JLBind.from_sexp(::Type{T}, x::SEXP)</code> and <code>JLBind.to_sexp(x::T)</code>. <code>JLBind</code> also provides helpers for building R objects directly, such as <code>JLBind.data_frame()</code>. See the <a href="https://github.com/BjarkeHautop/jlbind/tree/main/inst/julia/JLBind/src"><code>JLBind</code> source</a> for the existing conversions and helpers.</p>
+<section id="julia-objects-in-r" class="level3">
+<h3 class="anchored" data-anchor-id="julia-objects-in-r">Julia objects in R</h3>
+<p>Sometimes an object is easier to keep in Julia than to convert into an R data structure. You can pass such objects by reference using <code>RRef{T}</code>. R receives an external pointer to the Julia object, allowing it to be reused across calls. The object is released when R garbage-collects the reference.</p>
+<p>For example, define a mutable Julia object and expose functions that operate on it:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">mutable struct</span> Counter</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    n<span class="op">::</span><span class="dt">Int64</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>JLBind.<span class="fu">r_class</span>(<span class="op">::</span><span class="dt">Type{Counter}</span>) <span class="op">=</span> <span class="st">"counter"</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a><span class="fu">new_counter</span>(start<span class="op">::</span><span class="dt">Int64</span>) <span class="op">=</span> <span class="fu">Counter</span>(start)</span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a><span class="fu">increment</span>(c<span class="op">::</span><span class="dt">Counter</span>, by<span class="op">::</span><span class="dt">Int64</span>) <span class="op">=</span> (c.n <span class="op">+=</span> by; c.n)</span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">new_counter</span>(start<span class="op">::</span><span class="dt">Int64</span>)<span class="op">::</span><span class="dt">RRef{Counter}</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">increment</span>(c<span class="op">::</span><span class="dt">RRef{Counter}</span>, by<span class="op">::</span><span class="dt">Int64</span>)<span class="op">::</span><span class="dt">Int64</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>From R, you can create a counter and update it across calls:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>counter <span class="ot">&lt;-</span> <span class="fu">new_counter</span>(<span class="dv">0</span>)</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(counter)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] "counter"</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">increment</span>(counter, <span class="dv">2</span>)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p><code>r_class()</code> sets the R class of the external pointer, so your package can define methods such as <code>print()</code> for it. An argument declared as <code>RRef{Counter}</code> also checks that the reference points to a <code>Counter</code>, rather than accepting an arbitrary Julia object.</p>
+</section>
+</section>
+<section id="errors" class="level2">
+<h2 class="anchored" data-anchor-id="errors">Errors</h2>
+<p>If a function called through <code>@rcall</code> throws a Julia exception, jlbind turns it into an R error. The messages from <code>ArgumentError</code>, <code>ErrorException</code>, <code>DimensionMismatch</code>, <code>OverflowError</code>, and <code>AssertionError</code> are passed through. Other exceptions are summarized.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fail</span>(msg<span class="op">::</span><span class="dt">String</span>) <span class="op">=</span> <span class="fu">throw</span>(<span class="fu">ArgumentError</span>(msg))</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">fail</span>(msg<span class="op">::</span><span class="dt">String</span>)<span class="op">::</span><span class="dt">Nothing</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Calling the function from R then produces an ordinary R error:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">fail</span>(<span class="st">"bad input"</span>)</span>
+<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Error: bad input</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section>
+<section id="compilation-constraints-trimming" class="level2">
+<h2 class="anchored" data-anchor-id="compilation-constraints-trimming">Compilation constraints (trimming)</h2>
+<p>By default, jlbind compiles the shared library with <code>juliac --trim=safe</code>. This keeps the compiled image small by including only code reachable from the functions exposed through <code>@rcall</code>. It also requires calls to be resolvable at compile time.</p>
+<p>If your package cannot be compiled with trimming, add the following field to <code>DESCRIPTION</code>:</p>
+<pre class="text"><code>Config/jlbind/trim: false</code></pre>
+<p>This disables trimming and allows code that cannot be resolved ahead of time to compile.</p>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Warning
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An untrimmed library includes the full Julia system image and is <em>much</em> larger, so avoid it if you can.</p>
+</div>
+</div>
+<section id="abstract-types" class="level3">
+<h3 class="anchored" data-anchor-id="abstract-types">Abstract types</h3>
+<p>With trimming, a common source of compilation errors is a function that accepts several concrete types through an abstract <code>RRef</code>. Suppose your binding package works with shapes:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb13"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a><span class="kw">abstract type</span> Shape <span class="kw">end</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Circle <span class="op">&lt;:</span><span class="dt"> Shape</span></span>
+<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a>    radius<span class="op">::</span><span class="dt">Float64</span></span>
+<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Square <span class="op">&lt;:</span><span class="dt"> Shape</span></span>
+<span id="cb13-7"><a href="#cb13-7" aria-hidden="true" tabindex="-1"></a>    side<span class="op">::</span><span class="dt">Float64</span></span>
+<span id="cb13-8"><a href="#cb13-8" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb13-9"><a href="#cb13-9" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Rectangle <span class="op">&lt;:</span><span class="dt"> Shape</span></span>
+<span id="cb13-10"><a href="#cb13-10" aria-hidden="true" tabindex="-1"></a>    width<span class="op">::</span><span class="dt">Float64</span></span>
+<span id="cb13-11"><a href="#cb13-11" aria-hidden="true" tabindex="-1"></a>    height<span class="op">::</span><span class="dt">Float64</span></span>
+<span id="cb13-12"><a href="#cb13-12" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb13-13"><a href="#cb13-13" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Triangle <span class="op">&lt;:</span><span class="dt"> Shape</span></span>
+<span id="cb13-14"><a href="#cb13-14" aria-hidden="true" tabindex="-1"></a>    base<span class="op">::</span><span class="dt">Float64</span></span>
+<span id="cb13-15"><a href="#cb13-15" aria-hidden="true" tabindex="-1"></a>    height<span class="op">::</span><span class="dt">Float64</span></span>
+<span id="cb13-16"><a href="#cb13-16" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb13-17"><a href="#cb13-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-18"><a href="#cb13-18" aria-hidden="true" tabindex="-1"></a>JLBind.<span class="fu">r_class</span>(<span class="op">::</span><span class="dt">Type{&lt;:Shape}</span>) <span class="op">=</span> <span class="st">"shape"</span></span>
+<span id="cb13-19"><a href="#cb13-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb13-20"><a href="#cb13-20" aria-hidden="true" tabindex="-1"></a><span class="fu">area</span>(s<span class="op">::</span><span class="dt">Circle</span>) <span class="op">=</span> <span class="cn">pi</span> <span class="op">*</span> s.radius<span class="op">^</span><span class="fl">2</span></span>
+<span id="cb13-21"><a href="#cb13-21" aria-hidden="true" tabindex="-1"></a><span class="fu">area</span>(s<span class="op">::</span><span class="dt">Square</span>) <span class="op">=</span> s.side<span class="op">^</span><span class="fl">2</span></span>
+<span id="cb13-22"><a href="#cb13-22" aria-hidden="true" tabindex="-1"></a><span class="fu">area</span>(s<span class="op">::</span><span class="dt">Rectangle</span>) <span class="op">=</span> s.width <span class="op">*</span> s.height</span>
+<span id="cb13-23"><a href="#cb13-23" aria-hidden="true" tabindex="-1"></a><span class="fu">area</span>(s<span class="op">::</span><span class="dt">Triangle</span>) <span class="op">=</span> s.base <span class="op">*</span> s.height <span class="op">/</span> <span class="fl">2</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>An entrypoint that takes an <code>RRef{Shape}</code> knows only that its argument is <em>some</em> <code>Shape</code>. If it simply calls <code>area(s)</code>, the compiler cannot tell which of the four methods that call reaches, and the build fails with an error such as:</p>
+<pre class="text"><code>Verifier error #1: unresolved call from statement area(s::Shape)::Any</code></pre>
+<p>One possible solution is to branch on the concrete types once, with <code>@nospecialize</code>, and to make the call inside each branch, where the type is known:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb15"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">with_shape</span>(f<span class="op">::</span><span class="dt">F</span>, <span class="pp">@nospecialize</span>(s<span class="op">::</span><span class="dt">Shape</span>)) <span class="kw">where</span> {F}</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>    s isa Circle <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a>    s isa Square <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a>    s isa Rectangle <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a>    s isa Triangle <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">throw</span>(<span class="fu">ArgumentError</span>(<span class="st">"unknown shape"</span>))</span>
+<span id="cb15-7"><a href="#cb15-7" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb15-8"><a href="#cb15-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-9"><a href="#cb15-9" aria-hidden="true" tabindex="-1"></a><span class="fu">circle</span>(radius<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span> <span class="fu">Circle</span>(radius)</span>
+<span id="cb15-10"><a href="#cb15-10" aria-hidden="true" tabindex="-1"></a><span class="fu">square</span>(side<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span> <span class="fu">Square</span>(side)</span>
+<span id="cb15-11"><a href="#cb15-11" aria-hidden="true" tabindex="-1"></a><span class="fu">rectangle</span>(width<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span> <span class="fu">Rectangle</span>(width, height)</span>
+<span id="cb15-12"><a href="#cb15-12" aria-hidden="true" tabindex="-1"></a><span class="fu">triangle</span>(base<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span> <span class="fu">Triangle</span>(base, height)</span>
+<span id="cb15-13"><a href="#cb15-13" aria-hidden="true" tabindex="-1"></a><span class="fu">shape_area</span>(<span class="pp">@nospecialize</span>(s<span class="op">::</span><span class="dt">Shape</span>)) <span class="op">=</span> <span class="fu">with_shape</span>(area, s)</span>
+<span id="cb15-14"><a href="#cb15-14" aria-hidden="true" tabindex="-1"></a><span class="fu">scaled_area</span>(<span class="pp">@nospecialize</span>(s<span class="op">::</span><span class="dt">Shape</span>), factor<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span></span>
+<span id="cb15-15"><a href="#cb15-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">with_shape</span>(x <span class="op">-&gt;</span> factor<span class="op">^</span><span class="fl">2</span> <span class="op">*</span> <span class="fu">area</span>(x), s)</span>
+<span id="cb15-16"><a href="#cb15-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-17"><a href="#cb15-17" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">circle</span>(radius<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
+<span id="cb15-18"><a href="#cb15-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">square</span>(side<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
+<span id="cb15-19"><a href="#cb15-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">rectangle</span>(width<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
+<span id="cb15-20"><a href="#cb15-20" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">triangle</span>(base<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
+<span id="cb15-21"><a href="#cb15-21" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">shape_area</span>(s<span class="op">::</span><span class="dt">RRef{Shape}</span>)<span class="op">::</span><span class="dt">Float64</span></span>
+<span id="cb15-22"><a href="#cb15-22" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">scaled_area</span>(s<span class="op">::</span><span class="dt">RRef{Shape}</span>, factor<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">Float64</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>With the R wrappers</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb16"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a>circle <span class="ot">&lt;-</span> <span class="cf">function</span>(radius) <span class="fu">.Call</span>(C_circle, radius)</span>
+<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>square <span class="ot">&lt;-</span> <span class="cf">function</span>(side) <span class="fu">.Call</span>(C_square, side)</span>
+<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>rectangle <span class="ot">&lt;-</span> <span class="cf">function</span>(width, height) <span class="fu">.Call</span>(C_rectangle, width, height)</span>
+<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>triangle <span class="ot">&lt;-</span> <span class="cf">function</span>(base, height) <span class="fu">.Call</span>(C_triangle, base, height)</span>
+<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>shape_area <span class="ot">&lt;-</span> <span class="cf">function</span>(shape) <span class="fu">.Call</span>(C_shape_area, shape)</span>
+<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>scaled_area <span class="ot">&lt;-</span> <span class="cf">function</span>(shape, factor) <span class="fu">.Call</span>(C_scaled_area, shape, factor)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>every shape can be passed to the same functions:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a>shapes <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="fu">circle</span>(<span class="dv">1</span>), <span class="fu">square</span>(<span class="dv">2</span>), <span class="fu">rectangle</span>(<span class="dv">2</span>, <span class="dv">3</span>), <span class="fu">triangle</span>(<span class="dv">2</span>, <span class="dv">3</span>))</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a><span class="fu">vapply</span>(shapes, shape_area, <span class="fu">numeric</span>(<span class="dv">1</span>))</span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 3.141593 4.000000 6.000000 3.000000</span></span>
+<span id="cb17-4"><a href="#cb17-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb17-5"><a href="#cb17-5" aria-hidden="true" tabindex="-1"></a><span class="fu">scaled_area</span>(<span class="fu">square</span>(<span class="dv">2</span>), <span class="dv">3</span>)</span>
+<span id="cb17-6"><a href="#cb17-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 36</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Without a <code>@nospecialize</code> on <code>with_shape</code> Julia will compile a separate copy of <code>with_shape</code> for each concrete shape, and the call into it cannot be resolved for the same reason as <code>area(s)</code>. Functions that pass the shape on to <code>with_shape</code>, such as <code>shape_area</code>, should also take it with <code>@nospecialize</code>. Small functions like these are inlined, so this example would compile without it, but larger ones fail the same way.</p>
+<p>If a hierarchy has only a few types, some alternatives to <code>@nospecialize</code> are:</p>
+<ul>
+<li><p>Declare a separate entrypoint for each concrete type (<code>RRef{Circle}</code>,<code>RRef{Square}</code>, …) and choose between them in R.</p></li>
+<li><p>Use a small <code>Union</code> such as <code>RRef{Union{Circle,Square}}</code>, which Julia resolves by checking each member in turn.</p></li>
+</ul>
+
+
+</section>
+</section>
+
+
+<div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>JuliaC can <em>privatize</em> a library, giving it its own copy of the Julia runtime, but jlbind doesn’t use this. Since each client would then ship its own runtime it would add roughly 100MB per client. Privatization also doesn’t work on Windows yet (<a href="https://github.com/JuliaLang/JuliaC.jl/pull/151">JuliaC.jl#151</a>).<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol>
+</section></div></main> <!-- /main -->
+<!--
+A fixed CSS padding can't align the navbar title with the body text on every
+page: Quarto lays pages out differently depending on whether they have margin
+content (like the home page's Links/License column) or not, so the body's left
+edge lands at a different pixel offset per page type. Measure it for real
+instead, on every page, after layout settles.
+-->
+<script>
+(function () {
+  function contentLeft(main) {
+    // On pages with margin content (e.g. the home page's
+    // Links/License column), <main> itself becomes a "page-full"
+    // grid spanning the whole viewport, so its own box tells us
+    // nothing about where the visible text starts — look at the
+    // title/first heading instead. On every other page, main's own
+    // edge already sits flush with the text and is the more
+    // reliable target (man pages have no <h1>, only unnumbered
+    // <h2> titles, so this avoids depending on heading level).
+    if (main.classList.contains("page-full")) {
+      var heading = main.querySelector("h1, h2.unnumbered");
+      if (heading) return heading.getBoundingClientRect().left;
+    }
+    return main.getBoundingClientRect().left;
+  }
+  function alignNavbarToContent() {
+    var main = document.querySelector("#quarto-document-content");
+    var navContainer = document.querySelector(".navbar-container");
+    if (!main || !navContainer) return;
+    navContainer.style.paddingLeft = "";
+    var diff = contentLeft(main) -
+      navContainer.getBoundingClientRect().left;
+    navContainer.style.paddingLeft = Math.max(diff, 0) + "px";
+  }
+  // The navbar title is emitted as one plain-text node, "<pkg name>
+  // <version>" (see `website.title` in quarto_config()) -
+  // Quarto gives us no way to style just the version at the YAML
+  // level. Split it out into its own `<small>` here so
+  // altdown.scss can shrink it, pkgdown style.
+  function shrinkNavbarVersion() {
+    var title = document.querySelector(".navbar-title");
+    if (!title || title.querySelector(".navbar-version")) return;
+    var text = title.textContent;
+    var spaceIndex = text.indexOf(" ");
+    if (spaceIndex === -1) return;
+    title.textContent = text.slice(0, spaceIndex);
+    var version = document.createElement("small");
+    version.className = "navbar-version";
+    version.textContent = text.slice(spaceIndex + 1);
+    title.appendChild(document.createTextNode(" "));
+    title.appendChild(version);
+  }
+  // This script is injected right before </body>, so everything it
+  // reads is already in the DOM — no need to wait for "load" (which
+  // fires only once every image/font/subresource finishes, causing
+  // a visible flash where the navbar sits unaligned for a moment).
+  // Run once immediately, then keep "load"/"resize" as safety nets
+  // in case something later shifts the layout (e.g. a web font
+  // swap, though this theme doesn't use one).
+  shrinkNavbarVersion();
+  alignNavbarToContent();
+  window.addEventListener("load", alignNavbarToContent);
+  window.addEventListener("resize", alignNavbarToContent);
+})();
+</script>
+<script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const a = window.document.createElement('a');
+      a.classList.add('top-right');
+      a.classList.add('quarto-color-scheme-toggle');
+      a.href = "";
+      a.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      a.appendChild(i);
+      window.document.body.appendChild(a);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp('/' + window.location.host + '/');
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+     var links = window.document.querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+        }
+      }
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          let top = null;
+          let height = null;
+          let parent = null;
+          if (lineIds.length > 0) {
+              //compute the position of the single el (top and bottom and make a div)
+              const el = window.document.getElementById(lineIds[0]);
+              top = el.offsetTop;
+              height = el.offsetHeight;
+              parent = el.parentElement.parentElement;
+            if (lineIds.length > 1) {
+              const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+              const bottom = lastEl.offsetTop + lastEl.offsetHeight;
+              height = bottom - top;
+            }
+            if (top !== null && height !== null && parent !== null) {
+              // cook up a div (if necessary) and position it 
+              let div = window.document.getElementById("code-annotation-line-highlight");
+              if (div === null) {
+                div = window.document.createElement("div");
+                div.setAttribute("id", "code-annotation-line-highlight");
+                div.style.position = 'absolute';
+                parent.appendChild(div);
+              }
+              div.style.top = top - 2 + "px";
+              div.style.height = height + 4 + "px";
+              div.style.left = 0;
+              let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+              if (gutterDiv === null) {
+                gutterDiv = window.document.createElement("div");
+                gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+                gutterDiv.style.position = 'absolute';
+                const codeCell = window.document.getElementById(targetCell);
+                const gutter = codeCell.querySelector('.code-annotation-gutter');
+                gutter.appendChild(gutterDiv);
+              }
+              gutterDiv.style.top = top - 2 + "px";
+              gutterDiv.style.height = height + 4 + "px";
+            }
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script>
+</div> <!-- /content -->
+<footer class="footer">
+  <div class="nav-footer">
+    <div class="nav-footer-left">
+<p>Developed by Bjarke Hautop Kristensen.</p>
+</div>   
+    <div class="nav-footer-center">
+      &nbsp;
+    </div>
+    <div class="nav-footer-right">
+<p>Site built with <a href="https://altdoc.etiennebacher.com/">altdoc</a> and <a href="https://quarto.org/">Quarto</a>, using the <a href="https://github.com/BjarkeHautop/altdown">altdown</a> theme.</p>
+</div>
+  </div>
+</footer>
+
+
+
+
+<div class="reftip-payload" hidden><div class="reftip-tip" data-for="t1"><code class="reftip-sig">install_library(
+  packages = NULL,
+  julia = NULL,
+  ask = interactive(),
+  force = FALSE,
+  versions = c(&quot;manifest&quot;, &quot;compat&quot;),
+  develop = NULL
+)</code><span class="reftip-brief">Compiles the Julia code of every installed package that uses jlbind into one shared library, stored in <code>tools::R_user_dir(&quot;jlbind&quot;, &quot;data&quot;)</code>.</span></div><div class="reftip-tip" data-for="t2"><code class="reftip-sig">use_jlbind(path = &quot;.&quot;, module = NULL, dir = &quot;julia&quot;)</code><span class="reftip-brief">Adds what a package needs to call Julia code through jlbind.</span></div><div class="reftip-tip" data-for="t3"><code class="reftip-sig">bind_client(pkg)</code><span class="reftip-brief">Call this from the <code>.onLoad()</code> of a package that uses jlbind; <code>use_jlbind()</code> sets that up.</span></div><div class="reftip-tip" data-for="t4"><code class="reftip-sig">update_entrypoints(path = &quot;.&quot;)</code><span class="reftip-brief">Finds the <code>@rcall</code> declarations in the package's Julia binding package and writes them to <code>src/entrypoints.h</code>.</span></div><div class="reftip-tip" data-for="t5"><code class="reftip-sig">build_library(
+  packages = &quot;.&quot;,
+  out = NULL,
+  julia = NULL,
+  versions = c(&quot;manifest&quot;, &quot;compat&quot;),
+  develop = NULL
+)</code><span class="reftip-brief">Like <code>install_library()</code>, but compiles only <code>packages</code> and writes the library to <code>out</code>, for package development.</span></div><div class="reftip-tip" data-for="t6"><code class="reftip-sig">is_bound(pkg)</code><span class="reftip-brief"><code>is_bound()</code> returns <code>TRUE</code> or <code>FALSE</code>.</span></div></div>
+<script>
+(function(){
+  var payload = document.currentScript.previousElementSibling;
+  var float = document.createElement('div');
+  float.className = 'reftip-float';
+  float.setAttribute('role', 'tooltip');
+  document.body.appendChild(float);
+  var hideTimer;
+  function place(el){
+    var r = el.getBoundingClientRect();
+    var top = r.bottom + 6;
+    var left = r.left;
+    var maxLeft = window.innerWidth - float.offsetWidth - 8;
+    if (left > maxLeft) left = Math.max(8, maxLeft);
+    var maxTop = window.innerHeight - float.offsetHeight - 8;
+    if (top > maxTop) top = Math.max(8, r.top - float.offsetHeight - 6);
+    float.style.top = top + 'px';
+    float.style.left = left + 'px';
+  }
+  function show(el){
+    var key = el.getAttribute('data-reftip');
+    var tip = payload.querySelector('[data-for="' + key + '"]');
+    if (!tip) return;
+    float.innerHTML = tip.innerHTML;
+    float.style.display = 'block';
+    place(el);
+  }
+  function hide(){ float.style.display = 'none'; }
+  function cancelHide(){ clearTimeout(hideTimer); }
+  function scheduleHide(){ hideTimer = setTimeout(hide, 150); }
+  var links = document.querySelectorAll('a.reftip-ref');
+  for (var i = 0; i < links.length; i++) {
+    (function(el){
+      el.addEventListener('mouseenter', function(){ cancelHide(); show(el); });
+      el.addEventListener('mouseleave', scheduleHide);
+      el.addEventListener('focus', function(){ show(el); });
+      el.addEventListener('blur', hide);
+    })(links[i]);
+  }
+  float.addEventListener('mouseenter', cancelHide);
+  float.addEventListener('mouseleave', scheduleHide);
+})();
+</script>
+</body></html>
