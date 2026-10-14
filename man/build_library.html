@@ -393,7 +393,7 @@ a.reftip-ref{cursor:help;}
 <h2 class="unnumbered anchored" data-anchor-id="build-a-julia-library-from-specific-packages">Build a Julia library from specific packages</h2>
 <section id="description" class="level3">
 <h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>Like <code><a class="reftip-ref" data-reftip="t1" href="./install_library.html">install_library()</a></code>, but compiles only <code>packages</code> and writes the library to <code>out</code>, for package development. By default, it builds the package in the working directory into its <code style="white-space: pre;">.jlbind/</code> directory, which <code>devtools::load_all()</code> then uses instead of the library from <code><a class="reftip-ref" data-reftip="t1" href="./install_library.html">install_library()</a></code>. To use a library written elsewhere, set <code>JLBIND_LIBRARY</code> to its path before loading the package.</p>
+<p>Like <code><a class="reftip-ref" data-reftip="t1" href="./install_library.html">install_library()</a></code>, but compiles only <code>packages</code> and writes the library to <code>out</code>, for package development. By default, it builds the package in the working directory into its <code>.jlbind/</code> directory, which <code>devtools::load_all()</code> then uses instead of the library from <code><a class="reftip-ref" data-reftip="t1" href="./install_library.html">install_library()</a></code>. To use a library written elsewhere, set <code>JLBIND_LIBRARY</code> to its path before loading the package.</p>
 </section>
 <section id="usage" class="level3">
 <h3 class="anchored" data-anchor-id="usage">Usage</h3>
@@ -410,23 +410,23 @@ a.reftip-ref{cursor:help;}
 <table role="presentation">
 <tbody><tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="packages">packages</code>
+<code>packages</code>
 </td>
 <td>
-Paths to package sources or installed packages, or names of installed packages. An entry containing a <code>/</code> (or <code style="white-space: pre;">&lt;/code&gt; on Windows), or that is <code>"."</code> or <code>".."</code>, is a path; any other is a package name, so write <code>"./mypkg"</code> for the sources in the <code>mypkg</code> directory.
-</code></td>
-</tr>
-<tr>
-<td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="out">out</code>
-</td>
-<td>
-Directory to write the library to. Defaults to <code style="white-space: pre;">.jlbind/</code> in the sources of <code>packages</code>, which must then be a single path.
+Paths to package sources or installed packages, or names of installed packages. An entry containing a <code>/</code> (or <code>\</code> on Windows), or that is <code>"."</code> or <code>".."</code>, is a path; any other is a package name, so write <code>"./mypkg"</code> for the sources in the <code>mypkg</code> directory.
 </td>
 </tr>
 <tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="julia">julia</code>
+<code>out</code>
+</td>
+<td>
+Directory to write the library to. Defaults to <code>.jlbind/</code> in the sources of <code>packages</code>, which must then be a single path.
+</td>
+</tr>
+<tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code>julia</code>
 </td>
 <td>
 Path to the <code>julia</code> executable. By default, the <code>JULIA</code> environment variable, or <code>julia</code> on the <code>PATH</code>.
@@ -434,15 +434,15 @@ Path to the <code>julia</code> executable. By default, the <code>JULIA</code> en
 </tr>
 <tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="versions">versions</code>
+<code>versions</code>
 </td>
 <td>
-Where the Julia dependency versions come from. <code>"manifest"</code> keeps the versions in the first package’s <code>Manifest.toml</code> where the other packages’ <code style="white-space: pre;">[compat]</code> bounds allow. <code>"compat"</code> ignores the manifests and lets Julia’s resolver choose versions from the <code style="white-space: pre;">[compat]</code> bounds alone.
+Where the Julia dependency versions come from. <code>"manifest"</code> keeps the versions in the first package’s <code>Manifest.toml</code> where the other packages’ <code>[compat]</code> bounds allow. <code>"compat"</code> ignores the manifests and lets Julia’s resolver choose versions from the <code>[compat]</code> bounds alone.
 </td>
 </tr>
 <tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="develop">develop</code>
+<code>develop</code>
 </td>
 <td>
 Paths to local Julia packages to use instead of their released versions.
@@ -456,17 +456,13 @@ Paths to local Julia packages to use instead of their released versions.
 </section>
 <section id="examples" class="level3">
 <h3 class="anchored" data-anchor-id="examples">Examples</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"jlbind"</span>)</span>
-<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># In the sources of a package that uses jlbind</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="reftip-ref" data-reftip="t2" href="./build_library.html">build_library</a></span>()</span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">load_all</span>()</span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="co"># Several packages, used through JLBIND_LIBRARY</span></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a>lib <span class="ot">&lt;-</span> <span class="fu"><a class="reftip-ref" data-reftip="t2" href="./build_library.html">build_library</a></span>(<span class="fu">c</span>(<span class="st">"pkg1"</span>, <span class="st">"pkg2"</span>), <span class="st">"jlbind-lib"</span>)</span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu">Sys.setenv</span>(<span class="at">JLBIND_LIBRARY =</span> lib)</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># In the sources of a package that uses jlbind</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="reftip-ref" data-reftip="t2" href="./build_library.html">build_library</a></span>()</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">load_all</span>()</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># Several packages, used through JLBIND_LIBRARY</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>lib <span class="ot">&lt;-</span> <span class="fu"><a class="reftip-ref" data-reftip="t2" href="./build_library.html">build_library</a></span>(<span class="fu">c</span>(<span class="st">"pkg1"</span>, <span class="st">"pkg2"</span>), <span class="st">"jlbind-lib"</span>)</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu">Sys.setenv</span>(<span class="at">JLBIND_LIBRARY =</span> lib)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>

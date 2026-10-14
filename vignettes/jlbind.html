@@ -414,6 +414,7 @@ a.reftip-ref{cursor:help;}
 <p>jlbind lets an R package call Julia code without starting a separate Julia session. It compiles Julia code into a shared library using <a href="https://github.com/JuliaLang/JuliaC.jl">JuliaC.jl</a>, then exposes Julia functions to R through native <code>.Call()</code> routines.</p>
 <p>This vignette explains how to add Julia functions to your own R package with jlbind. An R package that uses jlbind is called a <em>client</em>. For how jlbind compares with other ways of calling Julia from R, see <a href="https://bjarkehautop.github.io/jlbind/vignettes/articles/performance.html">Performance</a>.</p>
 <p>An R process can load only one compiled Julia library<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>. By default, jlbind therefore compiles the Julia code of <em>all</em> installed clients into one shared library, which each user builds with <code><a class="reftip-ref" data-reftip="t1" href="../man/install_library.html">jlbind::install_library()</a></code>. Your client then shares a library, and a set of Julia dependency versions, with every other client the user has installed. Users can instead build a separate library for some clients, but then those clients can’t be loaded in the same R session. <a href="using-clients.html">Using packages built on jlbind</a> describes how this works and what your users need to do.</p>
+<p>For complete, working examples, see the two small clients that jlbind’s tests build: <a href="https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/hellojl"><code>hellojl</code></a>, which passes plain values, and <a href="https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/counterjl"><code>counterjl</code></a>, which keeps Julia objects in R (see <a href="#julia-objects-in-r">Julia objects in R</a>).</p>
 <section id="set-up" class="level2">
 <h2 class="anchored" data-anchor-id="set-up">Set up</h2>
 <p>From your R package’s directory, run:</p>
@@ -421,7 +422,7 @@ a.reftip-ref{cursor:help;}
 <p>This creates the files and configuration needed to connect the package to jlbind:</p>
 <ul>
 <li><code>inst/julia/</code>, containing a Julia binding package named after the R package with a <code>Bindings</code> suffix (for example, <code>MyPkgBindings</code>), including an example function.</li>
-<li><code>src/jlbind.c</code> and <code>src/entrypoints.h</code>, which register the native routines.</li>
+<li><code>src/jlbind.c</code> and <code>src/entrypoints.h</code>, which register the native routines, and a rule in <code>src/Makevars</code> that recompiles <code>jlbind.c</code> whenever <code>entrypoints.h</code> changes.</li>
 <li><code>R/jlbind.R</code>, which calls <code><a class="reftip-ref" data-reftip="t3" href="../man/bind_client.html">jlbind::bind_client()</a></code> from <code>.onLoad()</code> and includes the roxygen tag for <code>useDynLib()</code>.</li>
 <li>The <code>Config/jlbind</code> and <code>Imports: jlbind</code> fields in <code>DESCRIPTION</code>.</li>
 <li>A <code>.jlbind/</code> directory for development builds, added to <code>.Rbuildignore</code> and <code>.gitignore</code>.</li>
@@ -628,12 +629,12 @@ Tip
 </tr>
 </tbody>
 </table>
-<p><code>NA</code> is an error wherever a value is expected. Likewise, an <code>Int64</code> argument must be a whole number. Julia’s <code>Int64</code> values become R doubles because R’s standard integers are only 32 bits; return <code>Int32</code> if you need an R integer.</p>
+<p><code>NA</code> is an error wherever a value is expected, and so is <code>NaN</code> in a numeric argument. Likewise, an <code>Int64</code> argument must be a whole number. Julia’s <code>Int64</code> values become R doubles because R’s standard integers are only 32 bits; return <code>Int32</code> if you need an R integer.</p>
 <p>A binding package can support additional types by defining methods for <code>JLBind.from_sexp(::Type{T}, x::SEXP)</code> and <code>JLBind.to_sexp(x::T)</code>. <code>JLBind</code> also provides helpers for building R objects directly, such as <code>JLBind.data_frame()</code>. See the <a href="https://github.com/BjarkeHautop/jlbind/tree/main/inst/julia/JLBind/src"><code>JLBind</code> source</a> for the existing conversions and helpers.</p>
 <section id="julia-objects-in-r" class="level3">
 <h3 class="anchored" data-anchor-id="julia-objects-in-r">Julia objects in R</h3>
 <p>Sometimes an object is easier to keep in Julia than to convert into an R data structure. You can pass such objects by reference using <code>RRef{T}</code>. R receives an external pointer to the Julia object, allowing it to be reused across calls. The object is released when R garbage-collects the reference.</p>
-<p>For example, define a mutable Julia object and expose functions that operate on it:</p>
+<p>For example, define a mutable Julia object and expose functions that operate on it (the <a href="https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/counterjl"><code>counterjl</code></a> test client is a complete version of this):</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="kw">mutable struct</span> Counter</span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>    n<span class="op">::</span><span class="dt">Int64</span></span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>

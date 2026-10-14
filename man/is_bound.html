@@ -378,7 +378,7 @@ a.reftip-ref{cursor:help;}
 </section><section id="arguments" class="level3"><h3 class="anchored" data-anchor-id="arguments">Arguments</h3>
 <table role="presentation"><tbody><tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="pkg">pkg</code>
+<code>pkg</code>
 </td>
 <td>
 Name of a package that uses jlbind.
@@ -387,17 +387,11 @@ Name of a package that uses jlbind.
 <p><code><a class="reftip-ref" data-reftip="t1" href="./is_bound.html">is_bound()</a></code>: <code>TRUE</code> or <code>FALSE</code>. <code><a class="reftip-ref" data-reftip="t2" href="./is_bound.html">check_bound()</a></code>: <code>TRUE</code> (invisibly) if the package is bound, otherwise an error.</p>
 </section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="st"><a href="https://github.com/BjarkeHautop/jlbind">"jlbind"</a></span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Not bound, as no package named mypkg has been loaded</span></span>
-<span><span class="fu"><a class="reftip-ref" data-reftip="t1" href="./is_bound.html">is_bound</a></span><span class="op">(</span><span class="st">"mypkg"</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>[1] FALSE</code></pre>
-</div>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="kw"><a href="https://rdrr.io/r/base/try.html">try</a></span><span class="op">(</span><span class="fu"><a class="reftip-ref" data-reftip="t2" href="./is_bound.html">check_bound</a></span><span class="op">(</span><span class="st">"mypkg"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<div class="cell-output cell-output-stdout">
-<pre><code>Error : Package mypkg has not asked to be bound; is it loaded, and does it call jlbind::bind_client() from its .onLoad()?</code></pre>
-</div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># Not bound, as no package named mypkg has been loaded</span></span>
+<span><span class="fu"><a class="reftip-ref" data-reftip="t1" href="./is_bound.html">is_bound</a></span><span class="op">(</span><span class="st">"mypkg"</span><span class="op">)</span></span>
+<span><span class="co">#&gt; [1] FALSE</span></span>
+<span><span class="kw"><a href="https://rdrr.io/r/base/try.html">try</a></span><span class="op">(</span><span class="fu"><a class="reftip-ref" data-reftip="t2" href="./is_bound.html">check_bound</a></span><span class="op">(</span><span class="st">"mypkg"</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; Error : Package mypkg has not asked to be bound; is it loaded, and does it call jlbind::bind_client() from its .onLoad()?</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 
 

@@ -412,7 +412,7 @@ a.reftip-ref{cursor:help;}
 <table role="presentation">
 <tbody><tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="packages">packages</code>
+<code>packages</code>
 </td>
 <td>
 Names of the installed packages to build. By default, every package listed by <code><a class="reftip-ref" data-reftip="t2" href="./jlbind_clients.html">jlbind_clients()</a></code>. The others aren’t bound.
@@ -420,7 +420,7 @@ Names of the installed packages to build. By default, every package listed by <c
 </tr>
 <tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="julia">julia</code>
+<code>julia</code>
 </td>
 <td>
 Path to the <code>julia</code> executable. By default, the <code>JULIA</code> environment variable, or <code>julia</code> on the <code>PATH</code>.
@@ -428,7 +428,7 @@ Path to the <code>julia</code> executable. By default, the <code>JULIA</code> en
 </tr>
 <tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="ask">ask</code>
+<code>ask</code>
 </td>
 <td>
 If <code>TRUE</code>, ask before building. Defaults to <code>interactive()</code>.
@@ -436,7 +436,7 @@ If <code>TRUE</code>, ask before building. Defaults to <code>interactive()</code
 </tr>
 <tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="force">force</code>
+<code>force</code>
 </td>
 <td>
 If <code>TRUE</code>, rebuild even if the library is up to date. Always on with <code>versions = "compat"</code> or <code>develop</code>.
@@ -444,15 +444,15 @@ If <code>TRUE</code>, rebuild even if the library is up to date. Always on with 
 </tr>
 <tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="versions">versions</code>
+<code>versions</code>
 </td>
 <td>
-Where the Julia dependency versions come from. <code>"manifest"</code> keeps the versions in the first package’s <code>Manifest.toml</code> where the other packages’ <code style="white-space: pre;">[compat]</code> bounds allow. <code>"compat"</code> ignores the manifests and lets Julia’s resolver choose versions from the <code style="white-space: pre;">[compat]</code> bounds alone.
+Where the Julia dependency versions come from. <code>"manifest"</code> keeps the versions in the first package’s <code>Manifest.toml</code> where the other packages’ <code>[compat]</code> bounds allow. <code>"compat"</code> ignores the manifests and lets Julia’s resolver choose versions from the <code>[compat]</code> bounds alone.
 </td>
 </tr>
 <tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
-<code id="develop">develop</code>
+<code>develop</code>
 </td>
 <td>
 Paths to local Julia packages to use instead of their released versions.
@@ -463,7 +463,7 @@ Paths to local Julia packages to use instead of their released versions.
 <section id="details" class="level3">
 <h3 class="anchored" data-anchor-id="details">Details</h3>
 <p>All packages share one Julia environment. By default, the dependencies get the versions in the first package’s <code>Manifest.toml</code>. If two packages conflict, the one listed later by <code><a class="reftip-ref" data-reftip="t2" href="./jlbind_clients.html">jlbind_clients()</a></code> is left out, and <code><a class="reftip-ref" data-reftip="t3" href="./is_bound.html">check_bound()</a></code> says why. See <code>vignette("using-clients", "jlbind")</code> for details.</p>
-<p>The library is rebuilt only if it is out of date: built from other versions of the packages, by another version of jlbind or Julia, or with <code>develop</code>. If a library is already loaded, restart R to use the new one.</p>
+<p>The library is rebuilt only if it is out of date: built from other versions of the packages or other Julia code in them, by another version of jlbind or Julia, or with <code>develop</code>. If a library is already loaded, restart R to use the new one.</p>
 </section>
 <section id="value" class="level3">
 <h3 class="anchored" data-anchor-id="value">Value</h3>
@@ -471,17 +471,13 @@ Paths to local Julia packages to use instead of their released versions.
 </section>
 <section id="examples" class="level3">
 <h3 class="anchored" data-anchor-id="examples">Examples</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(<span class="st">"jlbind"</span>)</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="reftip-ref" data-reftip="t1" href="./install_library.html">install_library</a></span>()</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="reftip-ref" data-reftip="t1" href="./install_library.html">install_library</a></span>()</span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co"># With a local checkout of a Julia dependency</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="reftip-ref" data-reftip="t1" href="./install_library.html">install_library</a></span>(<span class="at">develop =</span> <span class="st">"~/dev/SomePackage.jl"</span>)</span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="co"># Only two of the installed packages</span></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="reftip-ref" data-reftip="t1" href="./install_library.html">install_library</a></span>(<span class="at">packages =</span> <span class="fu">c</span>(<span class="st">"pkgA"</span>, <span class="st">"pkgB"</span>))</span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># With a local checkout of a Julia dependency</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="reftip-ref" data-reftip="t1" href="./install_library.html">install_library</a></span>(<span class="at">develop =</span> <span class="st">"~/dev/SomePackage.jl"</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Only two of the installed packages</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="reftip-ref" data-reftip="t1" href="./install_library.html">install_library</a></span>(<span class="at">packages =</span> <span class="fu">c</span>(<span class="st">"pkgA"</span>, <span class="st">"pkgB"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>
