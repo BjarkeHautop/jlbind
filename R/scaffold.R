@@ -431,7 +431,7 @@ update_entrypoints <- function(path = ".") {
   if (!"SystemRequirements" %in% fields) {
     set(
       "SystemRequirements",
-      "Julia (>= 1.13), needed to build the compiled library with\n    jlbind::install_library()"
+      "Julia (>= 1.13)"
     )
   }
   if (changed) {
