@@ -56,6 +56,9 @@ test_that("install_library() replaces the old library and prunes stale ones", {
   dir.create(dir)
   writeLines("old", file.path(dir, .library_file()))
   dir.create(file.path(root, "old-stale"))
+  # Another session's build in progress, and a file that is not a build.
+  dir.create(file.path(root, "build-other"))
+  writeLines("keep", file.path(root, "notes"))
   built <- NULL
   local_mocked_bindings(
     jlbind_clients = function(...) fake_clients(),
@@ -77,11 +80,46 @@ test_that("install_library() replaces the old library and prunes stale ones", {
   )
   expect_equal(built, list(clients = c("a", "b"), versions = "compat"))
   expect_equal(readLines(path), "new")
-  expect_equal(list.files(root), "library")
+  expect_equal(list.files(root), c("build-other", "library", "notes"))
 
   # With a library loaded, the new one is used after a restart.
   .state$dll <- list(name = "jlbind")
   expect_message(install_library(ask = FALSE, force = TRUE), "Restart R")
+})
+
+test_that("install_library() keeps the old library if the new one fails", {
+  local_state()
+  root <- withr::local_tempdir()
+  dir <- file.path(root, "library")
+  dir.create(dir)
+  writeLines("old", file.path(dir, .library_file()))
+  local_mocked_bindings(
+    jlbind_clients = function(...) fake_clients(),
+    .library_dir = function() dir,
+    .up_to_date = function(dir, clients, julia) FALSE,
+    .find_julia = function(julia) "julia",
+    .julia_version = function(julia) package_version("1.13.1"),
+    # Builds nothing, so there is nothing to move into place.
+    .build = function(clients, out, julia, versions, develop) NULL
+  )
+  expect_error(
+    expect_warning(install_library(ask = FALSE), "cannot rename"),
+    "Could not move the library"
+  )
+  expect_equal(readLines(file.path(dir, .library_file())), "old")
+  expect_equal(list.files(root), "library")
+})
+
+test_that("only old libraries and abandoned builds are pruned", {
+  root <- withr::local_tempdir()
+  for (d in c("old-a", "build-new", "build-abandoned", "library")) {
+    dir.create(file.path(root, d))
+  }
+  writeLines("keep", file.path(root, "notes"))
+  now <- Sys.time()
+  Sys.setFileTime(file.path(root, "build-abandoned"), now - 2 * 86400)
+  .prune_builds(root, now)
+  expect_equal(list.files(root), c("build-new", "library", "notes"))
 })
 
 test_that("build_library() builds a source package into its .jlbind/", {

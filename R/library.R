@@ -119,6 +119,7 @@ install_library <- function(
   # A loaded library cannot be deleted on Windows, but it can be renamed, so
   # the old build is moved aside first; whatever cannot be removed now is
   # pruned on the next build.
+  old <- NULL
   if (dir.exists(dir)) {
     old <- tempfile("old-", tmpdir = root)
     if (!file.rename(dir, old)) {
@@ -126,11 +127,13 @@ install_library <- function(
     }
   }
   if (!file.rename(out, dir)) {
+    # Put the old library back rather than leave none.
+    if (!is.null(old)) {
+      file.rename(old, dir)
+    }
     stop("Could not move the library into ", dir, ".", call. = FALSE)
   }
-  for (stale in setdiff(list.files(root), basename(dir))) {
-    unlink(file.path(root, stale), recursive = TRUE)
-  }
+  .prune_builds(root)
 
   if (!is.null(.state$dll)) {
     message(
@@ -344,6 +347,18 @@ build_library <- function(
 .deparse_chr <- function(x) {
   x <- paste0('"', x, '"')
   if (length(x) == 1L) x else paste0("c(", paste(x, collapse = ", "), ")")
+}
+
+# Removes what earlier builds left in `root`: libraries moved aside by
+# install_library(), and the directories of builds that did not finish (R was
+# killed mid-build). A build directory is only removed once it is a day old,
+# since another R session may still be building in it.
+.prune_builds <- function(root, now = Sys.time()) {
+  entries <- list.files(root, "^(old|build)-", full.names = TRUE)
+  age <- difftime(now, file.mtime(entries), units = "days")
+  stale <- startsWith(basename(entries), "old-") | age > 1
+  unlink(entries[stale], recursive = TRUE)
+  invisible(NULL)
 }
 
 # Where install_library() builds the library.
