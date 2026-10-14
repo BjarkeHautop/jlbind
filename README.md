@@ -24,8 +24,8 @@ is compiled into one shared library.
 pak::pak("BjarkeHautop/jlbind")
 ```
 
-Building the shared library requires [Julia](https://julialang.org) >=
-1.13. Installing jlbind does not itself build the library.
+Building the shared library requires [Julia](https://julialang.org) >= 1.13.
+Installing jlbind does not itself build the library.
 
 ## Using a package built on jlbind
 
@@ -38,6 +38,10 @@ jlbind::install_backend()
 
 This compiles the Julia code of every installed package that uses jlbind and may
 take a few minutes. Run it again whenever you install or update one of them.
+
+See [Using packages built on
+jlbind](https://bjarkehautop.github.io/jlbind/articles/using-clients.html) for
+threads, troubleshooting and Julia dependency versions.
 
 ## Writing a package that uses jlbind
 
@@ -61,6 +65,12 @@ Run `jlbind::update_entrypoints()`, and call the function from R:
 greet <- function(name) .Call(C_greet, name)
 ```
 
-See [Writing a package that uses
-jlbind](https://bjarkehautop.github.io/jlbind/articles/writing-clients.html) for
-a full walkthrough.
+See [Get started with
+jlbind](https://bjarkehautop.github.io/jlbind/articles/jlbind.html) for a full
+walkthrough.
+
+## Contributing
+
+Contributions of all kinds are very welcome! You may use LLMs, but please write
+issue and PR descriptions in your own words. If you submit a PR, you should
+understand the code you're contributing.

@@ -9,9 +9,9 @@ jlbind is an R package that lets other R packages ("clients") call Julia code
 compiled ahead of time with `juliac --trim=safe`, with no Julia session at run
 time. An R process can host only one compiled Julia image, so jlbind compiles
 the binding packages of *every* installed client into one shared library that
-all of them bind to. `vignettes/jlbind.qmd` (installing and using clients) and
-`vignettes/writing-clients.qmd` (writing a client) are the user-facing guides
-(rendered with Quarto); keep them in sync with user-visible behavior.
+all of them bind to. `vignettes/jlbind.qmd` (Get started: writing a client) and
+`vignettes/using-clients.qmd` (installing and using clients) are the user-facing
+guides (rendered with Quarto); keep them in sync with user-visible behavior.
 `vignettes/articles/performance.qmd` is a pkgdown-only article whose data comes
 from `vignettes/articles/performance/benchmark.R`.
 

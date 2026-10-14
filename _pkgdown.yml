@@ -22,3 +22,6 @@ reference:
     contents:
       - use_jlbind
       - update_entrypoints
+
+redirects:
+  - ["articles/writing-clients.html", "articles/jlbind.html"]

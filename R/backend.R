@@ -9,7 +9,8 @@
 #' All packages share one Julia environment. By default, the dependencies get
 #' the versions in the first package's `Manifest.toml`. If two packages
 #' conflict, the one listed later by [jlbind_clients()] is left out, and
-#' [check_backend()] says why. See `vignette("jlbind")` for details.
+#' [check_backend()] says why. See `vignette("using-clients", "jlbind")` for
+#' details.
 #'
 #' If a library is already loaded, restart R to use the new one. If the Julia
 #' used for the build is updated or removed, rebuild with `force = TRUE`.

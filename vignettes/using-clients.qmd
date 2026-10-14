@@ -1,0 +1,171 @@
+---
+title: "Using packages built on jlbind"
+vignette: >
+  %\VignetteIndexEntry{Using packages built on jlbind}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+jlbind lets an R package call Julia code without starting a separate Julia
+session. It compiles Julia code into a shared library using
+[JuliaC.jl](https://github.com/JuliaLang/JuliaC.jl), then exposes Julia
+functions to R through native `.Call()` routines.
+
+This vignette explains how the shared library works and how to use an R package
+built with jlbind. To add Julia functions to your own R package, see [Get
+started with jlbind](jlbind.html). For how jlbind compares with other ways of
+calling Julia from R, see
+[Performance](https://bjarkehautop.github.io/jlbind/articles/performance.html).
+
+## How it works
+
+An R process can load only one compiled Julia library. Julia has one runtime per
+process, and that runtime uses a single compiled image. If two R packages loaded
+separate copies of the library, they could conflict and crash the R session.
+
+To avoid this, jlbind builds one shared library for each user, combining the
+Julia bindings of all installed R packages that use jlbind. These packages are
+called *clients*. Each client contains:
+
+- A Julia binding package under `inst/julia/`, declaring the functions that R
+  can call.
+- A small generated C file that registers those functions as native routines.
+- An `.onLoad()` hook that calls `jlbind::bind()` to connect the package to the
+  shared library.
+
+When you run `install_backend()`, jlbind finds the installed clients, compiles
+their binding packages into one library, and saves it under
+`tools::R_user_dir("jlbind", "data")`. When a client is loaded, `bind()` loads
+the library if necessary and connects the client's native routines to it.
+
+A client can only be bound to a library built from the version of that client
+currently installed. If you update a package without rebuilding the library, its
+functions will report that the library needs to be rebuilt.
+
+## Using a package built on jlbind
+
+You need [Julia](https://julialang.org/install/) 1.13 or later to build the
+shared library.
+
+After installing or updating an R package that uses jlbind, run:
+
+```r
+jlbind::install_backend()
+```
+
+The first build downloads and compiles the required Julia dependencies, so it
+may take a few minutes. Because all clients share one library, installing or
+updating a single client means rebuilding the library for all of them.
+
+::: {.callout-note}
+**Restart R after rebuilding a library that is already loaded**
+
+Julia cannot be restarted within an R session. If the old library has already
+been loaded, rebuilding it on disk does not replace the copy in memory. Restart
+R to use the new library.
+:::
+
+### If something doesn't work correctly
+
+If a package that uses jlbind doesn't work, first check its status:
+
+```r
+jlbind::check_backend("somepkg")
+```
+
+The most common causes are that the shared library hasn't been built yet, or
+that the package was updated after the last build. Use `backend_info()` to
+inspect the loaded library, the versions of the clients it was built from, and
+which clients are currently bound.
+
+If the Julia installation used for the build has been removed or replaced, for
+example by a `juliaup` update, rebuild the library:
+
+```r
+jlbind::install_backend(force = TRUE)
+```
+
+You can select the Julia installation to use by setting the `JULIA` environment
+variable or by passing `julia =` to `install_backend()`.
+
+The library is compiled for the building machine's CPU. To use it on other
+machines (e.g. cluster nodes), set `JULIA_CPU_TARGET=generic` and rebuild with
+`force = TRUE`.
+
+### Threads
+
+Julia runs with one thread by default. To use multiple threads, set
+`JULIA_NUM_THREADS` before loading the first package that uses jlbind. For
+example, add the following to your `.Renviron` file:
+
+```sh
+JULIA_NUM_THREADS=auto
+```
+
+or
+
+```sh
+JULIA_NUM_THREADS=4
+```
+
+::: {.callout-note}
+**Set the thread count before loading jlbind clients**
+
+The thread count is fixed when the Julia library is loaded. Changing
+`JULIA_NUM_THREADS` afterwards will not change the number of threads in the
+current R session. Restart R after changing it.
+:::
+
+### Dependency versions
+
+All clients share a single set of Julia dependencies, so they cannot each use
+independent dependency environments.
+
+By default, the build starts from the versions in the `Manifest.toml` [^1] of
+the first client that has one, and keeps them for the other clients where their
+`[compat]` bounds allow. Pass `update = TRUE` to use the newest versions every
+client's `[compat]` allows instead.
+
+[^1]: CRAN's [policy](https://cran.r-project.org/web/packages/policies.html)
+    asks that external libraries downloaded at installation be a fixed version
+    rather than the latest.
+
+If a client's `[compat]` bounds conflict with those of the clients listed before
+it by `jlbind_clients()`, it is left out of the build; `check_backend()` says
+which clients it conflicts with.
+
+You can control which clients are included by specifying them explicitly:
+
+```r
+jlbind::install_backend(packages = c("pkgA", "pkgC"))
+```
+
+Clients omitted from the build remain unbound until you rebuild the library with
+them included.
+
+::: {.callout-important}
+**Clients with incompatible dependencies cannot share a library**
+
+If you need both clients but never need them in the same R session, build a
+separate library for each. Set `JLBIND_LIBRARY` before loading the client to
+select the library for that session.
+
+For example, build the two libraries:
+
+```r
+jlbind::build_library("pkgA", "~/jlbind/pkgA")
+jlbind::build_library("pkgB", "~/jlbind/pkgB")
+```
+
+Then select one in an R session:
+
+```r
+# On Windows, use jlbind.dll; on macOS, use jlbind.dylib.
+# On Linux, use jlbind.so.
+Sys.setenv(JLBIND_LIBRARY = "~/jlbind/pkgA/jlbind.so")
+library(pkgA)
+```
+
+Only one library can be loaded in an R session. In this example, `pkgA` is
+bound, but `pkgB` is not.
+:::

@@ -3,6 +3,7 @@ title: "Performance"
 ---
 
 ```{r}
+#| label: setup
 #| include: false
 
 library(ggplot2)
@@ -82,6 +83,7 @@ The benchmark script is
 The results below were run on:
 
 ```{r}
+#| label: versions
 #| echo: false
 
 knitr::kable(versions, col.names = c("", ""))
@@ -90,6 +92,7 @@ knitr::kable(versions, col.names = c("", ""))
 ## Startup
 
 ```{r}
+#| label: startup-table
 #| echo: false
 
 knitr::kable(
@@ -113,6 +116,7 @@ here.
 ## Call overhead
 
 ```{r}
+#| label: call-table
 #| echo: false
 
 knitr::kable(
@@ -136,6 +140,7 @@ back, so each call costs a round trip.
 ## Data transfer
 
 ```{r}
+#| label: transfer-plot
 #| echo: false
 #| fig-width: 7
 #| fig-height: 4.2
@@ -177,6 +182,7 @@ ggplot(shift, aes(n, median, color = interface)) +
 ```
 
 ```{r}
+#| label: transfer-table
 #| echo: false
 
 wide <- reshape(
