@@ -25,6 +25,13 @@ for some clients, but then those clients can't be loaded in the same R session.
 [Using packages built on jlbind](using-clients.html) describes how this works
 and what your users need to do.
 
+For complete, working examples, see the two small clients that jlbind's tests
+build:
+[`hellojl`](https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/hellojl),
+which passes plain values, and
+[`counterjl`](https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/counterjl),
+which keeps Julia objects in R (see [Julia objects in R](#julia-objects-in-r)).
+
 [^privatize]: JuliaC can *privatize* a library, giving it its own copy of the
     Julia runtime, but jlbind doesn't use this. Since each client would then
     ship its own runtime it would add roughly 100MB per client. Privatization
@@ -223,7 +230,9 @@ external pointer to the Julia object, allowing it to be reused across calls. The
 object is released when R garbage-collects the reference.
 
 For example, define a mutable Julia object and expose functions that operate on
-it:
+it (the
+[`counterjl`](https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/counterjl)
+test client is a complete version of this):
 
 ```julia
 mutable struct Counter

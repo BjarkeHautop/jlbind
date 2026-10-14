@@ -219,16 +219,14 @@ Pkg.add(Pkg.PackageSpec(name = "JuliaC", version = "0.3"))
 
 using JuliaC
 
-# The CLI's `--output-lib --trim=safe --experimental --compile-ccallable`
-# (without `--trim` for `--no-trim`), plus `set_threads.c`, which the CLI
-# cannot add.
+# The CLI's `--output-lib --trim=safe --compile-ccallable` (without `--trim`
+# for `--no-trim`), plus `set_threads.c`, which the CLI cannot add.
 image = JuliaC.ImageRecipe(;
     output_type = "--output-lib",
     file = joinpath(IMAGE, "src", "JLBindImage.jl"),
     project = IMAGE,
     trim_mode = TRIM ? "safe" : nothing,
     add_ccallables = true,
-    julia_args = ["--experimental"],
     c_sources = [joinpath(JLBIND, "src", "set_threads.c")],
 )
 JuliaC.compile_products(image)

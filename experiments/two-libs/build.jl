@@ -8,6 +8,6 @@ Pkg.add(Pkg.PackageSpec(name = "JuliaC", version = "0.3"))
 using JuliaC
 image = JuliaC.ImageRecipe(; output_type = "--output-lib",
     file = joinpath(PROJ, "src", name * ".jl"), project = PROJ,
-    trim_mode = "safe", add_ccallables = true, julia_args = ["--experimental"])
+    trim_mode = "safe", add_ccallables = true)
 JuliaC.compile_products(image)
 JuliaC.link_products(JuliaC.LinkRecipe(; image_recipe = image, outname = joinpath(OUT, name)))

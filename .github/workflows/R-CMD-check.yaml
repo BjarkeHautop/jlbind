@@ -21,8 +21,9 @@ jobs:
         config:
           # With Julia, the integration test compiles the test clients in
           # tests/clients into a library and calls them. 1.13 is the minimum
-          # supported version; '1' is the latest stable release.
-          - {os: ubuntu-latest,   r: 'release', julia: '1'}
+          # supported version; '1' is the latest stable release. `notrim`
+          # also builds an untrimmed library (JLBIND_TEST_NOTRIM).
+          - {os: ubuntu-latest,   r: 'release', julia: '1', notrim: true}
           - {os: ubuntu-latest,   r: 'release', julia: '1.13'}
           - {os: windows-latest,  r: 'release', julia: '1.13'}
           - {os: macos-latest,    r: 'release', julia: '1.13'}
@@ -33,6 +34,7 @@ jobs:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
       R_KEEP_PKG_SOURCE: yes
       JLBIND_TEST_BUILD: ${{ matrix.config.julia != '' && 'true' || 'false' }}
+      JLBIND_TEST_NOTRIM: ${{ matrix.config.notrim && 'true' || 'false' }}
 
     steps:
       - uses: actions/checkout@v7

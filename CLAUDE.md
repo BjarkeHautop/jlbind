@@ -59,10 +59,11 @@ this library instead of the one `install_library()` builds, or the one
 
 CI (`.github/workflows/R-CMD-check.yaml`) runs R CMD check with Julia 1.13 on
 Linux/Windows/macOS and with the latest Julia 1.x on Linux, all with the
-integration test enabled, and once on Linux without Julia, which is what CRAN
-sees — everything except the integration test must pass without Julia.
-`test-coverage.yaml` runs covr with Julia 1.13 and `JLBIND_TEST_BUILD=true` and
-uploads to Codecov; `altdoc.yaml` builds and deploys the site.
+integration test enabled (the latest-1.x job also sets `JLBIND_TEST_NOTRIM`),
+and once on Linux without Julia, which is what CRAN sees — everything except the
+integration test must pass without Julia. `test-coverage.yaml` runs covr with
+Julia 1.13 and `JLBIND_TEST_BUILD=true` and uploads to Codecov; `altdoc.yaml`
+builds and deploys the site.
 
 ## Architecture
 
