@@ -30,13 +30,13 @@ called *clients*. Each client contains:
 - A Julia binding package under `inst/julia/`, declaring the functions that R
   can call.
 - A small generated C file that registers those functions as native routines.
-- An `.onLoad()` hook that calls `jlbind::bind()` to connect the package to the
-  shared library.
+- An `.onLoad()` hook that calls `jlbind::bind_client()` to connect the package
+  to the shared library.
 
-When you run `install_backend()`, jlbind finds the installed clients, compiles
+When you run `install_library()`, jlbind finds the installed clients, compiles
 their binding packages into one library, and saves it under
-`tools::R_user_dir("jlbind", "data")`. When a client is loaded, `bind()` loads
-the library if necessary and connects the client's native routines to it.
+`tools::R_user_dir("jlbind", "data")`. When a client is loaded, `bind_client()`
+loads the library if necessary and connects the client's native routines to it.
 
 A client can only be bound to a library built from the version of that client
 currently installed. If you update a package without rebuilding the library, its
@@ -50,7 +50,7 @@ shared library.
 After installing or updating an R package that uses jlbind, run:
 
 ```r
-jlbind::install_backend()
+jlbind::install_library()
 ```
 
 The first build downloads and compiles the required Julia dependencies, so it
@@ -70,23 +70,25 @@ R to use the new library.
 If a package that uses jlbind doesn't work, first check its status:
 
 ```r
-jlbind::check_backend("somepkg")
+jlbind::check_bound("somepkg")
 ```
 
 The most common causes are that the shared library hasn't been built yet, or
-that the package was updated after the last build. Use `backend_info()` to
+that the package was updated after the last build. Use `library_info()` to
 inspect the loaded library, the versions of the clients it was built from, and
 which clients are currently bound.
 
 If the Julia installation used for the build has been removed or replaced, for
-example by a `juliaup` update, rebuild the library:
+example by a `juliaup` update, rebuild the library. `install_library()` rebuilds
+it when the Julia version differs from the one it was built with. If the version
+is the same, use `force = TRUE`:
 
 ```r
-jlbind::install_backend(force = TRUE)
+jlbind::install_library(force = TRUE)
 ```
 
 You can select the Julia installation to use by setting the `JULIA` environment
-variable or by passing `julia =` to `install_backend()`.
+variable or by passing `julia =` to `install_library()`.
 
 The library is compiled for the building machine's CPU. To use it on other
 machines (e.g. cluster nodes), set `JULIA_CPU_TARGET=generic` and rebuild with
@@ -123,21 +125,21 @@ independent dependency environments.
 
 By default, the build starts from the versions in the `Manifest.toml` [^1] of
 the first client that has one, and keeps them for the other clients where their
-`[compat]` bounds allow. Pass `update = TRUE` to use the newest versions every
-client's `[compat]` allows instead.
+`[compat]` bounds allow. Pass `versions = "compat"` to ignore the manifests and
+let Julia's resolver choose versions from the clients' `[compat]` bounds alone.
 
 [^1]: CRAN's [policy](https://cran.r-project.org/web/packages/policies.html)
     asks that external libraries downloaded at installation be a fixed version
     rather than the latest.
 
 If a client's `[compat]` bounds conflict with those of the clients listed before
-it by `jlbind_clients()`, it is left out of the build; `check_backend()` says
+it by `jlbind_clients()`, it is left out of the build; `check_bound()` says
 which clients it conflicts with.
 
 You can control which clients are included by specifying them explicitly:
 
 ```r
-jlbind::install_backend(packages = c("pkgA", "pkgC"))
+jlbind::install_library(packages = c("pkgA", "pkgC"))
 ```
 
 Clients omitted from the build remain unbound until you rebuild the library with

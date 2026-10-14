@@ -80,7 +80,7 @@ jlbind and JuliaCall can't share one.
 
 The benchmark script is
 [`vignettes/articles/performance/benchmark.R`](https://github.com/BjarkeHautop/jlbind/blob/main/vignettes/articles/performance/benchmark.R).
-The results below were run on:
+The results below were run on[^juliacall]:
 
 ```{r}
 #| label: versions
@@ -88,6 +88,10 @@ The results below were run on:
 
 knitr::kable(versions, col.names = c("", ""))
 ```
+
+[^juliacall]: Using the development version of JuliaCall, which fixes several
+    issues, including failing on Ubuntu 24
+    ([JuliaCall#265](https://github.com/JuliaInterop/JuliaCall/pull/265)).
 
 ## Startup
 

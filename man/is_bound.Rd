@@ -2,26 +2,26 @@
 % Please edit documentation in R/runtime.R
 \name{is_bound}
 \alias{is_bound}
-\alias{check_backend}
+\alias{check_bound}
 \title{Check whether a package is bound to the Julia library}
 \usage{
 is_bound(pkg)
 
-check_backend(pkg)
+check_bound(pkg)
 }
 \arguments{
 \item{pkg}{Name of a package that uses jlbind.}
 }
 \value{
-\code{is_bound()}: \code{TRUE} or \code{FALSE}. \code{check_backend()}: \code{TRUE}
+\code{is_bound()}: \code{TRUE} or \code{FALSE}. \code{check_bound()}: \code{TRUE}
 (invisibly) if the package is bound, otherwise an error.
 }
 \description{
-\code{is_bound()} returns \code{TRUE} or \code{FALSE}. \code{check_backend()} gives an error that
+\code{is_bound()} returns \code{TRUE} or \code{FALSE}. \code{check_bound()} gives an error that
 explains why the package isn't bound.
 }
 \examples{
 # Not bound, as no package named mypkg has been loaded
 is_bound("mypkg")
-try(check_backend("mypkg"))
+try(check_bound("mypkg"))
 }

@@ -44,7 +44,7 @@ A second integration test builds a copy of `hellojl` with
 `JLBIND_TEST_NOTRIM=true`.
 
 Environment variables: `JULIA` (Julia binary to use), `JLBIND_LIBRARY` (load
-this library instead of the one `install_backend()` builds, or the one
+this library instead of the one `install_library()` builds, or the one
 `build_library()` writes to a `load_all()`ed client's `.jlbind/`),
 `JULIA_NUM_THREADS`.
 
@@ -72,13 +72,13 @@ Three layers, spread across R, Julia and C:
   importing JLBind and every binding package, seeds dependencies from the first
   client's `Manifest.toml` (falling back to `[compat]` resolution), and compiles
   with JuliaC in a separate environment.
-- **R side (`R/`)** — `backend.R`: `install_backend()` / `build_library()`
+- **R side (`R/`)** — `library.R`: `install_library()` / `build_library()`
   (finds clients, runs `build.jl`, stores the library under
-  `R_user_dir("jlbind", "data")/backend/` with the client versions it was built
+  `R_user_dir("jlbind", "data")/library/` with the client versions it was built
   from). `clients.R`: client discovery via the `Config/jlbind` DESCRIPTION
-  field. `runtime.R`: `bind(pkg)` called from a client's `.onLoad`, loads the
-  library once, sets threads, binds a client only if the library was built from
-  its installed version. `scaffold.R`: `use_jlbind()` and
+  field. `runtime.R`: `bind_client(pkg)` called from a client's `.onLoad`, loads
+  the library once, sets threads, binds a client only if the library was built
+  from its installed version. `scaffold.R`: `use_jlbind()` and
   `update_entrypoints()`, which scans `@rcall` declarations (with
   comments/strings blanked, so they must be literal top-level `@rcall`s) and
   writes `src/entrypoints.h`. `julia.R`: locating Julia.

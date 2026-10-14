@@ -11,11 +11,12 @@ jlbind_clients(lib.loc = NULL)
 }
 \value{
 A data frame with one row per package and the columns \code{package},
-\code{version}, \code{module} (its Julia binding package), \code{path} (where the binding
-package is) and \code{trim} (\code{FALSE} if it sets \code{Config/jlbind/trim: false}).
+\code{version}, \code{module} (the name of its Julia binding package), \code{path} (where
+the binding package is) and \code{trim} (\code{FALSE} if it sets
+\code{Config/jlbind/trim: false}).
 }
 \description{
-Lists the installed packages that \code{\link[=install_backend]{install_backend()}} will compile. A package
+Lists the installed packages that \code{\link[=install_library]{install_library()}} will compile. A package
 uses jlbind if its \code{DESCRIPTION} has a \code{Config/jlbind} field. If a package is
 installed in more than one library, the copy that \code{\link[=library]{library()}} would load is
 the one listed.

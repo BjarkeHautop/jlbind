@@ -18,7 +18,7 @@ compares with other ways of calling Julia from R, see
 
 An R process can load only one compiled Julia library[^privatize]. By default,
 jlbind therefore compiles the Julia code of *all* installed clients into one
-shared library, which each user builds with `jlbind::install_backend()`. Your
+shared library, which each user builds with `jlbind::install_library()`. Your
 client then shares a library, and a set of Julia dependency versions, with every
 other client the user has installed. Users can instead build a separate library
 for some clients, but then those clients can't be loaded in the same R session.
@@ -46,14 +46,14 @@ jlbind:
   with a `Bindings` suffix (for example, `MyPkgBindings`), including an example
   function.
 - `src/jlbind.c` and `src/entrypoints.h`, which register the native routines.
-- `R/jlbind.R`, which calls `jlbind::bind()` from `.onLoad()` and includes the
-  roxygen tag for `useDynLib()`.
+- `R/jlbind.R`, which calls `jlbind::bind_client()` from `.onLoad()` and
+  includes the roxygen tag for `useDynLib()`.
 - The `Config/jlbind` and `Imports: jlbind` fields in `DESCRIPTION`.
 - A `.jlbind/` directory for development builds, added to `.Rbuildignore` and
   `.gitignore`.
 
-If your package already defines `.onLoad()`, add `jlbind::bind(pkgname)` to the
-existing function yourself. Then run `devtools::document()` to update
+If your package already defines `.onLoad()`, add `jlbind::bind_client(pkgname)`
+to the existing function yourself. Then run `devtools::document()` to update
 `NAMESPACE`.
 
 ::: {.callout-important}
@@ -136,7 +136,7 @@ devtools::load_all()
 By default, `build_library()` writes the library to `.jlbind/` in your package's
 source directory. That directory is excluded from the installed package. When
 you load the package with `devtools::load_all()`, jlbind uses this development
-library instead of the one created by `install_backend()`.
+library instead of the one created by `install_library()`.
 
 ::: {.callout-note}
 **The development library is only used when your package loads first**

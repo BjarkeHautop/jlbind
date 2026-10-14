@@ -13,8 +13,9 @@
 # the others keeping as many versions as their compat bounds allow, then says
 # which versions differ from a client's manifest. A client whose [compat]
 # bounds conflict with those of the clients before it is left out, and listed
-# in <output directory>/conflicts with the clients it conflicts with. `--update` instead resolves
-# the newest versions every [compat] allows. `--develop=<dir>` (repeatable)
+# in <output directory>/conflicts with the clients it conflicts with. `--update`
+# instead ignores the manifests and resolves from the [compat] bounds alone
+# (build_library(versions = "compat")). `--develop=<dir>` (repeatable)
 # uses the Julia package in <dir>, e.g. a local checkout of a dependency,
 # instead of its registered release. `--no-trim` compiles without `--trim`,
 # for clients whose code relies on dynamic dispatch.
@@ -143,10 +144,10 @@ function resolve(cs)
     catch e
         # A manifest resolved with another Julia version can fail to
         # instantiate (e.g. on different standard library versions), so fall
-        # back to the newest compatible versions rather than not building.
+        # back to resolving from the compat bounds rather than not building.
         base === nothing && rethrow()
         @warn "Could not use the Manifest.toml of $(base.name); resolving " *
-            "the newest versions the binding packages allow instead." exception = e
+            "from the binding packages' [compat] bounds instead." exception = e
         rm(joinpath(IMAGE, "Manifest.toml"))
         Pkg.develop(specs)
         Pkg.instantiate()

@@ -25,7 +25,7 @@ test_that("use_jlbind() sets up a package", {
     c("stats", "jlbind")
   )
   expect_true(any(grepl(
-    "jlbind::bind(pkgname)",
+    "jlbind::bind_client(pkgname)",
     readLines(file.path(pkg, "R", "jlbind.R")),
     fixed = TRUE
   )))

@@ -33,7 +33,7 @@ After installing or updating an R package that uses jlbind, build the shared
 library:
 
 ```r
-jlbind::install_backend()
+jlbind::install_library()
 ```
 
 This compiles the Julia code of every installed package that uses jlbind and may

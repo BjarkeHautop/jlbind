@@ -9,7 +9,7 @@
  * each entrypoint in entrypoints.h is registered here as the .Call routine
  * `C_<name>`, which forwards to the library's `<module>_<name>` through a
  * function pointer that jlbind_bind() resolves once the library is loaded,
- * called by jlbind::bind() from the package's .onLoad().
+ * called by jlbind::bind_client() from the package's .onLoad().
  */
 
 #include <R.h>
@@ -32,7 +32,7 @@ static void not_bound(void)
 {
     Rf_errorcall(R_NilValue,
                  "The compiled Julia library of " JLBIND_PACKAGE " is not "
-                 "available; run jlbind::check_backend(\"" JLBIND_PACKAGE
+                 "available; run jlbind::check_bound(\"" JLBIND_PACKAGE
                  "\") for details.");
 }
 
@@ -63,7 +63,7 @@ static jlbind_fn find(const char *dll, const char *symbol)
     DL_FUNC f = R_FindSymbol(symbol, dll, NULL);
     if (f == NULL)
         Rf_error("Symbol '%s' not found in the compiled Julia library; run "
-                 "jlbind::install_backend() to rebuild it.",
+                 "jlbind::install_library() to rebuild it.",
                  symbol);
     return (jlbind_fn)f;
 }

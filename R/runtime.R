@@ -16,7 +16,7 @@
 .state$problems <- list()
 
 # The library to load: JLBIND_LIBRARY, else one built into the sources of
-# `pkg` (.dev_library()), else the one install_backend() builds.
+# `pkg` (.dev_library()), else the one install_library() builds.
 .library_path <- function(pkg = NULL) {
   override <- Sys.getenv("JLBIND_LIBRARY", unset = "")
   if (nzchar(override)) {
@@ -26,7 +26,7 @@
   if (!is.null(dev)) {
     return(dev)
   }
-  file.path(.backend_dir(), .library_file())
+  file.path(.library_dir(), .library_file())
 }
 
 # Where build_library() writes by default in a package's sources. It is at the
@@ -57,7 +57,7 @@
     .state$problem <- paste0(
       "The compiled Julia library has not been built (it was looked for at ",
       path,
-      "). Run jlbind::install_backend() to build it; this needs Julia >= 1.13."
+      "). Run jlbind::install_library() to build it; this needs Julia >= 1.13."
     )
     return(FALSE)
   }
@@ -70,7 +70,7 @@
       "The compiled Julia library (",
       path,
       ") could not be loaded; the Julia it was built with may have been ",
-      "removed or updated. Run jlbind::install_backend(force = TRUE) in a ",
+      "removed or updated. Run jlbind::install_library(force = TRUE) in a ",
       "new R session to rebuild it.\n",
       conditionMessage(dll)
     )
@@ -157,9 +157,9 @@
 #' sets that up. The first call loads the compiled library, and each call binds
 #' one package's routines to it. If the library is missing or was built from
 #' another version of the package, the package isn't bound and its functions
-#' give an error; [check_backend()] says why.
+#' give an error; [check_bound()] says why.
 #'
-#' The library is the one from [install_backend()], unless `JLBIND_LIBRARY`
+#' The library is the one from [install_library()], unless `JLBIND_LIBRARY`
 #' names another, or the first package bound was loaded with
 #' `pkgload::load_all()` and has one from [build_library()].
 #'
@@ -174,10 +174,10 @@
 #' \dontrun{
 #' # In a package's R/jlbind.R, as use_jlbind() writes it
 #' .onLoad <- function(libname, pkgname) {
-#'   jlbind::bind(pkgname)
+#'   jlbind::bind_client(pkgname)
 #' }
 #' }
-bind <- function(pkg) {
+bind_client <- function(pkg) {
   .state$requested <- union(.state$requested, pkg)
   if (pkg %in% .state$bound) {
     return(invisible(TRUE))
@@ -235,7 +235,7 @@ bind <- function(pkg) {
     return(paste0(
       "The compiled Julia library was built without ",
       pkg,
-      ". Run jlbind::install_backend() to rebuild it, then restart R."
+      ". Run jlbind::install_library() to rebuild it, then restart R."
     ))
   }
   if (!identical(row$Version[[1L]], version)) {
@@ -246,7 +246,7 @@ bind <- function(pkg) {
       row$Version[[1L]],
       ", not the installed version ",
       version,
-      ". Run jlbind::install_backend() to rebuild it, then restart R."
+      ". Run jlbind::install_library() to rebuild it, then restart R."
     ))
   }
   NULL
@@ -256,7 +256,7 @@ bind <- function(pkg) {
 .bind_requested <- function() {
   for (pkg in setdiff(.state$requested, .state$bound)) {
     if (isNamespaceLoaded(pkg)) {
-      bind(pkg)
+      bind_client(pkg)
     }
   }
   invisible(NULL)
@@ -264,25 +264,25 @@ bind <- function(pkg) {
 
 #' Check whether a package is bound to the Julia library
 #'
-#' `is_bound()` returns `TRUE` or `FALSE`. `check_backend()` gives an error that
+#' `is_bound()` returns `TRUE` or `FALSE`. `check_bound()` gives an error that
 #' explains why the package isn't bound.
 #'
 #' @param pkg Name of a package that uses jlbind.
 #'
-#' @return `is_bound()`: `TRUE` or `FALSE`. `check_backend()`: `TRUE`
+#' @return `is_bound()`: `TRUE` or `FALSE`. `check_bound()`: `TRUE`
 #'   (invisibly) if the package is bound, otherwise an error.
 #' @export
 #' @examples
 #' # Not bound, as no package named mypkg has been loaded
 #' is_bound("mypkg")
-#' try(check_backend("mypkg"))
+#' try(check_bound("mypkg"))
 is_bound <- function(pkg) {
   pkg %in% .state$bound
 }
 
 #' @rdname is_bound
 #' @export
-check_backend <- function(pkg) {
+check_bound <- function(pkg) {
   if (is_bound(pkg)) {
     return(invisible(TRUE))
   }
@@ -291,7 +291,7 @@ check_backend <- function(pkg) {
       "Package ",
       pkg,
       " has not asked to be bound; is it loaded, and does it call ",
-      "jlbind::bind() from its .onLoad()?",
+      "jlbind::bind_client() from its .onLoad()?",
       call. = FALSE
     )
   }
@@ -305,15 +305,18 @@ check_backend <- function(pkg) {
 #'
 #' @return A list with:
 #'   * `path`: where the library is, or `NULL` if none is loaded.
-#'   * `clients`: the packages it was built from.
-#'   * `excluded`: the packages left out of it because their Julia dependencies
-#'     conflict with those of other packages (see [install_backend()]).
-#'   * `bound`: the packages bound to it.
-#'   * `objects`: how many Julia objects R holds references to.
+#'   * `clients`: a data frame with one row per package the library was built
+#'     for, with the columns `package`, `version` and `module` (the name of its
+#'     Julia binding package), as in [jlbind_clients()], and:
+#'     * `included`: `FALSE` if it was left out because its Julia dependencies
+#'       conflict with those of other packages (see [install_library()]).
+#'     * `bound`: whether it is bound to the library in this session.
+#'   * `objects`: how many Julia objects R holds references to, or `NULL` if no
+#'     library is loaded.
 #' @export
 #' @examples
-#' backend_info()
-backend_info <- function() {
+#' library_info()
+library_info <- function() {
   dll <- .state$dll
   objects <- NULL
   if (!is.null(dll)) {
@@ -322,9 +325,32 @@ backend_info <- function() {
   }
   list(
     path = if (!is.null(dll)) .state$path,
-    clients = .state$clients,
-    excluded = .state$excluded$Package,
-    bound = .state$bound,
+    clients = .info_clients(.state$clients, .state$excluded, .state$bound),
     objects = objects
+  )
+}
+
+# The clients table of library_info(), from the clients a library was built
+# from and left out (.read_clients(), .read_excluded()) and those bound. A
+# library that records no clients (one built some other way) still lists the
+# clients bound to it.
+.info_clients <- function(built, excluded, bound) {
+  col <- function(df, name) {
+    if (is.null(df[[name]])) rep(NA_character_, NROW(df)) else df[[name]]
+  }
+  package <- c(col(built, "Package"), col(excluded, "Package"))
+  extra <- setdiff(bound, package)
+  unknown <- rep(NA_character_, length(extra))
+  data.frame(
+    package = c(package, extra),
+    version = c(col(built, "Version"), col(excluded, "Version"), unknown),
+    module = c(col(built, "Module"), col(excluded, "Module"), unknown),
+    included = c(
+      rep(TRUE, NROW(built)),
+      rep(FALSE, NROW(excluded)),
+      rep(TRUE, length(extra))
+    ),
+    bound = c(package, extra) %in% bound,
+    stringsAsFactors = FALSE
   )
 }

@@ -9,11 +9,12 @@
 #' All packages share one Julia environment. By default, the dependencies get
 #' the versions in the first package's `Manifest.toml`. If two packages
 #' conflict, the one listed later by [jlbind_clients()] is left out, and
-#' [check_backend()] says why. See `vignette("using-clients", "jlbind")` for
+#' [check_bound()] says why. See `vignette("using-clients", "jlbind")` for
 #' details.
 #'
-#' If a library is already loaded, restart R to use the new one. If the Julia
-#' used for the build is updated or removed, rebuild with `force = TRUE`.
+#' The library is rebuilt only if it is out of date: built from other versions
+#' of the packages, by another version of jlbind or Julia, or with `develop`.
+#' If a library is already loaded, restart R to use the new one.
 #'
 #' @param packages Names of the installed packages to build. By default, every
 #'   package listed by [jlbind_clients()]. The others aren't bound.
@@ -21,9 +22,11 @@
 #'   environment variable, or `julia` on the `PATH`.
 #' @param ask If `TRUE`, ask before building. Defaults to [interactive()].
 #' @param force If `TRUE`, rebuild even if the library is up to date. Always on
-#'   with `update` or `develop`.
-#' @param update If `TRUE`, use the newest dependency versions instead of those
-#'   in the packages' `Manifest.toml` files.
+#'   with `versions = "compat"` or `develop`.
+#' @param versions Where the Julia dependency versions come from. `"manifest"`
+#'   keeps the versions in the first package's `Manifest.toml` where the other
+#'   packages' `[compat]` bounds allow. `"compat"` ignores the manifests and
+#'   lets Julia's resolver choose versions from the `[compat]` bounds alone.
 #' @param develop Paths to local Julia packages to use instead of their released
 #'   versions.
 #'
@@ -32,22 +35,23 @@
 #' @export
 #' @examples
 #' \dontrun{
-#' install_backend()
+#' install_library()
 #'
 #' # With a local checkout of a Julia dependency
-#' install_backend(develop = "~/dev/SomePackage.jl")
+#' install_library(develop = "~/dev/SomePackage.jl")
 #'
 #' # Only two of the installed packages
-#' install_backend(packages = c("pkgA", "pkgB"))
+#' install_library(packages = c("pkgA", "pkgB"))
 #' }
-install_backend <- function(
+install_library <- function(
   packages = NULL,
   julia = NULL,
   ask = interactive(),
   force = FALSE,
-  update = FALSE,
+  versions = c("manifest", "compat"),
   develop = NULL
 ) {
+  versions <- match.arg(versions)
   clients <- jlbind_clients()
   if (!is.null(packages)) {
     missing <- setdiff(packages, clients$package)
@@ -65,9 +69,15 @@ install_backend <- function(
     message("No installed package uses jlbind, so there is nothing to build.")
     return(invisible(NULL))
   }
-  dir <- .backend_dir()
+  dir <- .library_dir()
   path <- file.path(dir, .library_file())
-  if (!force && !update && !length(develop) && .up_to_date(dir, clients)) {
+  julia <- .find_julia(julia)
+  if (
+    !force &&
+      versions == "manifest" &&
+      !length(develop) &&
+      .up_to_date(dir, clients, .julia_version(julia))
+  ) {
     message(
       "The compiled Julia library is up to date (",
       path,
@@ -77,7 +87,6 @@ install_backend <- function(
     return(invisible(path))
   }
 
-  julia <- .find_julia(julia)
   if (isTRUE(ask)) {
     choice <- utils::menu(
       c("Yes", "No"),
@@ -104,7 +113,7 @@ install_backend <- function(
   dir.create(root, recursive = TRUE, showWarnings = FALSE)
   out <- tempfile("build-", tmpdir = root)
   on.exit(unlink(out, recursive = TRUE), add = TRUE)
-  .build(clients, out, julia, update, develop)
+  .build(clients, out, julia, versions, develop)
 
   # A loaded library cannot be deleted on Windows, but it can be renamed, so
   # the old build is moved aside first; whatever cannot be removed now is
@@ -136,18 +145,20 @@ install_backend <- function(
 
 #' Build a Julia library from specific packages
 #'
-#' Like [install_backend()], but compiles only `packages` and writes the library
+#' Like [install_library()], but compiles only `packages` and writes the library
 #' to `out`, for package development. By default, it builds the package in the
 #' working directory into its `.jlbind/` directory, which `devtools::load_all()`
-#' then uses instead of the library from [install_backend()]. To use a library
+#' then uses instead of the library from [install_library()]. To use a library
 #' written elsewhere, set `JLBIND_LIBRARY` to its path before loading the
 #' package.
 #'
-#' @param packages Names of installed packages, or paths to package sources or
-#'   installed packages.
+#' @param packages Paths to package sources or installed packages, or names of
+#'   installed packages. An entry containing a `/` (or `\` on Windows), or
+#'   that is `"."` or `".."`, is a path; any other is a package name, so write
+#'   `"./mypkg"` for the sources in the `mypkg` directory.
 #' @param out Directory to write the library to. Defaults to `.jlbind/` in the
-#'   sources of `packages`, which must then be a single source directory.
-#' @inheritParams install_backend
+#'   sources of `packages`, which must then be a single path.
+#' @inheritParams install_library
 #'
 #' @return The path to the library, invisibly.
 #' @export
@@ -165,30 +176,48 @@ build_library <- function(
   packages = ".",
   out = NULL,
   julia = NULL,
-  update = FALSE,
+  versions = c("manifest", "compat"),
   develop = NULL
 ) {
+  versions <- match.arg(versions)
+  is_path <- .is_path(packages)
   if (is.null(out)) {
-    if (length(packages) != 1L || !dir.exists(packages)) {
+    if (length(packages) != 1L || !is_path) {
       stop(
-        "`out` is needed unless `packages` is a single source directory.",
+        "`out` is needed unless `packages` is a single path.",
         call. = FALSE
       )
     }
     out <- file.path(packages, .dev_dir)
   }
-  infos <- lapply(packages, function(p) {
-    if (dir.exists(p)) .client_info(p) else .client_info(find.package(p))
-  })
+  infos <- Map(
+    function(p, path) .client_info(if (path) p else find.package(p)),
+    packages,
+    is_path
+  )
   clients <- .client_table(infos)
   julia <- .find_julia(julia)
-  .build(clients, out, julia, update, develop)
+  .build(clients, out, julia, versions, develop)
   invisible(file.path(normalizePath(out), .library_file()))
+}
+
+# Which of `x` build_library() takes as paths rather than package names.
+.is_path <- function(x) {
+  x %in%
+    c(".", "..") |
+    grepl("/", x, fixed = TRUE) |
+    (.Platform$OS.type == "windows" & grepl("\\", x, fixed = TRUE))
 }
 
 # Compiles `clients` (a .client_table()) into `out`, with the metadata the
 # runtime checks clients against.
-.build <- function(clients, out, julia, update, develop = NULL) {
+.build <- function(
+  clients,
+  out,
+  julia,
+  versions = "manifest",
+  develop = NULL
+) {
   if (anyDuplicated(clients$module)) {
     dup <- clients$module[duplicated(clients$module)][[1L]]
     stop(
@@ -220,7 +249,7 @@ build_library <- function(
     c(
       shQuote(script),
       shQuote(out),
-      if (isTRUE(update)) "--update",
+      if (versions == "compat") "--update",
       if (!trim) "--no-trim",
       if (length(develop)) {
         shQuote(paste0("--develop=", develop))
@@ -245,7 +274,7 @@ build_library <- function(
     Module = clients$module
   )
   write.dcf(meta[!left_out, , drop = FALSE], file.path(out, "clients"))
-  excluded <- meta[left_out, c("Package", "Version"), drop = FALSE]
+  excluded <- meta[left_out, , drop = FALSE]
   excluded$Conflicts <- vapply(
     conflicts[excluded$Package],
     paste,
@@ -262,7 +291,7 @@ build_library <- function(
       Julia = as.character(.julia_version(julia)),
       Built = format(Sys.time(), tz = "UTC", usetz = TRUE),
       Trim = trim,
-      # Built with local checkouts: not what a plain install_backend() builds.
+      # Built with local checkouts: not what a plain install_library() builds.
       Develop = paste(develop, collapse = "\n")
     ),
     file.path(out, "build")
@@ -293,7 +322,7 @@ build_library <- function(
     return(paste0(
       pkg,
       " was left out of the compiled Julia library: its Julia dependencies ",
-      "cannot be resolved. See the output of jlbind::install_backend()."
+      "cannot be resolved. See the output of jlbind::install_library()."
     ))
   }
   keep <- c(pkg, setdiff(all, c(pkg, with)))
@@ -304,7 +333,7 @@ build_library <- function(
     paste(with, collapse = ", "),
     ". To use ",
     pkg,
-    " instead, run jlbind::install_backend(packages = ",
+    " instead, run jlbind::install_library(packages = ",
     .deparse_chr(keep),
     ") and restart R."
   )
@@ -315,9 +344,9 @@ build_library <- function(
   if (length(x) == 1L) x else paste0("c(", paste(x, collapse = ", "), ")")
 }
 
-# Where install_backend() builds the library.
-.backend_dir <- function() {
-  file.path(tools::R_user_dir("jlbind", "data"), "backend")
+# Where install_library() builds the library.
+.library_dir <- function() {
+  file.path(tools::R_user_dir("jlbind", "data"), "library")
 }
 
 .library_file <- function() {
@@ -341,7 +370,7 @@ build_library <- function(
 }
 
 # The clients left out of the library in `dir` (a data frame with Package,
-# Version, Conflicts), or NULL if it records none.
+# Version, Module, Conflicts), or NULL if it records none.
 .read_excluded <- function(dir) {
   file <- file.path(dir, "excluded")
   if (!file.exists(file) || !length(readLines(file, warn = FALSE))) {
@@ -350,10 +379,10 @@ build_library <- function(
   as.data.frame(read.dcf(file), stringsAsFactors = FALSE)
 }
 
-# Was the library in `dir` built by this version of jlbind from exactly these
-# versions of these clients (counting those it left out), and with no local
-# checkouts?
-.up_to_date <- function(dir, clients) {
+# Was the library in `dir` built by this version of jlbind and Julia version
+# `julia` from exactly these versions of these clients (counting those it left
+# out), and with no local checkouts?
+.up_to_date <- function(dir, clients, julia) {
   built <- .read_clients(dir)
   build <- file.path(dir, "build")
   if (
@@ -363,11 +392,12 @@ build_library <- function(
   ) {
     return(FALSE)
   }
-  info <- read.dcf(build, fields = c("jlbind", "Develop"))
+  info <- read.dcf(build, fields = c("jlbind", "Julia", "Develop"))
   identical(
     info[, "jlbind"][[1L]],
     as.character(utils::packageVersion("jlbind"))
   ) &&
+    identical(info[, "Julia"][[1L]], as.character(julia)) &&
     (is.na(info[, "Develop"]) || !nzchar(info[, "Develop"])) &&
     setequal(
       paste(

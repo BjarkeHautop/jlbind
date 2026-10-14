@@ -8,4 +8,4 @@ Encoding: UTF-8
 Config/jlbind: julia
 Imports: jlbind
 SystemRequirements: Julia (>= 1.13), needed to build the compiled library with
-    jlbind::install_backend()
+    jlbind::install_library()

@@ -12,22 +12,22 @@ test_that("JULIA_NUM_THREADS is read as a count or auto", {
   expect_equal(n, 1L)
 })
 
-test_that("the library is JLBIND_LIBRARY, else a client's own, else the backend", {
-  backend <- file.path(.backend_dir(), .library_file())
+test_that("the library is JLBIND_LIBRARY, else a client's own, else the default", {
+  installed <- file.path(.library_dir(), .library_file())
   withr::local_envvar(JLBIND_LIBRARY = NA)
   expect_null(.dev_library("stats"))
-  expect_equal(.library_path("stats"), backend)
+  expect_equal(.library_path("stats"), installed)
   local_mocked_bindings(.dev_library = function(pkg) "dev/lib")
   expect_equal(.library_path("demo"), "dev/lib")
-  expect_equal(.library_path(), backend)
+  expect_equal(.library_path(), installed)
   withr::local_envvar(JLBIND_LIBRARY = "override/lib")
   expect_equal(.library_path("demo"), "override/lib")
 })
 
-test_that("a library is up to date only for the same clients and jlbind", {
+test_that("a library is up to date only for the same clients, jlbind, Julia", {
   dir <- withr::local_tempdir()
   clients <- data.frame(package = c("a", "b"), version = c("1.0", "2.0"))
-  expect_false(.up_to_date(dir, clients))
+  expect_false(.up_to_date(dir, clients, "1.13.1"))
   file.create(file.path(dir, .library_file()))
   write.dcf(
     data.frame(
@@ -38,15 +38,20 @@ test_that("a library is up to date only for the same clients and jlbind", {
     file.path(dir, "clients")
   )
   write.dcf(
-    data.frame(jlbind = as.character(utils::packageVersion("jlbind"))),
+    data.frame(
+      jlbind = as.character(utils::packageVersion("jlbind")),
+      Julia = "1.13.1"
+    ),
     file.path(dir, "build")
   )
-  expect_true(.up_to_date(dir, clients))
+  expect_true(.up_to_date(dir, clients, "1.13.1"))
   clients$version[[1]] <- "1.1"
-  expect_false(.up_to_date(dir, clients))
-  expect_false(.up_to_date(dir, clients[1, ]))
+  expect_false(.up_to_date(dir, clients, "1.13.1"))
+  expect_false(.up_to_date(dir, clients[1, ], "1.13.1"))
+  clients$version[[1]] <- "1.0"
+  expect_false(.up_to_date(dir, clients, "1.13.2"))
   write.dcf(data.frame(jlbind = "0.0.0"), file.path(dir, "build"))
-  expect_false(.up_to_date(dir, clients))
+  expect_false(.up_to_date(dir, clients, "1.13.1"))
 })
 
 test_that("a library built with local checkouts is never up to date", {
@@ -61,15 +66,16 @@ test_that("a library built with local checkouts is never up to date", {
     write.dcf(
       data.frame(
         jlbind = as.character(utils::packageVersion("jlbind")),
+        Julia = "1.13.1",
         Develop = develop
       ),
       file.path(dir, "build")
     )
   }
   build("")
-  expect_true(.up_to_date(dir, clients))
+  expect_true(.up_to_date(dir, clients, "1.13.1"))
   build("/some/checkout")
-  expect_false(.up_to_date(dir, clients))
+  expect_false(.up_to_date(dir, clients, "1.13.1"))
 })
 
 test_that("clients left out of a build count towards being up to date", {
@@ -81,15 +87,18 @@ test_that("clients left out of a build count towards being up to date", {
     file.path(dir, "clients")
   )
   write.dcf(
-    data.frame(jlbind = as.character(utils::packageVersion("jlbind"))),
+    data.frame(
+      jlbind = as.character(utils::packageVersion("jlbind")),
+      Julia = "1.13.1"
+    ),
     file.path(dir, "build")
   )
-  expect_false(.up_to_date(dir, clients))
+  expect_false(.up_to_date(dir, clients, "1.13.1"))
   write.dcf(
     data.frame(Package = "b", Version = "2.0", Conflicts = "a"),
     file.path(dir, "excluded")
   )
-  expect_true(.up_to_date(dir, clients))
+  expect_true(.up_to_date(dir, clients, "1.13.1"))
   expect_equal(.read_excluded(dir)$Conflicts, "a")
 })
 
@@ -113,7 +122,7 @@ test_that("conflicts from build.jl are read by package name", {
 test_that("a left-out client is told what it conflicts with", {
   msg <- .excluded_message("b", "a", c("a", "b", "c"))
   expect_match(msg, "conflict with those of a", fixed = TRUE)
-  expect_match(msg, 'install_backend(packages = c("b", "c"))', fixed = TRUE)
+  expect_match(msg, 'install_library(packages = c("b", "c"))', fixed = TRUE)
   expect_match(.excluded_message("b", NULL, "b"), "cannot be resolved")
 })
 
@@ -159,7 +168,7 @@ test_that("a client is bound only to a library built from its version", {
   expect_match(.bind_problem("stats"), "cannot be resolved", fixed = TRUE)
 })
 
-test_that("bind() records why a client could not be bound", {
+test_that("bind_client() records why a client could not be bound", {
   local_state()
   .state$dll <- list(name = "jlbind")
   .state$clients <- NULL
@@ -167,21 +176,21 @@ test_that("bind() records why a client could not be bound", {
   .state$bound <- character()
   .state$problems <- list()
 
-  expect_error(check_backend("stats"), "has not asked to be bound")
+  expect_error(check_bound("stats"), "has not asked to be bound")
   # stats has registered routines, but no jlbind_bind.
-  expect_false(bind("stats"))
+  expect_false(bind_client("stats"))
   expect_false(is_bound("stats"))
-  expect_error(check_backend("stats"), "has no routine `jlbind_bind`")
+  expect_error(check_bound("stats"), "has no routine `jlbind_bind`")
 
   .state$bound <- "stats"
-  expect_true(bind("stats"))
-  expect_true(check_backend("stats"))
+  expect_true(bind_client("stats"))
+  expect_true(check_bound("stats"))
 
   # Without a library, the reason is that it could not be loaded.
   .state$dll <- NULL
   .state$bound <- character()
   .state$problem <- "No library."
-  expect_error(check_backend("stats"), "No library.", fixed = TRUE)
+  expect_error(check_bound("stats"), "No library.", fixed = TRUE)
 })
 
 test_that("clients that asked are bound once a library is built", {
@@ -189,7 +198,7 @@ test_that("clients that asked are bound once a library is built", {
   .state$requested <- c("stats", "jlbind.not.loaded", "utils")
   .state$bound <- "utils"
   asked <- character()
-  local_mocked_bindings(bind = function(pkg) {
+  local_mocked_bindings(bind_client = function(pkg) {
     asked <<- c(asked, pkg)
   })
   .bind_requested()
@@ -211,4 +220,29 @@ test_that("on Windows, the recorded Julia bindir is put on the PATH once", {
   expect_equal(Sys.getenv("PATH"), path)
   .add_julia_bindir(lib, windows = TRUE)
   expect_equal(Sys.getenv("PATH"), path)
+})
+
+test_that("library_info() lists the clients built, left out and bound", {
+  clients <- .info_clients(
+    data.frame(Package = c("a", "b"), Version = "1.0", Module = c("A", "B")),
+    data.frame(Package = "c", Version = "2.0", Module = "C", Conflicts = "a"),
+    "a"
+  )
+  expect_equal(
+    clients,
+    data.frame(
+      package = c("a", "b", "c"),
+      version = c("1.0", "1.0", "2.0"),
+      module = c("A", "B", "C"),
+      included = c(TRUE, TRUE, FALSE),
+      bound = c(TRUE, FALSE, FALSE)
+    )
+  )
+
+  # A library that records no clients lists those bound to it.
+  clients <- .info_clients(NULL, NULL, "a")
+  expect_equal(clients$package, "a")
+  expect_equal(clients$version, NA_character_)
+  expect_true(clients$bound)
+  expect_equal(nrow(.info_clients(NULL, NULL, character())), 0L)
 })

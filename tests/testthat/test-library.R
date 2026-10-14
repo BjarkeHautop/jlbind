@@ -1,83 +1,87 @@
-# install_backend(), build_library() and .build() with the compile step and
+# install_library(), build_library() and .build() with the compile step and
 # Julia mocked; test-integration.R runs them for real.
 
-test_that("install_backend() builds only installed clients", {
+test_that("install_library() builds only installed clients", {
   local_mocked_bindings(jlbind_clients = function(...) fake_clients())
   expect_error(
-    install_backend(packages = c("a", "zz", "yy")),
+    install_library(packages = c("a", "zz", "yy")),
     "Not an installed package that uses jlbind: zz, yy."
   )
   local_mocked_bindings(jlbind_clients = function(...) fake_clients()[0, ])
-  expect_message(res <- install_backend(), "nothing to build")
+  expect_message(res <- install_library(), "nothing to build")
   expect_null(res)
 })
 
-test_that("install_backend() leaves an up-to-date library alone", {
+test_that("install_library() leaves an up-to-date library alone", {
   dir <- withr::local_tempdir()
   bound <- FALSE
   local_mocked_bindings(
     jlbind_clients = function(...) fake_clients(),
-    .backend_dir = function() dir,
-    .up_to_date = function(dir, clients) TRUE,
+    .library_dir = function() dir,
+    .up_to_date = function(dir, clients, julia) TRUE,
+    .find_julia = function(julia) "julia",
+    .julia_version = function(julia) package_version("1.13.1"),
     .bind_requested = function() {
       bound <<- TRUE
     },
     .build = function(...) stop("should not build")
   )
   expect_message(
-    path <- install_backend(packages = "a"),
+    path <- install_library(packages = "a"),
     "up to date"
   )
   expect_equal(path, file.path(dir, .library_file()))
   expect_true(bound)
 })
 
-test_that("install_backend() can be cancelled", {
+test_that("install_library() can be cancelled", {
   dir <- withr::local_tempdir()
   local_mocked_bindings(
     jlbind_clients = function(...) fake_clients(),
-    .backend_dir = function() dir,
-    .up_to_date = function(dir, clients) FALSE,
+    .library_dir = function() dir,
+    .up_to_date = function(dir, clients, julia) FALSE,
     .find_julia = function(julia) "julia",
+    .julia_version = function(julia) package_version("1.13.1"),
     .build = function(...) stop("should not build")
   )
   local_mocked_bindings(menu = function(choices, title) 2L, .package = "utils")
-  expect_message(res <- install_backend(ask = TRUE), "Cancelled")
+  expect_message(res <- install_library(ask = TRUE), "Cancelled")
   expect_null(res)
 })
 
-test_that("install_backend() replaces the old library and prunes stale ones", {
+test_that("install_library() replaces the old library and prunes stale ones", {
   local_state()
   root <- withr::local_tempdir()
-  dir <- file.path(root, "backend")
+  dir <- file.path(root, "library")
   dir.create(dir)
   writeLines("old", file.path(dir, .library_file()))
   dir.create(file.path(root, "old-stale"))
   built <- NULL
   local_mocked_bindings(
     jlbind_clients = function(...) fake_clients(),
-    .backend_dir = function() dir,
-    .up_to_date = function(dir, clients) FALSE,
+    .library_dir = function() dir,
+    .up_to_date = function(dir, clients, julia) FALSE,
     .find_julia = function(julia) "julia",
+    .julia_version = function(julia) package_version("1.13.1"),
     .bind_requested = function() NULL,
-    .build = function(clients, out, julia, update, develop) {
-      built <<- list(clients = clients$package, update = update)
+    .build = function(clients, out, julia, versions, develop) {
+      built <<- list(clients = clients$package, versions = versions)
       dir.create(out)
       writeLines("new", file.path(out, .library_file()))
     }
   )
   .state$dll <- NULL
   expect_message(
-    path <- install_backend(ask = FALSE, update = TRUE),
+    path <- install_library(ask = FALSE, versions = "compat"),
     "^Built the compiled Julia library\\.\n$"
   )
-  expect_equal(built, list(clients = c("a", "b"), update = TRUE))
+  expect_equal(built, list(clients = c("a", "b"), versions = "compat"))
   expect_equal(readLines(path), "new")
-  expect_equal(list.files(root), "backend")
+  expect_equal(list.files(root), "library")
 
   # With a library loaded, the new one is used after a restart.
   .state$dll <- list(name = "jlbind")
-  expect_message(install_backend(ask = FALSE, force = TRUE), "Restart R")
+  expect_message(install_library(ask = FALSE, force = TRUE), "Restart R")
 })
 
 test_that("build_library() builds a source package into its .jlbind/", {
@@ -85,7 +89,7 @@ test_that("build_library() builds a source package into its .jlbind/", {
   args <- NULL
   local_mocked_bindings(
     .find_julia = function(julia) "julia",
-    .build = function(clients, out, julia, update, develop) {
+    .build = function(clients, out, julia, versions, develop) {
       args <<- list(package = clients$package, out = out)
       dir.create(out)
     }
@@ -98,11 +102,19 @@ test_that("build_library() builds a source package into its .jlbind/", {
   )
   expect_error(build_library(c(pkg, pkg)), "`out` is needed")
   expect_error(build_library("stats", tempfile()), "does not use jlbind")
+  expect_error(build_library("demo"), "`out` is needed")
+})
+
+test_that("build_library() tells paths from package names by their form", {
+  expect_equal(
+    .is_path(c(".", "..", "./pkg", "a/b", "pkg", "pkg.name")),
+    c(TRUE, TRUE, TRUE, TRUE, FALSE, FALSE)
+  )
 })
 
 test_that(".build() refuses two clients with the same binding package", {
   expect_error(
-    .build(fake_clients(c("a", "b"), c("X", "X")), tempfile(), "julia", FALSE),
+    .build(fake_clients(c("a", "b"), c("X", "X")), tempfile(), "julia"),
     "Two packages \\(a, b\\) have a Julia binding package named X"
   )
 })
@@ -123,7 +135,7 @@ test_that(".build() passes its options to build.jl and records the build", {
     }
   )
   msgs <- capture_messages(
-    .build(clients, out, "julia", update = TRUE, develop = checkout)
+    .build(clients, out, "julia", versions = "compat", develop = checkout)
   )
   expect_match(msgs[[1]], "without --trim, because b set")
   expect_match(msgs[[2]], "b was left out")

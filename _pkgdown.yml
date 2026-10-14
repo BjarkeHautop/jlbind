@@ -6,16 +6,16 @@ reference:
   - title: "Building the library"
     desc: "Compile the Julia code of the installed packages that use jlbind."
     contents:
-      - install_backend
+      - install_library
       - build_library
       - jlbind_clients
 
   - title: "At run time"
     desc: "Bind a package to the compiled library, and check on it."
     contents:
-      - bind
+      - bind_client
       - is_bound
-      - backend_info
+      - library_info
 
   - title: "Package development"
     desc: "Set up a package to use jlbind."

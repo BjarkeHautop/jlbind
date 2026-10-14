@@ -9,7 +9,7 @@
 
 #' List the packages that use jlbind
 #'
-#' Lists the installed packages that [install_backend()] will compile. A package
+#' Lists the installed packages that [install_library()] will compile. A package
 #' uses jlbind if its `DESCRIPTION` has a `Config/jlbind` field. If a package is
 #' installed in more than one library, the copy that [library()] would load is
 #' the one listed.
@@ -17,8 +17,9 @@
 #' @param lib.loc Library paths to search. Defaults to [.libPaths()].
 #'
 #' @return A data frame with one row per package and the columns `package`,
-#'   `version`, `module` (its Julia binding package), `path` (where the binding
-#'   package is) and `trim` (`FALSE` if it sets `Config/jlbind/trim: false`).
+#'   `version`, `module` (the name of its Julia binding package), `path` (where
+#'   the binding package is) and `trim` (`FALSE` if it sets
+#'   `Config/jlbind/trim: false`).
 #' @export
 #' @examples
 #' jlbind_clients()

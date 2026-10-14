@@ -2,7 +2,7 @@
 # JuliaCall and JuliaConnectoR on the functions of the hellojl test client.
 #
 # Needs the hellojl test client installed, a jlbind library built from it
-# (JLBIND_LIBRARY, or install_backend()), and JuliaCall, JuliaConnectoR, bench
+# (JLBIND_LIBRARY, or install_library()), and JuliaCall, JuliaConnectoR, bench
 # and callr. Each interface runs in fresh R processes, since jlbind and
 # JuliaCall can't share one. Run from the package root:
 #

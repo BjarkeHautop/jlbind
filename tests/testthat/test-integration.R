@@ -25,10 +25,10 @@ test_that("two clients share one compiled library", {
       library(counterjl)
       before <- tryCatch(greet("x"), error = conditionMessage)
       found <- jlbind::jlbind_clients()$package
-      suppressMessages(jlbind::install_backend(ask = FALSE))
+      suppressMessages(jlbind::install_library(ask = FALSE))
       # Fail with the reason a client is not bound, if one is not.
-      jlbind::check_backend("hellojl")
-      jlbind::check_backend("counterjl")
+      jlbind::check_bound("hellojl")
+      jlbind::check_bound("counterjl")
       c1 <- new_counter(10)
       increment(c1, 5)
       for (i in 1:2000) {
@@ -58,7 +58,7 @@ test_that("two clients share one compiled library", {
         wrong_ref = tryCatch(increment(list(), 1), error = conditionMessage),
         reloaded = tryCatch(increment(readRDS(f)), error = conditionMessage),
         live = live(),
-        info = jlbind::backend_info()
+        info = jlbind::library_info()
       )
     },
     libpath = libpath,
@@ -70,7 +70,7 @@ test_that("two clients share one compiled library", {
     show = TRUE
   )
 
-  expect_match(res$before, "check_backend")
+  expect_match(res$before, "check_bound")
   expect_equal(res$found, c("counterjl", "hellojl"))
   expect_equal(res$bound, c(TRUE, TRUE))
   expect_equal(res$greet, "Hello, R!")
@@ -90,8 +90,9 @@ test_that("two clients share one compiled library", {
   expect_match(res$reloaded, "no longer exists")
   # c1, the last stored, and the three from counters() unless collected.
   expect_lte(res$live, 5)
-  expect_equal(sort(res$info$bound), c("counterjl", "hellojl"))
-  expect_equal(sort(res$info$clients$Package), c("counterjl", "hellojl"))
+  clients <- res$info$clients
+  expect_equal(sort(clients$package), c("counterjl", "hellojl"))
+  expect_true(all(clients$included & clients$bound))
 })
 
 # A client that sets Config/jlbind/trim: false makes the library build without

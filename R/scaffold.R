@@ -6,9 +6,9 @@
 #'   `hello()`. An existing binding package is left alone.
 #' * The C code that registers the package's routines: `src/jlbind.c` and
 #'   `src/entrypoints.h` (written by [update_entrypoints()]).
-#' * `R/jlbind.R`, with an `.onLoad()` that calls [bind()], and the roxygen tag
-#'   for `useDynLib()`. If the package already has an `.onLoad()`, add
-#'   `jlbind::bind(pkgname)` to it yourself.
+#' * `R/jlbind.R`, with an `.onLoad()` that calls [bind_client()], and the
+#'   roxygen tag for `useDynLib()`. If the package already has an `.onLoad()`,
+#'   add `jlbind::bind_client(pkgname)` to it yourself.
 #' * The `Config/jlbind` and `Imports: jlbind` fields in `DESCRIPTION`.
 #' * `.jlbind/`, where [build_library()] writes a library for development, in
 #'   `.Rbuildignore` and `.gitignore`.
@@ -121,8 +121,8 @@ use_jlbind <- function(path = ".", module = NULL, dir = "julia") {
   if (has_onload) {
     r_code <- r_code[-grep("onLoad|jlbind::bind|^\\}", r_code)]
     message(
-      "The package has an .onLoad() already: call `jlbind::bind(pkgname)` ",
-      "from it."
+      "The package has an .onLoad() already: call ",
+      "`jlbind::bind_client(pkgname)` from it."
     )
   }
   writeLines(r_code, file.path(r_dir, "jlbind.R"))
@@ -431,7 +431,7 @@ update_entrypoints <- function(path = ".") {
   if (!"SystemRequirements" %in% fields) {
     set(
       "SystemRequirements",
-      "Julia (>= 1.13), needed to build the compiled library with\n    jlbind::install_backend()"
+      "Julia (>= 1.13), needed to build the compiled library with\n    jlbind::install_library()"
     )
   }
   if (changed) {
