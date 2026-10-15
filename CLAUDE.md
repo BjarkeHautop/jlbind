@@ -104,10 +104,11 @@ Three layers, spread across R, Julia and C:
   discovery via the `Config/jlbind` DESCRIPTION field. `runtime.R`:
   `bind_client(pkg)` called from a client's `.onLoad`, loads the library once,
   sets threads, binds a client only if the library was built from its installed
-  version. `scaffold.R`: `use_jlbind()` and `update_entrypoints()`, which scans
-  `@rcall` declarations (with comments/strings blanked, so they must be literal
-  top-level `@rcall`s) and writes `src/entrypoints.h`. `julia.R`: locating
-  Julia.
+  version. `sitrep.R`: `jlbind_sitrep()`, a report on Julia, the library and
+  each client that works before a library has loaded. `scaffold.R`:
+  `use_jlbind()` and `update_entrypoints()`, which scans `@rcall` declarations
+  (with comments/strings blanked, so they must be literal top-level `@rcall`s)
+  and writes `src/entrypoints.h`. `julia.R`: locating Julia.
 
 Each client carries a generated C shim: `src/jlbind.c` (from
 `inst/templates/init.c`) plus `src/entrypoints.h` (an X-macro list of

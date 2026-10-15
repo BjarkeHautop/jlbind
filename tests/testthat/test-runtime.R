@@ -222,31 +222,6 @@ test_that("on Windows, the recorded Julia bindir is put on the PATH once", {
   expect_equal(Sys.getenv("PATH"), path)
 })
 
-test_that("library_info() lists the clients built, left out and bound", {
-  clients <- .info_clients(
-    data.frame(Package = c("a", "b"), Version = "1.0", Module = c("A", "B")),
-    data.frame(Package = "c", Version = "2.0", Module = "C", Conflicts = "a"),
-    "a"
-  )
-  expect_equal(
-    clients,
-    data.frame(
-      package = c("a", "b", "c"),
-      version = c("1.0", "1.0", "2.0"),
-      module = c("A", "B", "C"),
-      included = c(TRUE, TRUE, FALSE),
-      bound = c(TRUE, FALSE, FALSE)
-    )
-  )
-
-  # A library that records no clients lists those bound to it.
-  clients <- .info_clients(NULL, NULL, "a")
-  expect_equal(clients$package, "a")
-  expect_equal(clients$version, NA_character_)
-  expect_true(clients$bound)
-  expect_equal(nrow(.info_clients(NULL, NULL, character())), 0L)
-})
-
 test_that("a binding package's hash follows its files", {
   dir <- withr::local_tempdir()
   dir.create(file.path(dir, "src"))

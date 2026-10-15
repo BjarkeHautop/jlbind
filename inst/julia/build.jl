@@ -242,8 +242,7 @@ image = JuliaC.ImageRecipe(;
 JuliaC.compile_products(image)
 JuliaC.link_products(JuliaC.LinkRecipe(; image_recipe = image, outname = joinpath(OUT, "jlbind")))
 
-# A Windows DLL has no RUNPATH, so record where the Julia runtime it links
-# against lives; the R package puts it on the DLL search path before loading.
-if Sys.iswindows()
-    write(joinpath(OUT, "julia_bindir"), Sys.BINDIR)
-end
+# Record where the Julia runtime the library links against lives. A Windows
+# DLL has no RUNPATH, so the R package puts it on the DLL search path before
+# loading; on every platform, jlbind_sitrep() checks that it still exists.
+write(joinpath(OUT, "julia_bindir"), Sys.BINDIR)

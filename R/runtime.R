@@ -298,63 +298,7 @@ check_bound <- function(pkg) {
   }
   stop(
     if (is.null(.state$dll)) .state$problem else .state$problems[[pkg]],
+    "\nRun jlbind::jlbind_sitrep() for a report on the setup.",
     call. = FALSE
-  )
-}
-
-#' Information about the loaded Julia library
-#'
-#' @return A list with:
-#'   * `path`: where the library is, or `NULL` if none is loaded.
-#'   * `clients`: a data frame with one row per package the library was built
-#'     for, with the columns `package`, `version` and `module` (the name of its
-#'     Julia binding package), as in [jlbind_clients()], and:
-#'     * `included`: `FALSE` if it was left out because its Julia dependencies
-#'       conflict with those of other packages (see [install_library()]).
-#'     * `bound`: whether it is bound to the library in this session.
-#'   * `objects`: how many Julia objects R holds references to, or `NULL` if no
-#'     library is loaded.
-#' @export
-#' @examples
-#' library_info()
-library_info <- function() {
-  dll <- .state$dll
-  objects <- NULL
-  if (!is.null(dll)) {
-    count <- getNativeSymbolInfo("JLBind_object_count_0", dll)
-    objects <- .Call(count)
-    if (inherits(objects, "jlbind_error")) {
-      stop(objects[[1L]], call. = FALSE)
-    }
-  }
-  list(
-    path = if (!is.null(dll)) .state$path,
-    clients = .info_clients(.state$clients, .state$excluded, .state$bound),
-    objects = objects
-  )
-}
-
-# The clients table of library_info(), from the clients a library was built
-# from and left out (.read_clients(), .read_excluded()) and those bound. A
-# library that records no clients (one built some other way) still lists the
-# clients bound to it.
-.info_clients <- function(built, excluded, bound) {
-  col <- function(df, name) {
-    if (is.null(df[[name]])) rep(NA_character_, NROW(df)) else df[[name]]
-  }
-  package <- c(col(built, "Package"), col(excluded, "Package"))
-  extra <- setdiff(bound, package)
-  unknown <- rep(NA_character_, length(extra))
-  data.frame(
-    package = c(package, extra),
-    version = c(col(built, "Version"), col(excluded, "Version"), unknown),
-    module = c(col(built, "Module"), col(excluded, "Module"), unknown),
-    included = c(
-      rep(TRUE, NROW(built)),
-      rep(FALSE, NROW(excluded)),
-      rep(TRUE, length(extra))
-    ),
-    bound = c(package, extra) %in% bound,
-    stringsAsFactors = FALSE
   )
 }

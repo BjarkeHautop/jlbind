@@ -396,34 +396,105 @@ build_library <- function(
   as.data.frame(read.dcf(file), stringsAsFactors = FALSE)
 }
 
+# How the library in `dir` was built (a list with jlbind, Julia, Built, Trim
+# and Develop, NA where not recorded), or NULL if it records nothing.
+.read_build <- function(dir) {
+  file <- file.path(dir, "build")
+  if (!file.exists(file)) {
+    return(NULL)
+  }
+  fields <- c("jlbind", "Julia", "Built", "Trim", "Develop")
+  as.list(read.dcf(file, fields = fields)[1L, ])
+}
+
 # Was the library in `dir` built by this version of jlbind and Julia version
 # `julia` from exactly these versions of these clients, with the same binding
 # package files (counting the clients it left out), and with no local
 # checkouts?
 .up_to_date <- function(dir, clients, julia) {
+  !length(.stale_reasons(dir, clients, julia))
+}
+
+# Why the library in `dir` is not what install_library() would build from
+# `clients` with Julia version `julia` (skipped if NA): a character vector,
+# empty if it is up to date.
+.stale_reasons <- function(dir, clients, julia) {
   built <- .read_clients(dir)
-  build <- file.path(dir, "build")
+  build <- .read_build(dir)
   if (
     is.null(built) ||
-      !file.exists(file.path(dir, .library_file())) ||
-      !file.exists(build)
+      is.null(build) ||
+      !file.exists(file.path(dir, .library_file()))
   ) {
-    return(FALSE)
+    return("it has not been built")
   }
-  info <- read.dcf(build, fields = c("jlbind", "Julia", "Develop"))
-  excluded <- .read_excluded(dir)
-  identical(
-    info[, "jlbind"][[1L]],
-    as.character(utils::packageVersion("jlbind"))
-  ) &&
-    identical(info[, "Julia"][[1L]], as.character(julia)) &&
-    (is.na(info[, "Develop"]) || !nzchar(info[, "Develop"])) &&
-    setequal(
-      paste(
-        c(built$Package, excluded$Package),
-        c(built$Version, excluded$Version),
-        c(built$Hash, excluded$Hash)
-      ),
-      paste(clients$package, clients$version, clients$hash)
+  status <- .client_status(clients, built, .read_excluded(dir))
+  c(
+    .build_reasons(build, julia),
+    paste0(status$package, ": ", status$status)[
+      !status$status %in% c("ok", "left out")
+    ]
+  )
+}
+
+# Why a library built as `build` (.read_build()) is out of date regardless of
+# its clients.
+.build_reasons <- function(build, julia) {
+  jlbind <- as.character(utils::packageVersion("jlbind"))
+  c(
+    if (!identical(build$jlbind, jlbind)) {
+      paste0("built by jlbind ", build$jlbind, ", not ", jlbind)
+    },
+    if (!is.na(julia) && !identical(build$Julia, as.character(julia))) {
+      paste0("built with Julia ", build$Julia, ", not ", julia)
+    },
+    if (!is.na(build$Develop) && nzchar(build$Develop)) {
+      "built with local checkouts (`develop`)"
+    }
+  )
+}
+
+# How a library built from `built` and leaving out `excluded`
+# (.read_clients(), .read_excluded()) stands for each of `clients` (a
+# .client_table()), and for each package it was built for that is not one of
+# them: a data frame with package, version (installed), built (the version the
+# library has) and status: "ok", "left out", "not in the library", "built for
+# version <v>", "Julia code changed" or "not installed".
+.client_status <- function(clients, built, excluded) {
+  col <- function(df, name) {
+    if (is.null(df[[name]])) rep(NA_character_, NROW(df)) else df[[name]]
+  }
+  rec <- list(
+    package = c(col(built, "Package"), col(excluded, "Package")),
+    version = c(col(built, "Version"), col(excluded, "Version")),
+    hash = c(col(built, "Hash"), col(excluded, "Hash")),
+    left = c(rep(FALSE, NROW(built)), rep(TRUE, NROW(excluded)))
+  )
+  hash <- col(clients, "hash")
+  j <- match(clients$package, rec$package)
+  status <- ifelse(
+    is.na(j),
+    "not in the library",
+    ifelse(
+      rec$version[j] != clients$version,
+      paste0("built for version ", rec$version[j]),
+      ifelse(
+        !vapply(
+          seq_along(j),
+          function(i) identical(rec$hash[j[i]], hash[i]),
+          TRUE
+        ),
+        "Julia code changed",
+        ifelse(rec$left[j], "left out", "ok")
+      )
     )
+  )
+  gone <- setdiff(rec$package, clients$package)
+  data.frame(
+    package = c(clients$package, gone),
+    version = c(clients$version, rep(NA_character_, length(gone))),
+    built = c(rec$version[j], rec$version[match(gone, rec$package)]),
+    status = c(status, rep("not installed", length(gone))),
+    stringsAsFactors = FALSE
+  )
 }

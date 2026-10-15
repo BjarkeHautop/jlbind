@@ -168,7 +168,10 @@ test_that("two clients share one compiled library", {
         total_bad = tryCatch(total(list(c1, 1)), error = conditionMessage),
         reloaded = tryCatch(increment(readRDS(f)), error = conditionMessage),
         live = live(),
-        info = jlbind::library_info()
+        sitrep = local({
+          utils::capture.output(report <- jlbind::jlbind_sitrep())
+          report
+        })
       )
     },
     libpath = libpath,
@@ -182,6 +185,11 @@ test_that("two clients share one compiled library", {
 
   expect_match(res$before, "check_bound")
   expect_equal(res$found, c("counterjl", "hellojl"))
+  expect_equal(res$sitrep$library$how, "loaded")
+  expect_equal(res$sitrep$library$problems, character())
+  expect_equal(res$sitrep$clients$status, c("ok", "ok"))
+  expect_true(all(res$sitrep$clients$bound))
+  expect_true(res$sitrep$threads$fixed)
   expect_equal(res$bound, c(TRUE, TRUE))
   expect_equal(res$greet, "Hello, R!")
   expect_equal(res$shift, c(1.5, 2.5, 3.5))
@@ -310,9 +318,8 @@ test_that("two clients share one compiled library", {
   expect_match(res$reloaded, "no longer exists")
   # c1, the last stored, and the three from counters() unless collected.
   expect_lte(res$live, 5)
-  clients <- res$info$clients
-  expect_equal(sort(clients$package), c("counterjl", "hellojl"))
-  expect_true(all(clients$included & clients$bound))
+  expect_equal(sort(res$sitrep$clients$package), c("counterjl", "hellojl"))
+  expect_true(is.numeric(res$sitrep$library$objects))
 })
 
 # A client that sets Config/jlbind/trim: false makes the library build without

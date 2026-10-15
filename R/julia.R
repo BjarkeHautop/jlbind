@@ -1,11 +1,6 @@
 # The julia binary to build with, checked to be at least 1.14.
 .find_julia <- function(julia = NULL) {
-  if (is.null(julia)) {
-    julia <- Sys.getenv("JULIA", unset = "")
-    if (!nzchar(julia)) {
-      julia <- unname(Sys.which("julia"))
-    }
-  }
+  julia <- .locate_julia(julia)$path
   if (!nzchar(julia)) {
     stop(
       "Julia was not found. Install Julia (>= 1.14), see ",
@@ -30,6 +25,20 @@
     )
   }
   julia
+}
+
+# The julia binary to use and where it came from: `julia` itself (source
+# "argument"), else the JULIA environment variable, else the PATH. `path` is
+# "" if none was found.
+.locate_julia <- function(julia = NULL) {
+  if (!is.null(julia)) {
+    return(list(path = julia, source = "argument"))
+  }
+  julia <- Sys.getenv("JULIA", unset = "")
+  if (nzchar(julia)) {
+    return(list(path = julia, source = "JULIA"))
+  }
+  list(path = unname(Sys.which("julia")), source = "PATH")
 }
 
 .julia_version <- function(julia) {

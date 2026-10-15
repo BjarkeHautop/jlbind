@@ -61,9 +61,17 @@ jlbind::check_bound("somepkg")
 ```
 
 The most common causes are that the shared library hasn't been built yet, or
-that the package was updated after the last build. Use `library_info()` to
-inspect the loaded library, the versions of the clients it was built from, and
-which clients are currently bound.
+that the package was updated after the last build. For a full report, run:
+
+```r
+jlbind::jlbind_sitrep()
+```
+
+It shows the Julia that `install_library()` would use (with its version, and
+whether it came from `JULIA` or the `PATH`), the library and what it was built
+from, each installed package that uses jlbind and whether the library is current
+for it, and the thread count. It works whether or not a library has loaded, and
+returns the same information invisibly as a list.
 
 If the Julia installation used for the build has been removed or replaced, for
 example by a `juliaup` update, rebuild the library. `install_library()` rebuilds
