@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.10.19">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>library_info – jlbind 0.0.0.9000</title>
+<title>jlbind_sitrep – jlbind 0.0.0.9000</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -356,10 +356,11 @@ a.reftip-ref{cursor:help;}
    
   <ul>
 <li>
-<a href="#information-about-the-loaded-julia-library" id="toc-information-about-the-loaded-julia-library" class="nav-link active" data-scroll-target="#information-about-the-loaded-julia-library">Information about the loaded Julia library</a>
+<a href="#report-on-the-jlbind-setup" id="toc-report-on-the-jlbind-setup" class="nav-link active" data-scroll-target="#report-on-the-jlbind-setup">Report on the jlbind setup</a>
   <ul class="collapse">
 <li><a href="#description" id="toc-description" class="nav-link" data-scroll-target="#description">Description</a></li>
   <li><a href="#usage" id="toc-usage" class="nav-link" data-scroll-target="#usage">Usage</a></li>
+  <li><a href="#arguments" id="toc-arguments" class="nav-link" data-scroll-target="#arguments">Arguments</a></li>
   <li><a href="#value" id="toc-value" class="nav-link" data-scroll-target="#value">Value</a></li>
   <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
   </ul>
@@ -367,43 +368,46 @@ a.reftip-ref{cursor:help;}
   </ul></nav>
     </div>
 <!-- main -->
-<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header><section id="information-about-the-loaded-julia-library" class="level2 unnumbered"><h2 class="unnumbered anchored" data-anchor-id="information-about-the-loaded-julia-library">Information about the loaded Julia library</h2>
+<main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header><section id="report-on-the-jlbind-setup" class="level2 unnumbered"><h2 class="unnumbered anchored" data-anchor-id="report-on-the-jlbind-setup">Report on the jlbind setup</h2>
 <section id="description" class="level3"><h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>Information about the loaded Julia library</p>
+<p>Prints what jlbind finds: the Julia that builds the library, the library that is loaded (or would be) and what it was built from, the installed packages that use jlbind and whether the library is current for each, and the Julia thread count. Run it when a package that uses jlbind doesn’t work; it also works before a library has loaded.</p>
 </section><section id="usage" class="level3"><h3 class="anchored" data-anchor-id="usage">Usage</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a class="reftip-ref" data-reftip="t1" href="./library_info.html">library_info</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-</section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
-<p>A list with:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a class="reftip-ref" data-reftip="t1" href="./jlbind_sitrep.html">jlbind_sitrep</a></span><span class="op">(</span>julia <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+</section><section id="arguments" class="level3"><h3 class="anchored" data-anchor-id="arguments">Arguments</h3>
+<table role="presentation"><tbody><tr>
+<td style="white-space: collapse; font-family: monospace; vertical-align: top">
+<code>julia</code>
+</td>
+<td>
+Path to the <code>julia</code> executable. By default, the <code>JULIA</code> environment variable, or <code>julia</code> on the <code>PATH</code>.
+</td>
+</tr></tbody></table></section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
+<p>Invisibly, a list with:</p>
 <ul>
 <li>
-<p><code>path</code>: where the library is, or <code>NULL</code> if none is loaded.</p>
+<p><code>julia</code>: a list with <code>path</code> (<code>NA</code> if Julia was not found), <code>source</code> (<code>"argument"</code>, <code>"JULIA"</code> or <code>"PATH"</code>), <code>version</code> (<code>NA</code> if it could not be run) and <code>ok</code> (whether it is Julia 1.14 or later).</p>
 </li>
 <li>
-<p><code>clients</code>: a data frame with one row per package the library was built for, with the columns <code>package</code>, <code>version</code> and <code>module</code> (the name of its Julia binding package), as in <code><a class="reftip-ref" data-reftip="t2" href="./jlbind_clients.html">jlbind_clients()</a></code>, and:</p>
-<ul>
-<li>
-<p><code>included</code>: <code>FALSE</code> if it was left out because its Julia dependencies conflict with those of other packages (see <code><a class="reftip-ref" data-reftip="t3" href="./install_library.html">install_library()</a></code>).</p>
+<p><code>library</code>: a list with <code>path</code>, <code>how</code> (<code>"loaded"</code>, <code>"failed to load"</code>, <code>"JLBIND_LIBRARY"</code> or <code>"default"</code>), <code>exists</code>, <code>build</code> (how it was built: the jlbind and Julia versions, when, and whether it is trimmed, or <code>NULL</code>), <code>problems</code> (why it should be rebuilt or cannot load; empty if none) and <code>objects</code> (how many Julia objects R holds references to, or <code>NULL</code> if no library is loaded).</p>
 </li>
 <li>
-<p><code>bound</code>: whether it is bound to the library in this session.</p>
-</li>
-</ul>
+<p><code>clients</code>: a data frame with one row per package that uses jlbind or that the library was built for, with the columns <code>package</code>, <code>version</code> (installed), <code>built</code> (the version in the library), <code>status</code> (<code>"ok"</code>, <code>"left out"</code>, <code>"not in the library"</code>, <code>"built for version &lt;v&gt;"</code>, <code>"Julia code changed"</code> or <code>"not installed"</code>) and <code>bound</code>.</p>
 </li>
 <li>
-<p><code>objects</code>: how many Julia objects R holds references to, or <code>NULL</code> if no library is loaded.</p>
+<p><code>threads</code>: a list with <code>count</code> (from <code>JULIA_NUM_THREADS</code>) and <code>fixed</code> (<code>TRUE</code> once a library is loaded, after which the count cannot change).</p>
 </li>
 </ul></section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a class="reftip-ref" data-reftip="t1" href="./library_info.html">library_info</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="co">#&gt; $path</span></span>
-<span><span class="co">#&gt; NULL</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $clients</span></span>
-<span><span class="co">#&gt; [1] package  version  module   included bound   </span></span>
-<span><span class="co">#&gt; &lt;0 rows&gt; (or 0-length row.names)</span></span>
-<span><span class="co">#&gt; </span></span>
-<span><span class="co">#&gt; $objects</span></span>
-<span><span class="co">#&gt; NULL</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a class="reftip-ref" data-reftip="t1" href="./jlbind_sitrep.html">jlbind_sitrep</a></span><span class="op">(</span><span class="op">)</span></span>
+<span><span class="co">#&gt; ── Julia (for building the library)</span></span>
+<span><span class="co">#&gt; ✖ Julia 1.13.1 at /usr/bin/julia (from PATH); jlbind needs Julia &gt;= 1.14</span></span>
+<span><span class="co">#&gt; ── Library</span></span>
+<span><span class="co">#&gt; ✖ /home/runner/.local/share/R/jlbind/library/jlbind.so (default)</span></span>
+<span><span class="co">#&gt; ✖ it has not been built</span></span>
+<span><span class="co">#&gt; ── Packages that use jlbind</span></span>
+<span><span class="co">#&gt;   none installed</span></span>
+<span><span class="co">#&gt; ── Threads</span></span>
+<span><span class="co">#&gt;   1 Julia thread (JULIA_NUM_THREADS unset)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 
 
@@ -897,14 +901,7 @@ instead, on every page, after layout settles.
 </footer>
 
 
-<div class="reftip-payload" hidden><div class="reftip-tip" data-for="t1"><code class="reftip-sig">library_info()</code><span class="reftip-brief">Information about the loaded Julia library</span></div><div class="reftip-tip" data-for="t2"><code class="reftip-sig">jlbind_clients(lib.loc = NULL)</code><span class="reftip-brief">Lists the installed packages that <code>install_library()</code> will compile.</span></div><div class="reftip-tip" data-for="t3"><code class="reftip-sig">install_library(
-  packages = NULL,
-  julia = NULL,
-  ask = interactive(),
-  force = FALSE,
-  versions = c(&quot;manifest&quot;, &quot;compat&quot;),
-  develop = NULL
-)</code><span class="reftip-brief">Compiles the Julia code of every installed package that uses jlbind into one shared library, stored in <code>tools::R_user_dir(&quot;jlbind&quot;, &quot;data&quot;)</code>.</span></div></div>
+<div class="reftip-payload" hidden><div class="reftip-tip" data-for="t1"><code class="reftip-sig">jlbind_sitrep(julia = NULL)</code><span class="reftip-brief">Prints what jlbind finds: the Julia that builds the library, the library that is loaded (or would be) and what it was built from, the installed packages that use jlbind and whether the library is curr...</span></div></div>
 <script>
 (function(){
   var payload = document.currentScript.previousElementSibling;

@@ -425,7 +425,7 @@ a.reftip-ref{cursor:help;}
 <li><code>src/jlbind.c</code> and <code>src/entrypoints.h</code>, which register the native routines, and a rule in <code>src/Makevars</code> that recompiles <code>jlbind.c</code> whenever <code>entrypoints.h</code> changes.</li>
 <li><code>R/jlbind-wrappers.R</code>, with an R function for each Julia function the binding package declares.</li>
 <li><code>R/jlbind.R</code>, which calls <code><a class="reftip-ref" data-reftip="t3" href="../man/bind_client.html">jlbind::bind_client()</a></code> from <code>.onLoad()</code> and includes the roxygen tag for <code>useDynLib()</code>.</li>
-<li>The <code>Config/jlbind</code>, <code>Imports: jlbind</code> and <code>SystemRequirements: Julia (&gt;=  1.14)</code> fields in <code>DESCRIPTION</code>.</li>
+<li>The <code>Config/jlbind</code>, <code>Imports: jlbind</code> and <code>SystemRequirements: Julia (&gt;= 1.14)</code> fields in <code>DESCRIPTION</code>.</li>
 <li>A <code>.jlbind/</code> directory for development builds, added to <code>.Rbuildignore</code> and <code>.gitignore</code>.</li>
 </ul>
 <p>If your package already defines <code>.onLoad()</code>, add <code><a class="reftip-ref" data-reftip="t3" href="../man/bind_client.html">jlbind::bind_client(pkgname)</a></code> to the existing function yourself. Then run <code>devtools::document()</code> to update <code>NAMESPACE</code>.</p>
@@ -492,6 +492,7 @@ Important
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="reftip-ref" data-reftip="t5" href="../man/build_library.html">build_library</a></span>()</span>
 <span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">load_all</span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>By default, <code><a class="reftip-ref" data-reftip="t5" href="../man/build_library.html">build_library()</a></code> writes the library to <code>.jlbind/</code> in your package’s source directory. When you load the package with <code>devtools::load_all()</code>, jlbind uses this development library instead of the one created by <code><a class="reftip-ref" data-reftip="t1" href="../man/install_library.html">install_library()</a></code>.</p>
+<p>Once <code>.jlbind/</code> exists, <code>devtools::load_all()</code> rebuilds it when your binding package’s files or your package’s version have changed since it was built.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -503,7 +504,7 @@ Note
 </div>
 <div class="callout-body-container callout-body">
 <p><strong>The development library is only used when your package loads first</strong></p>
-<p>The <code>.jlbind/</code> library is used only if your package is the first jlbind client loaded in the R session. After rebuilding it, restart R.</p>
+<p>The <code>.jlbind/</code> library is used only if your package is the first jlbind client loaded in the R session. A library that has loaded cannot be replaced, so after changing your Julia code, restart R; the next <code>load_all()</code> rebuilds it.</p>
 </div>
 </div>
 <p>If you need to use a library stored elsewhere, set the <code>JLBIND_LIBRARY</code> environment variable to its path before loading the package.</p>
@@ -831,7 +832,7 @@ Warning
 <p>If a hierarchy has only a few types, some alternatives to <code>@nospecialize</code> are:</p>
 <ul>
 <li><p>Declare a separate entrypoint for each concrete type (<code>RRef{Circle}</code>,<code>RRef{Square}</code>, …) and choose between them in R.</p></li>
-<li><p>Use a small <code>Union</code> such as <code>RRef{Union{Circle,Square}}</code>, which Julia resolves</p></li>
+<li><p>Use a small <code>Union</code> such as <code>RRef{Union{Circle,Square}}</code>, which Julia resolves by checking each member in turn.</p></li>
 </ul>
 
 

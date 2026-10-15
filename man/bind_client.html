@@ -415,7 +415,7 @@ The package name.
 </section>
 <section id="details" class="level3">
 <h3 class="anchored" data-anchor-id="details">Details</h3>
-<p>The library is the one from <code><a class="reftip-ref" data-reftip="t4" href="./install_library.html">install_library()</a></code>, unless <code>JLBIND_LIBRARY</code> names another, or the first package bound was loaded with <code>pkgload::load_all()</code> and has one from <code><a class="reftip-ref" data-reftip="t5" href="./build_library.html">build_library()</a></code>.</p>
+<p>The library is the one from <code><a class="reftip-ref" data-reftip="t4" href="./install_library.html">install_library()</a></code>, unless <code>JLBIND_LIBRARY</code> names another, or the first package bound was loaded with <code>pkgload::load_all()</code> and has one from <code><a class="reftip-ref" data-reftip="t5" href="./build_library.html">build_library()</a></code>. That library is rebuilt as the package loads if it is out of date with the package’s sources, as when its Julia code has changed. A library that has already loaded cannot be replaced, so after a change, restart R.</p>
 <p>To run Julia with more threads, set <code>JULIA_NUM_THREADS</code> (a number or <code>"auto"</code>) before loading the first package that uses jlbind.</p>
 </section>
 <section id="value" class="level3">

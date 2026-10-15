@@ -406,10 +406,10 @@ Bind a package to the Julia library
 Check whether a package is bound to the Julia library
 </dd>
 <dt>
-<code><a class="reftip-ref" data-reftip="t6" href="man/library_info.html">library_info()</a></code>
+<code><a class="reftip-ref" data-reftip="t6" href="man/jlbind_sitrep.html">jlbind_sitrep()</a></code>
 </dt>
 <dd>
-Information about the loaded Julia library
+Report on the jlbind setup
 </dd>
 </dl>
 </section>
@@ -943,7 +943,7 @@ instead, on every page, after layout settles.
   julia = NULL,
   versions = c(&quot;manifest&quot;, &quot;compat&quot;),
   develop = NULL
-)</code><span class="reftip-brief">Like <code>install_library()</code>, but compiles only <code>packages</code> and writes the library to <code>out</code>, for package development.</span></div><div class="reftip-tip" data-for="t3"><code class="reftip-sig">jlbind_clients(lib.loc = NULL)</code><span class="reftip-brief">Lists the installed packages that <code>install_library()</code> will compile.</span></div><div class="reftip-tip" data-for="t4"><code class="reftip-sig">bind_client(pkg)</code><span class="reftip-brief">Call this from the <code>.onLoad()</code> of a package that uses jlbind; <code>use_jlbind()</code> sets that up.</span></div><div class="reftip-tip" data-for="t5"><code class="reftip-sig">is_bound(pkg)</code><span class="reftip-brief"><code>is_bound()</code> returns <code>TRUE</code> or <code>FALSE</code>.</span></div><div class="reftip-tip" data-for="t6"><code class="reftip-sig">library_info()</code><span class="reftip-brief">Information about the loaded Julia library</span></div><div class="reftip-tip" data-for="t7"><code class="reftip-sig">use_jlbind(path = &quot;.&quot;, module = NULL, dir = &quot;julia&quot;)</code><span class="reftip-brief">Adds what a package needs to call Julia code through jlbind.</span></div><div class="reftip-tip" data-for="t8"><code class="reftip-sig">update_entrypoints(path = &quot;.&quot;)</code><span class="reftip-brief">Finds the <code>@rcall</code> declarations in the package's Julia binding package and generates the code that lets R call them.</span></div></div>
+)</code><span class="reftip-brief">Like <code>install_library()</code>, but compiles only <code>packages</code> and writes the library to <code>out</code>, for package development.</span></div><div class="reftip-tip" data-for="t3"><code class="reftip-sig">jlbind_clients(lib.loc = NULL)</code><span class="reftip-brief">Lists the installed packages that <code>install_library()</code> will compile.</span></div><div class="reftip-tip" data-for="t4"><code class="reftip-sig">bind_client(pkg)</code><span class="reftip-brief">Call this from the <code>.onLoad()</code> of a package that uses jlbind; <code>use_jlbind()</code> sets that up.</span></div><div class="reftip-tip" data-for="t5"><code class="reftip-sig">is_bound(pkg)</code><span class="reftip-brief"><code>is_bound()</code> returns <code>TRUE</code> or <code>FALSE</code>.</span></div><div class="reftip-tip" data-for="t6"><code class="reftip-sig">jlbind_sitrep(julia = NULL)</code><span class="reftip-brief">Prints what jlbind finds: the Julia that builds the library, the library that is loaded (or would be) and what it was built from, the installed packages that use jlbind and whether the library is curr...</span></div><div class="reftip-tip" data-for="t7"><code class="reftip-sig">use_jlbind(path = &quot;.&quot;, module = NULL, dir = &quot;julia&quot;)</code><span class="reftip-brief">Adds what a package needs to call Julia code through jlbind.</span></div><div class="reftip-tip" data-for="t8"><code class="reftip-sig">update_entrypoints(path = &quot;.&quot;)</code><span class="reftip-brief">Finds the <code>@rcall</code> declarations in the package's Julia binding package and generates the code that lets R call them.</span></div></div>
 <script>
 (function(){
   var payload = document.currentScript.previousElementSibling;
