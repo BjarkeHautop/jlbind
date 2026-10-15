@@ -2,5 +2,8 @@ name = "JLBind"
 uuid = "afbbfe3b-b84d-4508-8d61-b26819a6ee14"
 version = "0.1.0"
 
+[deps]
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+
 [compat]
 julia = "1.14"

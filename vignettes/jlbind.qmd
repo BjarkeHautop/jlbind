@@ -200,29 +200,60 @@ In examples, wrap calls that require the library in
 `@rcall` converts each argument using `from_sexp()` and converts the return
 value using `to_sexp()`. The built-in conversions are:
 
-  | Julia                              | R argument                     | R result                         |
-  | ---------------------------------- | ------------------------------ | -------------------------------- |
-  | `String`, `Symbol`                 | A single string                | A character vector of length one |
-  | `Vector{String}`, `Vector{Symbol}` | A character vector             | A character vector               |
-  | `Float64`                          | A single number                | A double                         |
-  | `Int64`                            | A single whole number          | A double                         |
-  | `Int32`                            |                                | An integer                       |
-  | `Bool`                             | `TRUE` or `FALSE`              | A logical                        |
-  | `Vector{Float64}`, `Vector{Int64}` | A numeric vector               | A double vector                  |
-  | `Vector{Int32}`                    |                                | An integer vector                |
-  | `Vector{Bool}`                     | A logical vector               | A logical vector                 |
-  | `Matrix{Float64}`                  |                                | A double matrix                  |
-  | `Union{Nothing,T}`                 | `NULL`, or a value of type `T` | `NULL`, or a value of type `T`   |
-  | `Nothing`                          |                                | `NULL`                           |
-  | Other `Vector`s, `Tuple`s          |                                | A list                           |
-  | `NamedTuple`                       |                                | A named list                     |
-  | `RRef{T}`                          | A reference to a Julia object  | A reference to a Julia object    |
-  | `Vector{RRef{T}}`                  |                                | A list of references             |
+  | Julia                              | R argument                              | R result                         |
+  | ---------------------------------- | --------------------------------------- | -------------------------------- |
+  | `String`, `Symbol`                 | A single string                         | A character vector of length one |
+  | `Vector{String}`, `Vector{Symbol}` | A character vector or factor            | A character vector               |
+  | `Float64`                          | A single number                         | A double                         |
+  | `Int64`                            | A single whole number                   | A double                         |
+  | `Int32`                            | A single whole number                   | An integer                       |
+  | `Int16`, `Int8`, `UInt16`          | A single whole number in range          | An integer                       |
+  | `UInt32`                           | A single whole number in range          | A double                         |
+  | `Float32`, `Float16`               | A single number in range                | A double                         |
+  | `Bool`                             | `TRUE` or `FALSE`                       | A logical                        |
+  | `ComplexF64`                       | A single complex number                 | A complex                        |
+  | `Vector{Float64}`, `Vector{Int64}` | A numeric vector                        | A double vector                  |
+  | `Vector{Int32}`                    | A numeric vector of whole numbers       | An integer vector                |
+  | Vectors of the smaller types above | A numeric vector in range               | An integer or double vector      |
+  | `Vector{Bool}`                     | A logical vector                        | A logical vector                 |
+  | `Vector{ComplexF64}`               | A complex or numeric vector             | A complex vector                 |
+  | `Vector{UInt8}`                    | A raw vector                            | A raw vector                     |
+  | `Date`, `Vector{Date}`             | A `Date` vector                         | A `Date` vector                  |
+  | `DateTime`, `Vector{DateTime}`     | A `POSIXct` vector                      | A `POSIXct` vector in UTC        |
+  | `Union{Missing,T}`                 | A value of type `T`, or `NA`            | A value of type `T`, or `NA`     |
+  | `Vector{Union{Missing,T}}`         | A vector of type `T`, which can have NA | A vector of type `T` with NA     |
+  | `RVector{T}`                       | A double, integer or raw vector         | The same vector                  |
+  | `Matrix{T}`, `Array{T,N}`          | A matrix or array of type `T`           | A matrix or array of type `T`    |
+  | `Union{Nothing,T}`                 | `NULL`, or a value of type `T`          | `NULL`, or a value of type `T`   |
+  | `Nothing`                          |                                         | `NULL`                           |
+  | Other `Vector`s, `Tuple`s          | A list                                  | A list                           |
+  | `NamedTuple`                       | A named list, such as a data frame      | A named list                     |
+  | `Dict{String,T}`, `Dict{Symbol,T}` | A named list                            | A named list, sorted by name     |
+  | `RRef{T}`                          | A reference to a Julia object           | A reference to a Julia object    |
+  | `Vector{RRef{T}}`                  | A list of references                    | A list of references             |
 
-`NA` is an error wherever a value is expected, and so is `NaN` in a numeric
-argument. Likewise, an `Int64` argument must be a whole number. Julia's `Int64`
-values become R doubles because R's standard integers are only 32 bits; return
-`Int32` if you need an R integer.
+`NA` is an error unless the type is `Union{Missing,T}` or
+`Vector{Union{Missing,T}}`, which turn `NA` into `missing` and back. A number
+must fit its type, so an `Int16` argument rejects `40000`, and `NaN` is accepted
+only where `missing` is. `Int64` results become doubles, since R's integers have
+32 bits; return `Int32` for an R integer.
+
+To use `Date` or `DateTime`, add the `Dates` standard library to the binding
+package's dependencies. A `DateTime` result is a `POSIXct` in UTC.
+
+A `NamedTuple` argument must have exactly the names of its fields, in any order,
+so you can pass a data frame as a named tuple of its columns:
+
+```julia
+summarise(df::NamedTuple{(:x, :group),Tuple{Vector{Float64},Vector{String}}}) = ...
+```
+
+Errors inside a list name the element, as in `element 2: expected a number`.
+
+Every other conversion copies, so a function given a large vector it only reads
+can take an `RVector{Float64}` (or `RVector{Int32}`, `RVector{UInt8}`). That is
+an `AbstractVector` viewing R's memory, without checking for `NA`. It is valid
+only until the call returns, so don't store it.
 
 A binding package can support additional types by defining methods for
 `JLBind.from_sexp(::Type{T}, x::SEXP)` and `JLBind.to_sexp(x::T)`. `JLBind` also

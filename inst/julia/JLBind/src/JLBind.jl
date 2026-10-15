@@ -15,13 +15,18 @@ into one library, since an R process can host only one Julia image.
 """
 module JLBind
 
-export SEXP, @rcall, from_sexp, to_sexp, RRef
+import Dates
+using Dates: Date, DateTime
+
+export SEXP, @rcall, from_sexp, to_sexp, RRef, RVector
 
 public @R, @r_global, r_class, object_count
 public nil, rtypeof, rlength, protect, unprotect, preserve, release
-public alloc, alloc_matrix, string_elt, set_string_elt, vector_elt, set_vector_elt
-public real_ptr, int_ptr, logical_ptr, mkchar, set_attrib, data_frame
-public NILSXP, LGLSXP, INTSXP, REALSXP, STRSXP, VECSXP, EXTPTRSXP
+public alloc, string_elt, set_string_elt, vector_elt, set_vector_elt
+public real_ptr, int_ptr, logical_ptr, complex_ptr, raw_ptr
+public mkchar, get_attrib, set_attrib, data_frame
+public NILSXP, LGLSXP, INTSXP, REALSXP, CPLXSXP, STRSXP, VECSXP, EXTPTRSXP, RAWSXP
+public NA_INTEGER, NA_REAL
 
 include("rapi.jl")
 include("convert.jl")

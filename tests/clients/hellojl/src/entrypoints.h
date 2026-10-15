@@ -18,4 +18,33 @@
     JLBIND_ENTRY(upper, 1, (SEXP a1), (a1)) \
     JLBIND_ENTRY(evens, 1, (SEXP a1), (a1)) \
     JLBIND_ENTRY(negate, 1, (SEXP a1), (a1)) \
-    JLBIND_ENTRY(with_nul, 1, (SEXP a1), (a1))
+    JLBIND_ENTRY(with_nul, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(na_doubles, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(na_wholes, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(na_ints, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(na_bools, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(na_strings, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(maybe_double, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(maybe_string, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(ints, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(transposed, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(cube, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(strings, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(reverse_raw, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(conjugate, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(view_sum, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(view_same, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(list_lengths, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(pair, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(columns, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(counts, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(int_min, 0, (void), ()) \
+    JLBIND_ENTRY(dates, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(next_day, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(times, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(na_complex, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(maybe_complex, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(symbol_counts, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(singles, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(shorts, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(small_types, 4, (SEXP a1, SEXP a2, SEXP a3, SEXP a4), (a1, a2, a3, a4))

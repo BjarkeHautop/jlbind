@@ -7,9 +7,9 @@
     RRef{T}
 
 In an `@rcall` signature, a Julia object of type `T` held by R as an external
-pointer. As an argument type, `f` is passed the `T` the pointer refers to; as
-the result type (or `Vector{RRef{T}}`, a list of them), the `T` that `f`
-returns is stored and R gets an external pointer to it, with class
+pointer. As an argument type, `f` is passed the `T` the pointer refers to (or,
+for `Vector{RRef{T}}`, a `Vector{T}` from a list of them); as the result type
+(or `Vector{RRef{T}}`, a list of them), the `T` that `f` returns is stored and R gets an external pointer to it, with class
 [`r_class(T)`](@ref r_class). The object is released when R garbage-collects
 the pointer.
 
@@ -118,6 +118,12 @@ function from_sexp(::Type{RRef{T}}, x::SEXP)::T where {T}
     return obj
 end
 
+# A list of references, as the `T`s they refer to.
+function from_sexp(::Type{Vector{RRef{T}}}, x::SEXP) where {T}
+    _check_type(x, VECSXP, "a list")
+    return T[_element(RRef{T}, x, i - 1, string(i)) for i = 1:rlength(x)]
+end
+
 # Converts the result of an entrypoint declared to return `R`.
 _result(::Type{RRef{T}}, x) where {T} = _ref_sexp(x::T, r_class(T))
 
@@ -130,5 +136,9 @@ function _result(::Type{Vector{RRef{T}}}, xs) where {T}
     unprotect(1)
     return out
 end
+
+# `missing` declared as a `Union{Missing,T}` is the NA of `T`'s R type.
+_result(::Type{Union{Missing,T}}, x) where {T<:Union{_Real,Bool,String,Symbol,ComplexF64,Date,DateTime}} =
+    to_sexp(Union{Missing,T}[x])
 
 _result(::Type{R}, x) where {R} = to_sexp(x::R)

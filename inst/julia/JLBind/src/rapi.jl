@@ -22,11 +22,18 @@ const NILSXP = Cint(0)
 const LGLSXP = Cint(10)
 const INTSXP = Cint(13)
 const REALSXP = Cint(14)
+const CPLXSXP = Cint(15)
 const STRSXP = Cint(16)
 const VECSXP = Cint(19)
 const EXTPTRSXP = Cint(22)
+const RAWSXP = Cint(24)
 const CE_UTF8 = Cint(1)
 const CE_BYTES = Cint(3)
+
+# R's NA in an integer or logical vector, and in a double vector: a NaN whose
+# low word is 1954 (what `R_IsNA` checks).
+const NA_INTEGER = typemin(Cint)
+const NA_REAL = reinterpret(Float64, 0x7ff00000000007a2)
 
 """
     @R(name)
@@ -73,8 +80,6 @@ preserve(x::SEXP) = (ccall(@R(R_PreserveObject), Cvoid, (SEXP,), x); x)
 release(x::SEXP) = ccall(@R(R_ReleaseObject), Cvoid, (SEXP,), x)
 
 alloc(t::Cint, n::Integer) = ccall(@R(Rf_allocVector), SEXP, (Cint, Int), t, n)
-alloc_matrix(t::Cint, nrow::Integer, ncol::Integer) =
-    ccall(@R(Rf_allocMatrix), SEXP, (Cint, Cint, Cint), t, nrow, ncol)
 
 # Element accessors take 0-based indices, as in C.
 string_elt(x::SEXP, i::Integer) = ccall(@R(STRING_ELT), SEXP, (SEXP, Int), x, i)
@@ -87,7 +92,10 @@ set_vector_elt(x::SEXP, i::Integer, v::SEXP) =
 real_ptr(x::SEXP) = ccall(@R(REAL), Ptr{Float64}, (SEXP,), x)
 int_ptr(x::SEXP) = ccall(@R(INTEGER), Ptr{Cint}, (SEXP,), x)
 logical_ptr(x::SEXP) = ccall(@R(LOGICAL), Ptr{Cint}, (SEXP,), x)
+complex_ptr(x::SEXP) = ccall(@R(COMPLEX), Ptr{ComplexF64}, (SEXP,), x)
+raw_ptr(x::SEXP) = ccall(@R(RAW), Ptr{UInt8}, (SEXP,), x)
 
+get_attrib(x::SEXP, name::SEXP) = ccall(@R(Rf_getAttrib), SEXP, (SEXP, SEXP), x, name)
 set_attrib(x::SEXP, name::SEXP, value::SEXP) =
     ccall(@R(Rf_setAttrib), SEXP, (SEXP, SEXP, SEXP), x, name, value)
 
@@ -95,6 +103,9 @@ set_attrib(x::SEXP, name::SEXP, value::SEXP) =
 _utf8(charsxp::SEXP) = ccall(@R(Rf_translateCharUTF8), Ptr{UInt8}, (SEXP,), charsxp)
 _isna_string(charsxp::SEXP) = charsxp == @r_global(R_NaString)
 _isbytes(charsxp::SEXP) = ccall(@R(Rf_getCharCE), Cint, (SEXP,), charsxp) == CE_BYTES
+_inherits(x::SEXP, class::String) = ccall(@R(Rf_inherits), Cint, (SEXP, Cstring), x, class) != 0
+# A symbol, which R never collects.
+_install(name::String) = ccall(@R(Rf_install), SEXP, (Cstring,), name)
 
 """
     mkchar(s::Union{String,Symbol}) -> SEXP

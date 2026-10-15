@@ -13,4 +13,5 @@
     JLBIND_ENTRY(new_counter, 1, (SEXP a1), (a1)) \
     JLBIND_ENTRY(increment, 2, (SEXP a1, SEXP a2), (a1, a2)) \
     JLBIND_ENTRY(counters, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(total, 1, (SEXP a1), (a1)) \
     JLBIND_ENTRY(live, 0, (void), ())

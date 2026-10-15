@@ -59,7 +59,82 @@ test_that("two clients share one compiled library", {
         bytes = err(greet(bytes)),
         nul = err(with_nul("a"))
       )
+      ints_vec <- 1:3
+      conv <- list(
+        na_doubles = na_doubles(c(1, NA, NaN)),
+        na_doubles_int = na_doubles(c(1L, NA)),
+        na_doubles_lgl = na_doubles(c(NA, NA)),
+        na_wholes = na_wholes(c(1, NA)),
+        na_ints = na_ints(c(1L, NA)),
+        na_bools = na_bools(c(TRUE, NA, FALSE)),
+        na_strings = na_strings(c("a", NA)),
+        na_factor = na_strings(factor(c("b", NA, "a"))),
+        maybe_na = maybe_double(NA),
+        maybe_nan = maybe_double(NaN),
+        maybe_value = maybe_double(2L),
+        maybe_string = maybe_string(NA),
+        ints = ints(c(1, 2)),
+        transposed = transposed(matrix(1:6, 2)),
+        cube = cube(array(1:24 / 2, c(2, 3, 4))),
+        factor = strings(factor(c("x", "y", "x"))),
+        raw = reverse_raw(as.raw(1:3)),
+        conjugate = conjugate(c(1 + 2i, 3)),
+        conjugate_real = conjugate(c(1, 2)),
+        view_sum = view_sum(c(1, 2, 3.5)),
+        view_same = identical(view_same(ints_vec), ints_vec),
+        list_lengths = list_lengths(list(1, c(1, 2), numeric())),
+        pair = pair(list("a", 2)),
+        columns = columns(data.frame(b = factor(c("x", "y")), a = c(1, 2))),
+        counts = counts(list(b = 2, a = 1L)),
+        counts_empty = counts(list()),
+        dates = dates(as.Date(c("2024-02-29", NA, "1969-12-31"))),
+        dates_frac = dates(structure(c(19000.7, -0.5), class = "Date")),
+        dates_int = dates(structure(19000L, class = "Date")),
+        next_day = next_day(as.Date("2024-02-28")),
+        times = times(.POSIXct(c(1704164645.25, NA), tz = "UTC")),
+        times_ny = times(.POSIXct(1704164645, tz = "America/New_York")),
+        na_complex = na_complex(c(1 + 2i, NA)),
+        na_complex_real = na_complex(c(1, NA)),
+        maybe_complex = maybe_complex(NA),
+        symbol_counts = symbol_counts(list(b = 2, a = 1)),
+        singles = singles(c(1.5, 2L)),
+        shorts = shorts(c(1L, NA, -32768)),
+        small_types = small_types(-128L, 65535, 4e9, 0.5)
+      )
+      conv_bad <- list(
+        int32 = err(ints(3e9)),
+        int32_na = err(ints(c(1L, NA))),
+        whole_nan = err(na_wholes(NaN)),
+        not_matrix = err(transposed(1:6)),
+        cube_dims = err(cube(matrix(1, 2, 2))),
+        view_int = err(view_sum(1:3)),
+        complex_na = err(conjugate(c(1i, NA))),
+        maybe_long = err(maybe_double(c(NA, NA))),
+        list_elt = err(list_lengths(list(1, "a"))),
+        pair_length = err(pair(list("a"))),
+        pair_elt = err(pair(list("a", 1.5))),
+        missing_col = err(columns(list(a = 1))),
+        extra_col = err(columns(list(a = 1, b = "x", c = 2))),
+        dup_col = err(columns(setNames(list(1, "x", 2), c("a", "b", "a")))),
+        unnamed = err(counts(list(1))),
+        dup_key = err(counts(setNames(list(1, 2), c("a", "a")))),
+        dict_elt = err(counts(list(a = "x"))),
+        unnamed_col = err(columns(list(a = 1, "x"))),
+        empty_lgl = err(na_strings(logical())),
+        int_min = err(int_min()),
+        not_date = err(dates(19000)),
+        time_as_date = err(next_day(Sys.time())),
+        date_na = err(next_day(as.Date(NA))),
+        dates_long = err(next_day(as.Date(c("2024-01-01", "2024-01-02")))),
+        not_time = err(times(as.Date("2024-01-01"))),
+        not_complex = err(maybe_complex("a")),
+        single_range = err(singles(1e300)),
+        short_range = err(shorts(40000)),
+        unsigned_range = err(small_types(0L, 0, -1, 0))
+      )
       list(
+        conv = conv,
+        conv_bad = conv_bad,
         bad = bad,
         int_arg = evens(4L),
         negate = negate(TRUE),
@@ -81,6 +156,8 @@ test_that("two clients share one compiled library", {
         counter = increment(c1),
         counters = vapply(counters(3), increment, 1, by = 100),
         wrong_ref = tryCatch(increment(list(), 1), error = conditionMessage),
+        total = total(list(c1, c1)),
+        total_bad = tryCatch(total(list(c1, 1)), error = conditionMessage),
         reloaded = tryCatch(increment(readRDS(f)), error = conditionMessage),
         live = live(),
         info = jlbind::library_info()
@@ -120,6 +197,83 @@ test_that("two clients share one compiled library", {
       nul = "cannot return a string containing NUL to R"
     )
   )
+  conv <- res$conv
+  expect_identical(conv$na_doubles, c(1, NA, NaN))
+  expect_identical(conv$na_doubles_int, c(1, NA))
+  expect_identical(conv$na_doubles_lgl, c(NA_real_, NA_real_))
+  expect_identical(conv$na_wholes, c(1, NA))
+  expect_identical(conv$na_ints, c(1L, NA))
+  expect_identical(conv$na_bools, c(TRUE, NA, FALSE))
+  expect_identical(conv$na_strings, c("a", NA))
+  expect_identical(conv$na_factor, c("b", NA, "a"))
+  expect_identical(conv$maybe_na, NA_real_)
+  expect_identical(conv$maybe_nan, NaN)
+  expect_identical(conv$maybe_value, 2)
+  expect_identical(conv$maybe_string, NA_character_)
+  expect_identical(conv$ints, 1:2)
+  expect_identical(conv$transposed, t(matrix(1:6, 2)))
+  expect_identical(conv$cube, array(1:24 / 2, c(2, 3, 4)))
+  expect_identical(conv$factor, c("x", "y", "x"))
+  expect_identical(conv$raw, as.raw(3:1))
+  expect_identical(conv$conjugate, c(1 - 2i, 3 + 0i))
+  expect_identical(conv$conjugate_real, c(1 + 0i, 2 + 0i))
+  expect_identical(conv$view_sum, 6.5)
+  expect_true(conv$view_same)
+  expect_identical(conv$list_lengths, c(1, 2, 0))
+  expect_identical(conv$pair, list("a", 2))
+  expect_identical(conv$columns, list(a = c(1, 2), b = c("x", "y")))
+  expect_identical(conv$counts, list(a = 1, b = 2))
+  expect_length(conv$counts_empty, 0)
+  expect_identical(conv$dates, as.Date(c("2024-02-29", NA, "1969-12-31")))
+  expect_identical(conv$dates_frac, as.Date(c(19000, -1)))
+  expect_identical(conv$dates_int, as.Date(19000))
+  expect_identical(conv$next_day, as.Date("2024-02-29"))
+  expect_identical(conv$times, .POSIXct(c(1704164645.25, NA), tz = "UTC"))
+  expect_identical(conv$times_ny, .POSIXct(1704164645, tz = "UTC"))
+  expect_identical(conv$na_complex, c(1 + 2i, NA_complex_))
+  expect_identical(conv$na_complex_real, c(1 + 0i, NA_complex_))
+  expect_identical(conv$maybe_complex, NA_complex_)
+  expect_identical(conv$symbol_counts, list(a = 1, b = 2))
+  expect_identical(conv$singles, c(3, 4))
+  expect_identical(conv$shorts, c(1L, NA, -32768L))
+  expect_identical(conv$small_types, list(-128L, 65535L, 4e9, 0.5))
+  expect_equal(
+    res$conv_bad,
+    list(
+      int32 = "expected a whole number between -2147483647 and 2147483647, not 3.0e9",
+      int32_na = "expected numbers, not NA",
+      whole_nan = "expected a whole number, not NaN",
+      not_matrix = "expected a matrix",
+      cube_dims = "expected an array of 3 dimensions",
+      view_int = "expected a double vector",
+      complex_na = "expected complex numbers, not NA",
+      maybe_long = "expected a single number",
+      list_elt = "element 2: expected a numeric vector",
+      pair_length = "expected a list of length 2",
+      pair_elt = "element 2: expected a whole number, not 1.5",
+      missing_col = "expected a list with an element `b`",
+      extra_col = "unexpected element `c`",
+      dup_col = "duplicate element `a`",
+      unnamed = "expected a named list",
+      dup_key = "duplicate element `a`",
+      dict_elt = "element `a`: expected a number",
+      unnamed_col = "expected a named list",
+      empty_lgl = "expected a character vector",
+      int_min = "cannot return -2147483648 to R as an integer, where it is NA",
+      not_date = "expected a Date",
+      time_as_date = "expected a Date",
+      date_na = "expected a Date, not NA",
+      dates_long = "expected a single Date",
+      not_time = "expected a date-time",
+      not_complex = "expected a complex number",
+      single_range = paste(
+        "expected a number between -3.4028234663852886e38 and",
+        "3.4028234663852886e38, not 1.0e300"
+      ),
+      short_range = "expected a whole number between -32768 and 32767, not 40000.0",
+      unsigned_range = "expected a whole number between 0 and 4294967295, not -1.0"
+    )
+  )
   expect_identical(res$int_arg, c(2L, 4L))
   expect_false(res$negate)
   expect_equal(res$bad_type, "expected a character string")
@@ -129,6 +283,8 @@ test_that("two clients share one compiled library", {
   expect_equal(res$counter, 16)
   expect_equal(res$counters, c(101, 102, 103))
   expect_equal(res$wrong_ref, "expected a `counter` object")
+  expect_equal(res$total, 32)
+  expect_equal(res$total_bad, "element 2: expected a `counter` object")
   expect_match(res$reloaded, "no longer exists")
   # c1, the last stored, and the three from counters() unless collected.
   expect_lte(res$live, 5)
