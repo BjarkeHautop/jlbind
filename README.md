@@ -1,4 +1,4 @@
-# jlbind
+# jlbind <picture><source media="(prefers-color-scheme: dark)" srcset="man/figures/logo.png" /><img src="man/figures/logo-light.png" align="right" height="139" alt="jlbind logo" /></picture>
 
 <!-- badges: start -->
 [![R-CMD-check](https://github.com/BjarkeHautop/jlbind/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/BjarkeHautop/jlbind/actions/workflows/R-CMD-check.yaml)
