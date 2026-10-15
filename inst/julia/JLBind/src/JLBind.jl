@@ -18,7 +18,7 @@ module JLBind
 import Dates
 using Dates: Date, DateTime
 
-export SEXP, @rcall, from_sexp, to_sexp, RRef, RVector
+export SEXP, @rcall, from_sexp, to_sexp, RRef, RVector, RDataFrame
 
 public @R, @r_global, r_class, object_count
 public nil, rtypeof, rlength, protect, unprotect, preserve, release

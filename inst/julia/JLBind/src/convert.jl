@@ -22,6 +22,7 @@ Methods are provided for
 - from a list: other `Vector`s, `Tuple`s, `NamedTuple`s (from a list named
   exactly by their fields, such as a `data.frame`), `Dict{String,T}` and
   `Dict{Symbol,T}`;
+- [`RDataFrame`](@ref), from a `data.frame`;
 - `Union{Nothing,T}` (`NULL` is `nothing`).
 
 A binding package adds methods for its own types.
@@ -544,7 +545,8 @@ Methods are provided for
 - `Vector{UInt8}` (a raw vector) and [`RVector`](@ref) (the R vector it views);
 - `Array{T,N}`, including `Matrix{T}` (an R array of `N` dimensions);
 - as lists, other vectors and tuples, and, as named lists, named tuples and
-  `Dict{String,T}` and `Dict{Symbol,T}` (in the order of their keys).
+  `Dict{String,T}` and `Dict{Symbol,T}` (in the order of their keys);
+- [`RDataFrame`](@ref) (a `data.frame`).
 
 Integers become doubles, since R's integers have 32 bits. A binding package
 adds methods for its own types.
@@ -708,7 +710,8 @@ end
     data_frame(names::Vector{String}, columns::Vector{SEXP}) -> SEXP
 
 A `data.frame` with the equal-length R vectors `columns`. The columns must be
-protected (or reachable from R) until the call returns.
+protected (or reachable from R) until the call returns. For columns whose types
+are known when the library is compiled, return an [`RDataFrame`](@ref) instead.
 """
 function data_frame(names::Vector{String}, columns::Vector{SEXP})
     n = length(columns) == 0 ? 0 : rlength(columns[1])
@@ -717,11 +720,73 @@ function data_frame(names::Vector{String}, columns::Vector{SEXP})
         set_vector_elt(out, i - 1, col)
     end
     set_attrib(out, @r_global(R_NamesSymbol), to_sexp(names))
+    _set_frame(out, n)
+    unprotect(1)
+    return out
+end
+
+# Makes the named list `out` a `data.frame` of `n` rows, with compact row names.
+function _set_frame(out::SEXP, n::Int)
+    n <= typemax(Cint) ||
+        throw(ArgumentError("cannot return a data frame of over 2^31 - 1 rows to R"))
     set_attrib(out, @r_global(R_ClassSymbol), to_sexp("data.frame"))
     rownames = protect(alloc(INTSXP, 2))
     unsafe_store!(int_ptr(rownames), typemin(Cint), 1)
     unsafe_store!(int_ptr(rownames), Cint(-n), 2)
     set_attrib(out, @r_global(R_RowNamesSymbol), rownames)
-    unprotect(2)
+    unprotect(1)
+    return nothing
+end
+
+# --- Data frames -------------------------------------------------------------
+
+"""
+    RDataFrame{names,T}(columns::NamedTuple{names,T})
+    RDataFrame(columns::NamedTuple)
+
+A data frame of the equal-length column vectors `columns`, which converts to
+and from an R `data.frame` (a tibble is one too). As an argument it must be a
+`data.frame` with exactly the columns `names`, in any order; as a result it is
+a `data.frame` with compact row names. Each column converts by the usual rules,
+so it can be a `Vector{Union{Missing,Float64}}`, a `Vector{Date}`, and so on.
+
+Its columns are its properties, `df.x`, and `NamedTuple(df)` is the named tuple
+of them.
+"""
+struct RDataFrame{names,T<:Tuple}
+    columns::NamedTuple{names,T}
+    function RDataFrame{names,T}(columns::NamedTuple{names,T}) where {names,T<:Tuple}
+        # The columns' types differ, so their lengths are taken by a `map`,
+        # which resolves statically, not by indexing them in a loop.
+        lengths = Tuple(map(length, columns))
+        for i = 2:length(lengths)
+            lengths[i] == lengths[1] || throw(DimensionMismatch(
+                "the columns of a data frame must have equal lengths, but `" *
+                String(names[1]) * "` has " * string(lengths[1]) *
+                " and `" * String(names[i]) * "` " * string(lengths[i]),
+            ))
+        end
+        return new{names,T}(columns)
+    end
+end
+
+RDataFrame(columns::NamedTuple{names,T}) where {names,T<:Tuple} =
+    RDataFrame{names,T}(columns)
+
+Base.NamedTuple(df::RDataFrame) = getfield(df, :columns)
+Base.getproperty(df::RDataFrame, name::Symbol) = getproperty(NamedTuple(df), name)
+Base.propertynames(df::RDataFrame) = propertynames(NamedTuple(df))
+
+function from_sexp(::Type{RDataFrame{names,T}}, x::SEXP) where {names,T<:Tuple}
+    rtypeof(x) == VECSXP && _inherits(x, "data.frame") ||
+        throw(ArgumentError("expected a data frame"))
+    return RDataFrame{names,T}(from_sexp(NamedTuple{names,T}, x))
+end
+
+function to_sexp(df::RDataFrame)
+    columns = NamedTuple(df)
+    out = protect(to_sexp(columns))
+    _set_frame(out, length(columns) == 0 ? 0 : length(first(columns)))
+    unprotect(1)
     return out
 end

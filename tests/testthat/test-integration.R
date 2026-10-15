@@ -99,7 +99,10 @@ test_that("two clients share one compiled library", {
         symbol_counts = symbol_counts(list(b = 2, a = 1)),
         singles = singles(c(1.5, 2L)),
         shorts = shorts(c(1L, NA, -32768)),
-        small_types = small_types(-128L, 65535, 4e9, 0.5)
+        small_types = small_types(-128L, 65535, 4e9, 0.5),
+        group_means = group_means(
+          data.frame(x = c(1, 2, NA), group = factor(c("b", "a", "b")))
+        )
       )
       conv_bad <- list(
         int32 = err(ints(3e9)),
@@ -130,7 +133,10 @@ test_that("two clients share one compiled library", {
         not_complex = err(maybe_complex("a")),
         single_range = err(singles(1e300)),
         short_range = err(shorts(40000)),
-        unsigned_range = err(small_types(0L, 0, -1, 0))
+        unsigned_range = err(small_types(0L, 0, -1, 0)),
+        not_frame = err(group_means(list(x = 1, group = "a"))),
+        frame_col = err(group_means(data.frame(x = 1, group = "a", y = 2))),
+        uneven = err(uneven())
       )
       list(
         conv = conv,
@@ -228,6 +234,14 @@ test_that("two clients share one compiled library", {
   expect_identical(conv$dates_frac, as.Date(c(19000, -1)))
   expect_identical(conv$dates_int, as.Date(19000))
   expect_identical(conv$next_day, as.Date("2024-02-29"))
+  expect_identical(
+    conv$group_means,
+    data.frame(
+      group = c("a", "b"),
+      mean = c(2, NA),
+      first = as.Date(c("2024-01-01", "2024-01-01"))
+    )
+  )
   expect_identical(conv$times, .POSIXct(c(1704164645.25, NA), tz = "UTC"))
   expect_identical(conv$times_ny, .POSIXct(1704164645, tz = "UTC"))
   expect_identical(conv$na_complex, c(1 + 2i, NA_complex_))
@@ -271,7 +285,13 @@ test_that("two clients share one compiled library", {
         "3.4028234663852886e38, not 1.0e300"
       ),
       short_range = "expected a whole number between -32768 and 32767, not 40000.0",
-      unsigned_range = "expected a whole number between 0 and 4294967295, not -1.0"
+      unsigned_range = "expected a whole number between 0 and 4294967295, not -1.0",
+      not_frame = "expected a data frame",
+      frame_col = "unexpected element `y`",
+      uneven = paste(
+        "the columns of a data frame must have equal lengths,",
+        "but `a` has 1 and `b` 2"
+      )
     )
   )
   expect_identical(res$int_arg, c(2L, 4L))

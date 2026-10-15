@@ -47,4 +47,6 @@
     JLBIND_ENTRY(symbol_counts, 1, (SEXP a1), (a1)) \
     JLBIND_ENTRY(singles, 1, (SEXP a1), (a1)) \
     JLBIND_ENTRY(shorts, 1, (SEXP a1), (a1)) \
-    JLBIND_ENTRY(small_types, 4, (SEXP a1, SEXP a2, SEXP a3, SEXP a4), (a1, a2, a3, a4))
+    JLBIND_ENTRY(small_types, 4, (SEXP a1, SEXP a2, SEXP a3, SEXP a4), (a1, a2, a3, a4)) \
+    JLBIND_ENTRY(group_means, 1, (SEXP a1), (a1)) \
+    JLBIND_ENTRY(uneven, 0, (void), ())

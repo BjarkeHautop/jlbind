@@ -45,6 +45,13 @@ symbol_counts(x::Dict{Symbol,Int64}) = x
 singles(x::Vector{Float32}) = x .* 2.0f0
 shorts(x::Vector{Union{Missing,Int16}}) = x
 small_types(a::Int8, b::UInt16, c::UInt32, d::Float16) = (a, b, c, d)
+const Groups = RDataFrame{(:group, :x),Tuple{Vector{String},Vector{Union{Missing,Float64}}}}
+function group_means(df::Groups)
+    gs = sort(unique(df.group))
+    means = Union{Missing,Float64}[sum(df.x[df.group .== g]) / count(==(g), df.group) for g in gs]
+    return RDataFrame((group = gs, mean = means, first = [Dates.Date(2024) for _ in gs]))
+end
+uneven() = RDataFrame((a = [1.0], b = [1.0, 2.0]))
 
 @rcall greet(name::String)::String
 @rcall shift(x::Vector{Float64}, by::Union{Nothing,Float64} = nothing)::Vector{Float64}
@@ -84,5 +91,7 @@ small_types(a::Int8, b::UInt16, c::UInt32, d::Float16) = (a, b, c, d)
 @rcall singles(x::Vector{Float32})::Vector{Float32}
 @rcall shorts(x::Vector{Union{Missing,Int16}})::Vector{Union{Missing,Int16}}
 @rcall small_types(a::Int8, b::UInt16, c::UInt32, d::Float16)::Tuple{Int8,UInt16,UInt32,Float16}
+@rcall group_means(df::Groups)::RDataFrame{(:group, :mean, :first),Tuple{Vector{String},Vector{Union{Missing,Float64}},Vector{Dates.Date}}}
+@rcall uneven()::RDataFrame{(:a, :b),Tuple{Vector{Float64},Vector{Float64}}}
 
 end

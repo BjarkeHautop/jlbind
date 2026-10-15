@@ -228,6 +228,7 @@ value using `to_sexp()`. The built-in conversions are:
   | `Nothing`                          |                                         | `NULL`                           |
   | Other `Vector`s, `Tuple`s          | A list                                  | A list                           |
   | `NamedTuple`                       | A named list, such as a data frame      | A named list                     |
+  | `RDataFrame`                       | A data frame                            | A data frame                     |
   | `Dict{String,T}`, `Dict{Symbol,T}` | A named list                            | A named list, sorted by name     |
   | `RRef{T}`                          | A reference to a Julia object           | A reference to a Julia object    |
   | `Vector{RRef{T}}`                  | A list of references                    | A list of references             |
@@ -242,11 +243,38 @@ To use `Date` or `DateTime`, add the `Dates` standard library to the binding
 package's dependencies. A `DateTime` result is a `POSIXct` in UTC.
 
 A `NamedTuple` argument must have exactly the names of its fields, in any order,
-so you can pass a data frame as a named tuple of its columns:
+so you can pass a data frame as a named tuple of its columns. To take or return
+an actual data frame, wrap the columns in an `RDataFrame`. Its type lists the
+column names and the type of each column, so a type alias keeps signatures
+short:
 
 ```julia
-summarise(df::NamedTuple{(:x, :group),Tuple{Vector{Float64},Vector{String}}}) = ...
+const Sales = RDataFrame{(:group, :amount),Tuple{Vector{String},Vector{Float64}}}
+const Summary = RDataFrame{(:group, :mean),Tuple{Vector{String},Vector{Float64}}}
+
+function summarise(df::Sales)
+    gs = sort(unique(df.group))
+    means = [sum(df.amount[df.group .== g]) / count(==(g), df.group) for g in gs]
+    return RDataFrame((group = gs, mean = means))
+end
+
+@rcall summarise(df::Sales)::Summary
 ```
+
+```r
+summarise(data.frame(group = c("a", "b", "a"), amount = c(1, 2, 3)))
+#>   group mean
+#> 1     a    2
+#> 2     b    2
+```
+
+An `RDataFrame` argument must be a data frame (a tibble works too) with exactly
+the declared columns, in any order, so select the columns in the R wrapper if
+the data frame has others: `summarise(df[c("group", "amount")])`. Its columns
+are its properties (`df.group`), and `NamedTuple(df)` returns them as a named
+tuple. Each column converts by the usual rules, so a factor column arrives as
+strings, and a `Vector{Union{Missing,Float64}}` column allows `NA`. Returning
+columns of different lengths is an error.
 
 Errors inside a list name the element, as in `element 2: expected a number`.
 
@@ -257,8 +285,9 @@ only until the call returns, so don't store it.
 
 A binding package can support additional types by defining methods for
 `JLBind.from_sexp(::Type{T}, x::SEXP)` and `JLBind.to_sexp(x::T)`. `JLBind` also
-provides helpers for building R objects directly, such as `JLBind.data_frame()`.
-See the [`JLBind`
+provides helpers for building R objects directly, such as `JLBind.data_frame()`
+for a data frame whose columns are not known when the library is compiled. See
+the [`JLBind`
 source](https://github.com/BjarkeHautop/jlbind/tree/main/inst/julia/JLBind/src)
 for the existing conversions and helpers.
 
