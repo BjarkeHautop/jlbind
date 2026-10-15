@@ -361,6 +361,7 @@ a.reftip-ref{cursor:help;}
 <li><a href="#description" id="toc-description" class="nav-link" data-scroll-target="#description">Description</a></li>
   <li><a href="#usage" id="toc-usage" class="nav-link" data-scroll-target="#usage">Usage</a></li>
   <li><a href="#arguments" id="toc-arguments" class="nav-link" data-scroll-target="#arguments">Arguments</a></li>
+  <li><a href="#details" id="toc-details" class="nav-link" data-scroll-target="#details">Details</a></li>
   <li><a href="#value" id="toc-value" class="nav-link" data-scroll-target="#value">Value</a></li>
   <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
   </ul>
@@ -370,7 +371,7 @@ a.reftip-ref{cursor:help;}
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header><section id="update-the-list-of-julia-functions-r-can-call" class="level2 unnumbered"><h2 class="unnumbered anchored" data-anchor-id="update-the-list-of-julia-functions-r-can-call">Update the list of Julia functions R can call</h2>
 <section id="description" class="level3"><h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>Finds the <code>@rcall</code> declarations in the package’s Julia binding package and writes them to <code>src/entrypoints.h</code>. From that, <code>src/jlbind.c</code> registers a routine <code>C_&lt;name&gt;</code> for each one. Run this whenever you add or remove an <code>@rcall</code>, or change its arguments, much like <code><a href="https://rdrr.io/pkg/Rcpp/man/compileAttributes.html">Rcpp::compileAttributes()</a></code>.</p>
+<p>Finds the <code>@rcall</code> declarations in the package’s Julia binding package and generates the code that lets R call them. Run this whenever you add or remove an <code>@rcall</code>, or change its arguments. It writes two files:</p>
 </section><section id="usage" class="level3"><h3 class="anchored" data-anchor-id="usage">Usage</h3>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a class="reftip-ref" data-reftip="t1" href="./update_entrypoints.html">update_entrypoints</a></span><span class="op">(</span>path <span class="op">=</span> <span class="st">"."</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section><section id="arguments" class="level3"><h3 class="anchored" data-anchor-id="arguments">Arguments</h3>
@@ -381,8 +382,18 @@ a.reftip-ref{cursor:help;}
 <td>
 Path to the package sources.
 </td>
-</tr></tbody></table></section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
-<p>Invisibly, a data frame of the entrypoints with the columns <code>name</code> and <code>nargs</code>.</p>
+</tr></tbody></table></section><section id="details" class="level3"><h3 class="anchored" data-anchor-id="details">Details</h3>
+<ul>
+<li>
+<p><code>src/entrypoints.h</code>, from which <code>src/jlbind.c</code> registers a routine <code>C_&lt;name&gt;</code> for each declaration.</p>
+</li>
+<li>
+<p><code>R/jlbind-wrappers.R</code>, with an R function for each declaration that calls its routine. <code>@rcall shift(x::Vector{Float64}, by::Float64 = 0.0)::Float64</code> becomes <code>shift &lt;- function(x, by = 0.0) .Call(C_shift, x, by)</code>.</p>
+</li>
+</ul>
+<p>Defaults must be literal numbers, strings, <code>true</code>, <code>false</code> or <code>nothing</code> (<code>NULL</code>). A function returning <code>Nothing</code> returns invisibly. To export or document a function, use a roxygen block on <code>NULL</code> with <code>@name</code> in another file. To add R code around a call, declare the Julia function with a <code>jl_</code> prefix and write the R function yourself.</p>
+</section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
+<p>Invisibly, a data frame of the entrypoints with the columns <code>name</code>, <code>nargs</code>, and the <code>formals</code>, <code>args</code> and <code>invisible</code> (whether it returns invisibly) of their R wrappers.</p>
 </section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="co"># A package set up with use_jlbind() in a temporary directory</span></span>
@@ -416,7 +427,11 @@ Path to the package sources.
 <span><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html">writeLines</a></span><span class="op">(</span><span class="va">code</span>, <span class="va">file</span><span class="op">)</span></span>
 <span></span>
 <span><span class="fu"><a class="reftip-ref" data-reftip="t1" href="./update_entrypoints.html">update_entrypoints</a></span><span class="op">(</span><span class="va">pkg</span><span class="op">)</span></span>
-<span><span class="co"># The package now calls it as .Call(C_add, x, y)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html">writeLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html">readLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">pkg</span>, <span class="st">"R"</span>, <span class="st">"jlbind-wrappers.R"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
+<span><span class="co">#&gt; # Generated by jlbind::update_entrypoints(): do not edit by hand</span></span>
+<span><span class="co">#&gt; </span></span>
+<span><span class="co">#&gt; hello &lt;- function(name) .Call(C_hello, name)</span></span>
+<span><span class="co">#&gt; add &lt;- function(x, y) .Call(C_add, x, y)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </div>
 
 
@@ -910,7 +925,7 @@ instead, on every page, after layout settles.
 </footer>
 
 
-<div class="reftip-payload" hidden><div class="reftip-tip" data-for="t1"><code class="reftip-sig">update_entrypoints(path = &quot;.&quot;)</code><span class="reftip-brief">Finds the <code>@rcall</code> declarations in the package's Julia binding package and writes them to <code>src/entrypoints.h</code>.</span></div><div class="reftip-tip" data-for="t2"><code class="reftip-sig">use_jlbind(path = &quot;.&quot;, module = NULL, dir = &quot;julia&quot;)</code><span class="reftip-brief">Adds what a package needs to call Julia code through jlbind.</span></div></div>
+<div class="reftip-payload" hidden><div class="reftip-tip" data-for="t1"><code class="reftip-sig">update_entrypoints(path = &quot;.&quot;)</code><span class="reftip-brief">Finds the <code>@rcall</code> declarations in the package's Julia binding package and generates the code that lets R call them.</span></div><div class="reftip-tip" data-for="t2"><code class="reftip-sig">use_jlbind(path = &quot;.&quot;, module = NULL, dir = &quot;julia&quot;)</code><span class="reftip-brief">Adds what a package needs to call Julia code through jlbind.</span></div></div>
 <script>
 (function(){
   var payload = document.currentScript.previousElementSibling;

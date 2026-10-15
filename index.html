@@ -421,7 +421,7 @@ a.reftip-ref{cursor:help;}
 <h2 class="anchored" data-anchor-id="installation">Installation</h2>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("pak")</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">"BjarkeHautop/jlbind"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Building the shared library requires <a href="https://julialang.org">Julia</a> &gt;= 1.13. Installing jlbind does not itself build the library.</p>
+<p>Building the shared library requires <a href="https://julialang.org">Julia</a> &gt;= 1.14. Installing jlbind does not itself build the library.</p>
 </section>
 <section id="using-a-package-built-on-jlbind" class="level2">
 <h2 class="anchored" data-anchor-id="using-a-package-built-on-jlbind">Using a package built on jlbind</h2>
@@ -441,8 +441,7 @@ a.reftip-ref{cursor:help;}
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">greet</span>(name<span class="op">::</span><span class="dt">String</span>)<span class="op">::</span><span class="dt">String</span></span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Run <code><a class="reftip-ref" data-reftip="t3" href="man/update_entrypoints.html">jlbind::update_entrypoints()</a></code>, and call the function from R:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>greet <span class="ot">&lt;-</span> <span class="cf">function</span>(name) <span class="fu">.Call</span>(C_greet, name)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Run <code><a class="reftip-ref" data-reftip="t3" href="man/update_entrypoints.html">jlbind::update_entrypoints()</a></code>, which generates the R function <code>greet(name)</code> that calls it.</p>
 <p>See <a href="https://bjarkehautop.github.io/jlbind/vignettes/jlbind.html">Get started with jlbind</a> for a full walkthrough.</p>
 </section>
 <section id="contributing" class="level2">
@@ -956,7 +955,7 @@ instead, on every page, after layout settles.
   force = FALSE,
   versions = c(&quot;manifest&quot;, &quot;compat&quot;),
   develop = NULL
-)</code><span class="reftip-brief">Compiles the Julia code of every installed package that uses jlbind into one shared library, stored in <code>tools::R_user_dir(&quot;jlbind&quot;, &quot;data&quot;)</code>.</span></div><div class="reftip-tip" data-for="t2"><code class="reftip-sig">use_jlbind(path = &quot;.&quot;, module = NULL, dir = &quot;julia&quot;)</code><span class="reftip-brief">Adds what a package needs to call Julia code through jlbind.</span></div><div class="reftip-tip" data-for="t3"><code class="reftip-sig">update_entrypoints(path = &quot;.&quot;)</code><span class="reftip-brief">Finds the <code>@rcall</code> declarations in the package's Julia binding package and writes them to <code>src/entrypoints.h</code>.</span></div></div>
+)</code><span class="reftip-brief">Compiles the Julia code of every installed package that uses jlbind into one shared library, stored in <code>tools::R_user_dir(&quot;jlbind&quot;, &quot;data&quot;)</code>.</span></div><div class="reftip-tip" data-for="t2"><code class="reftip-sig">use_jlbind(path = &quot;.&quot;, module = NULL, dir = &quot;julia&quot;)</code><span class="reftip-brief">Adds what a package needs to call Julia code through jlbind.</span></div><div class="reftip-tip" data-for="t3"><code class="reftip-sig">update_entrypoints(path = &quot;.&quot;)</code><span class="reftip-brief">Finds the <code>@rcall</code> declarations in the package's Julia binding package and generates the code that lets R call them.</span></div></div>
 <script>
 (function(){
   var payload = document.currentScript.previousElementSibling;

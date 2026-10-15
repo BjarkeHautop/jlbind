@@ -417,9 +417,10 @@ Directory under <code>inst/</code> for the binding package.
 <li>
 <p><code>.jlbind/</code>, where <code><a class="reftip-ref" data-reftip="t4" href="./build_library.html">build_library()</a></code> writes a library for development, in <code>.Rbuildignore</code> and <code>.gitignore</code>.</p>
 </li>
-</ul>
-<p>It’s safe to run again. Afterwards, call each Julia function <code>f</code> from R with <code>.Call(C_f, ...)</code>.</p>
-</section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
+<li>
+<p><code>R/jlbind-wrappers.R</code> (written by <code><a class="reftip-ref" data-reftip="t2" href="./update_entrypoints.html">update_entrypoints()</a></code>), with an R function for each Julia function declared with <code>@rcall</code>.</p>
+</li>
+</ul></section><section id="value" class="level3"><h3 class="anchored" data-anchor-id="value">Value</h3>
 <p><code>path</code>, invisibly.</p>
 </section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
@@ -441,8 +442,9 @@ Directory under <code>inst/</code> for the binding package.
 <span><span class="fu"><a href="https://rdrr.io/r/base/list.files.html">list.files</a></span><span class="op">(</span><span class="va">pkg</span>, recursive <span class="op">=</span> <span class="cn">TRUE</span><span class="op">)</span></span>
 <span><span class="co">#&gt; [1] "DESCRIPTION"                     "inst/julia/Project.toml"        </span></span>
 <span><span class="co">#&gt; [3] "inst/julia/src/mypkgBindings.jl" "NAMESPACE"                      </span></span>
-<span><span class="co">#&gt; [5] "R/jlbind.R"                      "src/entrypoints.h"              </span></span>
-<span><span class="co">#&gt; [7] "src/jlbind.c"                    "src/Makevars"</span></span>
+<span><span class="co">#&gt; [5] "R/jlbind-wrappers.R"             "R/jlbind.R"                     </span></span>
+<span><span class="co">#&gt; [7] "src/entrypoints.h"               "src/jlbind.c"                   </span></span>
+<span><span class="co">#&gt; [9] "src/Makevars"</span></span>
 <span></span>
 <span><span class="co"># The Julia binding package, with its example entrypoint</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html">writeLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html">readLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">pkg</span>, <span class="st">"inst/julia/src/mypkgBindings.jl"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
@@ -450,8 +452,9 @@ Directory under <code>inst/</code> for the binding package.
 <span><span class="co">#&gt;     mypkgBindings</span></span>
 <span><span class="co">#&gt; </span></span>
 <span><span class="co">#&gt; The R entrypoints of the R package mypkg. Each `@rcall` declaration</span></span>
-<span><span class="co">#&gt; exports a function R calls as `.Call(C_&lt;name&gt;, ...)`; after changing them, run</span></span>
-<span><span class="co">#&gt; `jlbind::update_entrypoints()` to regenerate `src/entrypoints.h`.</span></span>
+<span><span class="co">#&gt; exports a Julia function to R; after changing them, run</span></span>
+<span><span class="co">#&gt; `jlbind::update_entrypoints()` to regenerate the R functions that call them, in</span></span>
+<span><span class="co">#&gt; `R/jlbind-wrappers.R`.</span></span>
 <span><span class="co">#&gt; """</span></span>
 <span><span class="co">#&gt; module mypkgBindings</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -955,7 +958,7 @@ instead, on every page, after layout settles.
 </footer>
 
 
-<div class="reftip-payload" hidden><div class="reftip-tip" data-for="t1"><code class="reftip-sig">use_jlbind(path = &quot;.&quot;, module = NULL, dir = &quot;julia&quot;)</code><span class="reftip-brief">Adds what a package needs to call Julia code through jlbind.</span></div><div class="reftip-tip" data-for="t2"><code class="reftip-sig">update_entrypoints(path = &quot;.&quot;)</code><span class="reftip-brief">Finds the <code>@rcall</code> declarations in the package's Julia binding package and writes them to <code>src/entrypoints.h</code>.</span></div><div class="reftip-tip" data-for="t3"><code class="reftip-sig">bind_client(pkg)</code><span class="reftip-brief">Call this from the <code>.onLoad()</code> of a package that uses jlbind; <code>use_jlbind()</code> sets that up.</span></div><div class="reftip-tip" data-for="t4"><code class="reftip-sig">build_library(
+<div class="reftip-payload" hidden><div class="reftip-tip" data-for="t1"><code class="reftip-sig">use_jlbind(path = &quot;.&quot;, module = NULL, dir = &quot;julia&quot;)</code><span class="reftip-brief">Adds what a package needs to call Julia code through jlbind.</span></div><div class="reftip-tip" data-for="t2"><code class="reftip-sig">update_entrypoints(path = &quot;.&quot;)</code><span class="reftip-brief">Finds the <code>@rcall</code> declarations in the package's Julia binding package and generates the code that lets R call them.</span></div><div class="reftip-tip" data-for="t3"><code class="reftip-sig">bind_client(pkg)</code><span class="reftip-brief">Call this from the <code>.onLoad()</code> of a package that uses jlbind; <code>use_jlbind()</code> sets that up.</span></div><div class="reftip-tip" data-for="t4"><code class="reftip-sig">build_library(
   packages = &quot;.&quot;,
   out = NULL,
   julia = NULL,
