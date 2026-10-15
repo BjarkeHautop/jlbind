@@ -24,7 +24,7 @@ is compiled into one shared library.
 pak::pak("BjarkeHautop/jlbind")
 ```
 
-Building the shared library requires [Julia](https://julialang.org) >= 1.13.
+Building the shared library requires [Julia](https://julialang.org) >= 1.14.
 Installing jlbind does not itself build the library.
 
 ## Using a package built on jlbind

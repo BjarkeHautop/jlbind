@@ -23,7 +23,8 @@ jobs:
 
       - uses: julia-actions/setup-julia@v3
         with:
-          version: "1.13"
+          # 1.14 is the minimum supported version; nightly until it is released.
+          version: "nightly"
 
       - uses: julia-actions/cache@v3
 

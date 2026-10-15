@@ -10,7 +10,7 @@ test_that("two clients share one compiled library", {
   )
   skip_if_not_installed("callr")
   julia <- tryCatch(.find_julia(), error = function(e) NULL)
-  skip_if(is.null(julia), "Julia >= 1.13 not found")
+  skip_if(is.null(julia), "Julia >= 1.14 not found")
 
   data <- withr::local_tempdir()
   clients <- test_path("..", "clients")
@@ -148,7 +148,7 @@ test_that("a client can turn trimming off", {
   )
   skip_if_not_installed("callr")
   julia <- tryCatch(.find_julia(), error = function(e) NULL)
-  skip_if(is.null(julia), "Julia >= 1.13 not found")
+  skip_if(is.null(julia), "Julia >= 1.14 not found")
 
   src <- withr::local_tempdir()
   file.copy(test_path("..", "clients", "hellojl"), src, recursive = TRUE)

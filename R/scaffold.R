@@ -612,7 +612,7 @@ update_entrypoints <- function(path = ".") {
   if (!"SystemRequirements" %in% fields) {
     set(
       "SystemRequirements",
-      "Julia (>= 1.13)"
+      "Julia (>= 1.14)"
     )
   }
   if (changed) {

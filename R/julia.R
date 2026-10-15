@@ -1,4 +1,4 @@
-# The julia binary to build with, checked to be at least 1.13.
+# The julia binary to build with, checked to be at least 1.14.
 .find_julia <- function(julia = NULL) {
   if (is.null(julia)) {
     julia <- Sys.getenv("JULIA", unset = "")
@@ -8,7 +8,7 @@
   }
   if (!nzchar(julia)) {
     stop(
-      "Julia was not found. Install Julia (>= 1.13), see ",
+      "Julia was not found. Install Julia (>= 1.14), see ",
       "https://julialang.org/install/, or pass the path of a julia binary ",
       "as `julia` (or set the JULIA environment variable).",
       call. = FALSE
@@ -18,13 +18,13 @@
   if (is.na(version)) {
     stop("Could not run `", julia, " --version`.", call. = FALSE)
   }
-  if (version < "1.13") {
+  if (version < "1.14") {
     stop(
-      "jlbind needs Julia >= 1.13, but ",
+      "jlbind needs Julia >= 1.14, but ",
       julia,
       " is version ",
       version,
-      ". With juliaup: `juliaup add 1.13`, then pass its julia binary as ",
+      ". With juliaup: `juliaup add nightly`, then pass its julia binary as ",
       "`julia`.",
       call. = FALSE
     )

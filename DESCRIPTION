@@ -27,5 +27,5 @@ VignetteBuilder: quarto
 Config/Needs/website: altdoc, BjarkeHautop/altdown, BjarkeHautop/reftip,
     ggplot2, scales
 Config/testthat/edition: 3
-SystemRequirements: Julia (>= 1.13)
+SystemRequirements: Julia (>= 1.14)
 Config/roxygen2/version: 8.1.0

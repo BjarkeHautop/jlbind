@@ -2,7 +2,7 @@
 #'
 #' Compiles the Julia code of every installed package that uses jlbind into one
 #' shared library, stored in `tools::R_user_dir("jlbind", "data")`. Run this
-#' after you install or update one of those packages. You need Julia 1.13 or
+#' after you install or update one of those packages. You need Julia 1.14 or
 #' later. The first build downloads and compiles the Julia dependencies, which
 #' can take a few minutes.
 #'
