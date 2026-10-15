@@ -142,35 +142,35 @@
   {
     "objectID": "index.html",
     "href": "index.html",
-    "title": "jlbind",
+    "title": "jlbind ",
     "section": "",
     "text": "Browse source code\nReport a bug\n\n\n\nMIT + file LICENSE\n\n\n\nCiting jlbind\n\n\n\nBjarke Hautop Kristensen\nAuthor, maintainer\n\n\n\n \n\nCall Julia code from R without starting a Julia session.\njlbind compiles Julia code into a shared library with JuliaC.jl (by default with --trim=safe), and R calls it through R’s official C API. Thus, there is almost no overhead (see Performance).\nSeveral R packages using jlbind can be installed side by side: their Julia code is compiled into one shared library.\n\n\n# install.packages(\"pak\")\npak::pak(\"BjarkeHautop/jlbind\")\nBuilding the shared library requires Julia &gt;= 1.14. Installing jlbind does not itself build the library.\n\n\n\nAfter installing or updating an R package that uses jlbind, build the shared library:\njlbind::install_library()\nThis compiles the Julia code of every installed package that uses jlbind and may take a few minutes. Run it again whenever you install or update one of them.\nSee Using packages built on jlbind for threads, troubleshooting and Julia dependency versions.\n\n\n\nSet up a package with jlbind::use_jlbind(), then declare the Julia functions R can call in the generated binding package under inst/julia/:\nmodule MyPkgBindings\n\nusing JLBind\n\ngreet(name::String) = \"Hello, \" * name * \"!\"\n@rcall greet(name::String)::String\n\nend\nRun jlbind::update_entrypoints(), which generates the R function greet(name) that calls it.\nSee Get started with jlbind for a full walkthrough.\n\n\n\nContributions of all kinds are very welcome! You may use LLMs, but please write issue and PR descriptions in your own words. If you submit a PR, you should understand the code you’re contributing."
   },
   {
     "objectID": "index.html#installation",
     "href": "index.html#installation",
-    "title": "jlbind",
+    "title": "jlbind ",
     "section": "",
     "text": "# install.packages(\"pak\")\npak::pak(\"BjarkeHautop/jlbind\")\nBuilding the shared library requires Julia &gt;= 1.14. Installing jlbind does not itself build the library."
   },
   {
     "objectID": "index.html#using-a-package-built-on-jlbind",
     "href": "index.html#using-a-package-built-on-jlbind",
-    "title": "jlbind",
+    "title": "jlbind ",
     "section": "",
     "text": "After installing or updating an R package that uses jlbind, build the shared library:\njlbind::install_library()\nThis compiles the Julia code of every installed package that uses jlbind and may take a few minutes. Run it again whenever you install or update one of them.\nSee Using packages built on jlbind for threads, troubleshooting and Julia dependency versions."
   },
   {
     "objectID": "index.html#writing-a-package-that-uses-jlbind",
     "href": "index.html#writing-a-package-that-uses-jlbind",
-    "title": "jlbind",
+    "title": "jlbind ",
     "section": "",
     "text": "Set up a package with jlbind::use_jlbind(), then declare the Julia functions R can call in the generated binding package under inst/julia/:\nmodule MyPkgBindings\n\nusing JLBind\n\ngreet(name::String) = \"Hello, \" * name * \"!\"\n@rcall greet(name::String)::String\n\nend\nRun jlbind::update_entrypoints(), which generates the R function greet(name) that calls it.\nSee Get started with jlbind for a full walkthrough."
   },
   {
     "objectID": "index.html#contributing",
     "href": "index.html#contributing",
-    "title": "jlbind",
+    "title": "jlbind ",
     "section": "",
     "text": "Contributions of all kinds are very welcome! You may use LLMs, but please write issue and PR descriptions in your own words. If you submit a PR, you should understand the code you’re contributing."
   },
