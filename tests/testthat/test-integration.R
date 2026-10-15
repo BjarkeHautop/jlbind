@@ -131,7 +131,9 @@ test_that("two clients share one compiled library", {
         dates_long = err(next_day(as.Date(c("2024-01-01", "2024-01-02")))),
         not_time = err(times(as.Date("2024-01-01"))),
         not_complex = err(maybe_complex("a")),
-        single_range = err(singles(1e300)),
+        # Not a literal such as 1e300, which R on macOS parses to a
+        # neighbouring double, changing the message.
+        single_range = err(singles(.Machine$double.xmax)),
         short_range = err(shorts(40000)),
         unsigned_range = err(small_types(0L, 0, -1, 0)),
         not_frame = err(group_means(list(x = 1, group = "a"))),
@@ -282,7 +284,7 @@ test_that("two clients share one compiled library", {
       not_complex = "expected a complex number",
       single_range = paste(
         "expected a number between -3.4028234663852886e38 and",
-        "3.4028234663852886e38, not 1.0e300"
+        "3.4028234663852886e38, not 1.7976931348623157e308"
       ),
       short_range = "expected a whole number between -32768 and 32767, not 40000.0",
       unsigned_range = "expected a whole number between 0 and 4294967295, not -1.0",
