@@ -120,9 +120,9 @@ jlbind_sitrep <- function(julia = NULL) {
 .print_sitrep <- function(report) {
   utf8 <- isTRUE(l10n_info()[["UTF-8"]])
   mark <- function(ok) {
-    if (utf8) ifelse(ok, "✔", "✖") else ifelse(ok, "v", "x")
+    if (utf8) ifelse(ok, "\u2714", "\u2716") else ifelse(ok, "v", "x")
   }
-  rule <- if (utf8) "──" else "--"
+  rule <- if (utf8) "\u2500\u2500" else "--"
   line <- function(...) cat(..., "\n", sep = "")
   head <- function(title) line(rule, " ", title)
 
