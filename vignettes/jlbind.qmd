@@ -16,14 +16,13 @@ jlbind. An R package that uses jlbind is called a *client*. For how jlbind
 compares with other ways of calling Julia from R, see
 [Performance](https://bjarkehautop.github.io/jlbind/vignettes/articles/performance.html).
 
-An R process can load only one compiled Julia library[^privatize]. By default,
-jlbind therefore compiles the Julia code of *all* installed clients into one
-shared library, which each user builds with `jlbind::install_library()`. Your
-client then shares a library, and a set of Julia dependency versions, with every
-other client the user has installed. Users can instead build a separate library
-for some clients, but then those clients can't be loaded in the same R session.
+An R process can load only one compiled Julia library[^privatize], so jlbind
+compiles the Julia code of *all* installed clients into one shared library,
+which each user builds with `jlbind::install_library()`. Your client therefore
+shares Julia dependency versions with every other client the user has installed.
 [Using packages built on jlbind](using-clients.html) describes how this works
-and what your users need to do.
+and what your users need to do; your README should tell them to run
+`jlbind::install_library()` after installing your package.
 
 For complete, working examples, see the two small clients that jlbind's tests
 build:
@@ -40,7 +39,8 @@ which keeps Julia objects in R (see [Julia objects in R](#julia-objects-in-r)).
 
 ## Set up
 
-From your R package's directory, run:
+You need [Julia](https://julialang.org/install/) 1.14 or later. From your R
+package's directory, run:
 
 ```r
 jlbind::use_jlbind()
@@ -59,7 +59,8 @@ jlbind:
   package declares.
 - `R/jlbind.R`, which calls `jlbind::bind_client()` from `.onLoad()` and
   includes the roxygen tag for `useDynLib()`.
-- The `Config/jlbind` and `Imports: jlbind` fields in `DESCRIPTION`.
+- The `Config/jlbind`, `Imports: jlbind` and
+  `SystemRequirements: Julia (>= 1.14)` fields in `DESCRIPTION`.
 - A `.jlbind/` directory for development builds, added to `.Rbuildignore` and
   `.gitignore`.
 
@@ -70,11 +71,9 @@ to the existing function yourself. Then run `devtools::document()` to update
 ::: {.callout-important}
 **Give the Julia binding package a unique name**
 
-All clients are compiled into the same library, so their Julia package names
-must not collide. Choose a binding package name that is unique among all R
-packages using jlbind, not just within your own R package.
-
-That is why the default name is the R package name with a `Bindings` suffix.
+All clients are compiled into one library, so binding package names must be
+unique across all jlbind clients. The default, the R package name with a
+`Bindings` suffix, ensures this.
 :::
 
 ## Declare Julia functions
@@ -101,17 +100,13 @@ end
 ```
 
 The binding package is an ordinary Julia package. Declare its dependencies in
-`Project.toml` and import them as usual. In many cases, the actual computation
-lives in an existing Julia package, and the binding package only needs to
-declare the functions R should call and handle any necessary conversions.
+`Project.toml` and import them as usual.
 
 ::: {.callout-important}
 **Write `@rcall` declarations literally at the top level**
 
-jlbind discovers `@rcall` declarations by scanning the Julia source files; it
-does not execute the module to find them. Keep the declarations at the top level
-of the module's files rather than generating them dynamically or placing them
-inside functions or other runtime constructs.
+jlbind finds `@rcall` declarations by scanning the source files, not by running
+them, so write them literally at the top level of the module.
 :::
 
 ## Call them from R
@@ -149,17 +144,14 @@ devtools::load_all()
 ```
 
 By default, `build_library()` writes the library to `.jlbind/` in your package's
-source directory. That directory is excluded from the installed package. When
-you load the package with `devtools::load_all()`, jlbind uses this development
-library instead of the one created by `install_library()`.
+source directory. When you load the package with `devtools::load_all()`, jlbind
+uses this development library instead of the one created by `install_library()`.
 
 ::: {.callout-note}
 **The development library is only used when your package loads first**
 
-The `.jlbind/` library is selected only if your package is the first package
-using jlbind to be loaded in the R session. If another client has already loaded
-a different library, rebuilding your development library will not switch the
-active one. Restart R, then load your package first to test the new build.
+The `.jlbind/` library is used only if your package is the first jlbind client
+loaded in the R session. After rebuilding it, restart R.
 :::
 
 If you need to use a library stored elsewhere, set the `JLBIND_LIBRARY`
@@ -179,6 +171,10 @@ Include a `Manifest.toml` next to the binding package's `Project.toml` with the
 Julia dependency versions known to compile with your package. [CRAN's
 policy](https://cran.r-project.org/web/packages/policies.html) asks that
 downloaded libraries be a fixed version rather than the latest.
+
+The build uses the manifest of only the first client that has one (see
+[Dependency versions](using-clients.html#dependency-versions)), so keep your
+`[compat]` bounds accurate too.
 :::
 
 ## Tests and CRAN
@@ -240,7 +236,7 @@ only where `missing` is. `Int64` results become doubles, since R's integers have
 32 bits; return `Int32` for an R integer.
 
 To use `Date` or `DateTime`, add the `Dates` standard library to the binding
-package's dependencies. A `DateTime` result is a `POSIXct` in UTC.
+package's dependencies.
 
 A `NamedTuple` argument must have exactly the names of its fields, in any order,
 so you can pass a data frame as a named tuple of its columns. To take or return
@@ -340,18 +336,6 @@ into an R error. The messages from `ArgumentError`, `ErrorException`,
 `DimensionMismatch`, `OverflowError`, and `AssertionError` are passed through.
 Other exceptions are summarized.
 
-```julia
-fail(msg::String) = throw(ArgumentError(msg))
-@rcall fail(msg::String)::Nothing
-```
-
-Calling the function from R then produces an ordinary R error:
-
-```r
-fail("bad input")
-#> Error: bad input
-```
-
 ## Compilation constraints (trimming)
 
 By default, jlbind compiles the shared library with `juliac --trim=safe`. This
@@ -365,9 +349,6 @@ If your package cannot be compiled with trimming, add the following field to
 ```text
 Config/jlbind/trim: false
 ```
-
-This disables trimming and allows code that cannot be resolved ahead of time to
-compile.
 
 ::: {.callout-warning}
 An untrimmed library includes the full Julia system image and is *much* larger,
@@ -454,12 +435,10 @@ scaled_area(square(2), 3)
 #> [1] 36
 ```
 
-Without a `@nospecialize` on `with_shape` Julia will compile a separate copy of
-`with_shape` for each concrete shape, and the call into it cannot be resolved
-for the same reason as `area(s)`. Functions that pass the shape on to
-`with_shape`, such as `shape_area`, should also take it with `@nospecialize`.
-Small functions like these are inlined, so this example would compile without
-it, but larger ones fail the same way.
+Without `@nospecialize`, Julia compiles a separate `with_shape` for each
+concrete shape, and the call into it can't be resolved, for the same reason as
+`area(s)`. Functions that pass the shape on, such as `shape_area`, need it too
+(this small example happens to compile without it, since it is inlined).
 
 If a hierarchy has only a few types, some alternatives to `@nospecialize` are:
 
