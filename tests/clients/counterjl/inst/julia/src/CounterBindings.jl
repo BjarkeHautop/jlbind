@@ -14,8 +14,8 @@ increment(c::Counter, by::Int64) = (c.n += by; c.n)
 counters(n::Int64) = [Counter(i) for i = 1:n]
 live() = JLBind.object_count()
 
-@rcall new_counter(start::Int64)::RRef{Counter}
-@rcall increment(c::RRef{Counter}, by::Int64)::Int64
+@rcall new_counter(start::Int64 = 0)::RRef{Counter}
+@rcall increment(counter::RRef{Counter}, by::Int64 = 1)::Int64
 @rcall counters(n::Int64)::Vector{RRef{Counter}}
 @rcall live()::Int64
 

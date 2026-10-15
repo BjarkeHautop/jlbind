@@ -8,7 +8,10 @@ must pass exactly that many, finds no entrypoint in a library built from a
 declaration with another count, rather than one it would crash calling. It
 converts each argument with `from_sexp(A, a)`, calls `f`, and converts the
 result with `to_sexp(::R)`; an argument or result type `RRef{T}` passes a
-Julia object by reference instead (see [`RRef`](@ref)). The compiled library
+Julia object by reference instead (see [`RRef`](@ref)). An argument can have a
+default, `a::A = 1`, a literal number, string, `true`, `false` or `nothing`:
+it becomes the default of the argument of the generated R function (`NULL` for
+`nothing`), which always passes every argument. The compiled library
 can only call `f` statically if each argument type it receives is concrete, or
 is `@nospecialize`d in `f`'s signature.
 
@@ -21,8 +24,8 @@ any other exception is summarized, since rendering an arbitrary exception
 needs a call the compiler cannot resolve.
 
 The jlbind R package's `update_entrypoints()` reads these declarations to
-generate the client's C shim, so declare each entrypoint with a literal
-`@rcall` at the top level of the binding package's source files.
+generate the client's C shim and R functions, so declare each entrypoint with a
+literal `@rcall` at the top level of the binding package's source files.
 """
 macro rcall(sig)
     Meta.isexpr(sig, :(::)) || error("@rcall needs a return type: @rcall f(...)::R")
@@ -33,6 +36,14 @@ macro rcall(sig)
     argnames = Symbol[]
     argtypes = Any[]
     for a in call.args[2:end]
+        if Meta.isexpr(a, :kw)
+            # A default is used only by the generated R wrapper, which always
+            # passes every argument.
+            a, default = a.args
+            default isa Union{Number,String} || default === :nothing ||
+                error("@rcall: the default of $a must be a literal number, " *
+                      "string, true, false or nothing")
+        end
         Meta.isexpr(a, :(::)) && length(a.args) == 2 ||
             error("@rcall needs every argument typed: $a")
         push!(argnames, a.args[1])

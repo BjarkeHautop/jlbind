@@ -59,11 +59,8 @@ greet(name::String) = "Hello, " * name * "!"
 end
 ```
 
-Run `jlbind::update_entrypoints()`, and call the function from R:
-
-```r
-greet <- function(name) .Call(C_greet, name)
-```
+Run `jlbind::update_entrypoints()`, which generates the R function `greet(name)`
+that calls it.
 
 See [Get started with
 jlbind](https://bjarkehautop.github.io/jlbind/vignettes/jlbind.html) for a full

@@ -35,10 +35,9 @@ add \code{jlbind::bind_client(pkgname)} to it yourself.
 \item The \code{Config/jlbind} and \code{Imports: jlbind} fields in \code{DESCRIPTION}.
 \item \verb{.jlbind/}, where \code{\link[=build_library]{build_library()}} writes a library for development, in
 \code{.Rbuildignore} and \code{.gitignore}.
+\item \code{R/jlbind-wrappers.R} (written by \code{\link[=update_entrypoints]{update_entrypoints()}}), with an R
+function for each Julia function declared with \verb{@rcall}.
 }
-
-It's safe to run again. Afterwards, call each Julia function \code{f} from R with
-\code{.Call(C_f, ...)}.
 }
 \examples{
 # A new package in a temporary directory

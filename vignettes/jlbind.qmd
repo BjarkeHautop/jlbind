@@ -55,6 +55,8 @@ jlbind:
 - `src/jlbind.c` and `src/entrypoints.h`, which register the native routines,
   and a rule in `src/Makevars` that recompiles `jlbind.c` whenever
   `entrypoints.h` changes.
+- `R/jlbind-wrappers.R`, with an R function for each Julia function the binding
+  package declares.
 - `R/jlbind.R`, which calls `jlbind::bind_client()` from `.onLoad()` and
   includes the roxygen tag for `useDynLib()`.
 - The `Config/jlbind` and `Imports: jlbind` fields in `DESCRIPTION`.
@@ -93,7 +95,7 @@ shift(x::Vector{Float64}, by::Union{Nothing,Float64}) =
     by === nothing ? x : x .+ by
 
 @rcall greet(name::String)::String
-@rcall shift(x::Vector{Float64}, by::Union{Nothing,Float64})::Vector{Float64}
+@rcall shift(x::Vector{Float64}, by::Union{Nothing,Float64} = nothing)::Vector{Float64}
 
 end
 ```
@@ -121,16 +123,20 @@ list:
 jlbind::update_entrypoints()
 ```
 
-Each declared Julia function `f` becomes a native routine called `C_f`, which
-you can call from R using `.Call()`:
+This generates an R function for each declaration, in `R/jlbind-wrappers.R`:
 
 ```r
 greet <- function(name) .Call(C_greet, name)
 shift <- function(x, by = NULL) .Call(C_shift, x, by)
 ```
 
-The Julia side checks and converts the arguments, so the R wrappers can stay
-small. Use them to provide R-friendly defaults and documentation.
+Defaults in the declaration (literal numbers, strings, `true`, `false` or
+`nothing`) become R defaults.
+
+To export or document a generated function, use a roxygen block on `NULL` with
+`@name greet` in another file. To add R code around a call, declare the Julia
+function with a `jl_` prefix, e.g. `@rcall jl_shift(...)`, and write `shift()`
+yourself.
 
 ## Build and test locally
 
@@ -373,22 +379,11 @@ scaled_area(@nospecialize(s::Shape), factor::Float64) =
 @rcall square(side::Float64)::RRef{Shape}
 @rcall rectangle(width::Float64, height::Float64)::RRef{Shape}
 @rcall triangle(base::Float64, height::Float64)::RRef{Shape}
-@rcall shape_area(s::RRef{Shape})::Float64
-@rcall scaled_area(s::RRef{Shape}, factor::Float64)::Float64
+@rcall shape_area(shape::RRef{Shape})::Float64
+@rcall scaled_area(shape::RRef{Shape}, factor::Float64)::Float64
 ```
 
-With the R wrappers
-
-```r
-circle <- function(radius) .Call(C_circle, radius)
-square <- function(side) .Call(C_square, side)
-rectangle <- function(width, height) .Call(C_rectangle, width, height)
-triangle <- function(base, height) .Call(C_triangle, base, height)
-shape_area <- function(shape) .Call(C_shape_area, shape)
-scaled_area <- function(shape, factor) .Call(C_scaled_area, shape, factor)
-```
-
-every shape can be passed to the same functions:
+Every shape can then be passed to the same generated R functions:
 
 ```r
 shapes <- list(circle(1), square(2), rectangle(2, 3), triangle(2, 3))

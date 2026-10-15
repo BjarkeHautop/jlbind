@@ -10,14 +10,30 @@ update_entrypoints(path = ".")
 \item{path}{Path to the package sources.}
 }
 \value{
-Invisibly, a data frame of the entrypoints with the columns \code{name}
-and \code{nargs}.
+Invisibly, a data frame of the entrypoints with the columns \code{name},
+\code{nargs}, and the \code{formals}, \code{args} and \code{invisible} (whether it returns
+invisibly) of their R wrappers.
 }
 \description{
 Finds the \verb{@rcall} declarations in the package's Julia binding package and
-writes them to \code{src/entrypoints.h}. From that, \code{src/jlbind.c} registers a
-routine \verb{C_<name>} for each one. Run this whenever you add or remove an
-\verb{@rcall}, or change its arguments, much like \code{Rcpp::compileAttributes()}.
+generates the code that lets R call them. Run this whenever you add or remove
+an \verb{@rcall}, or change its arguments.
+It writes two files:
+}
+\details{
+\itemize{
+\item \code{src/entrypoints.h}, from which \code{src/jlbind.c} registers a routine
+\verb{C_<name>} for each declaration.
+\item \code{R/jlbind-wrappers.R}, with an R function for each declaration that calls
+its routine. \verb{@rcall shift(x::Vector\{Float64\}, by::Float64 = 0.0)::Float64}
+becomes \code{shift <- function(x, by = 0.0) .Call(C_shift, x, by)}.
+}
+
+Defaults must be literal numbers, strings, \code{true}, \code{false} or \code{nothing}
+(\code{NULL}). A function returning \code{Nothing} returns invisibly. To export or
+document a function, use a roxygen block on \code{NULL} with \verb{@name} in another
+file. To add R code around a call, declare the Julia function with a \code{jl_}
+prefix and write the R function yourself.
 }
 \examples{
 # A package set up with use_jlbind() in a temporary directory
@@ -51,5 +67,5 @@ code <- append(
 writeLines(code, file)
 
 update_entrypoints(pkg)
-# The package now calls it as .Call(C_add, x, y)
+writeLines(readLines(file.path(pkg, "R", "jlbind-wrappers.R")))
 }

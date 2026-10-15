@@ -15,7 +15,7 @@ negate(x::Bool) = !x
 with_nul(s::String) = s * "\0"
 
 @rcall greet(name::String)::String
-@rcall shift(x::Vector{Float64}, by::Union{Nothing,Float64})::Vector{Float64}
+@rcall shift(x::Vector{Float64}, by::Union{Nothing,Float64} = nothing)::Vector{Float64}
 @rcall describe(x::Vector{Float64})::NamedTuple{(:n, :mean, :range),Tuple{Int64,Float64,Vector{Float64}}}
 @rcall fail(msg::String)::Nothing
 @rcall threads()::Int64
