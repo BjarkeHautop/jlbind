@@ -6,6 +6,7 @@
 # .state$path       where the library was looked for
 # .state$clients    the clients the library was built from (.read_clients())
 # .state$excluded   the clients it left out (.read_excluded())
+# .state$build      how it was built (.read_build())
 # .state$problem    why the library could not be loaded, if it was not
 # .state$requested  the clients that asked to be bound
 # .state$bound      the clients that are bound
@@ -46,6 +47,108 @@
   if (file.exists(path)) path
 }
 
+# Rebuilds the library build_library() wrote into the sources of `pkg` if it
+# is out of date with them, as when the binding package changed since. It
+# rebuilds only before a library has loaded, as one cannot be replaced in a
+# running process, and only a library built from `pkg` alone, as the sources
+# of any others are not recorded; otherwise it warns.
+.refresh_dev_library <- function(pkg) {
+  if (nzchar(Sys.getenv("JLBIND_LIBRARY", unset = ""))) {
+    return(invisible(NULL))
+  }
+  path <- .dev_library(pkg)
+  if (is.null(path)) {
+    return(invisible(NULL))
+  }
+  dir <- dirname(path)
+  src <- dirname(dir)
+  loaded <- !is.null(.state$dll)
+  # Another client's library may have loaded first; then this one is not
+  # used anyway.
+  if (loaded && !identical(.state$path, path)) {
+    return(invisible(NULL))
+  }
+  # Once loaded, the library on disk may have been rebuilt since, so the
+  # sources are compared with the one that is running.
+  reasons <- if (loaded) {
+    .dev_stale_reasons(src, .state$clients, .state$build, .state$excluded)
+  } else {
+    .dev_stale_reasons(
+      src,
+      .read_clients(dir),
+      .read_build(dir),
+      .read_excluded(dir)
+    )
+  }
+  if (!length(reasons)) {
+    return(invisible(NULL))
+  }
+  why <- paste0(
+    "The development library of ",
+    pkg,
+    " (",
+    path,
+    ") is out of date: ",
+    paste(reasons, collapse = "; "),
+    "."
+  )
+  if (loaded) {
+    warning(why, " ", .rebuild_hint(pkg), call. = FALSE)
+    return(invisible(NULL))
+  }
+  built <- .read_clients(dir)$Package
+  if (!identical(built, pkg)) {
+    warning(
+      why,
+      " It was built from ",
+      paste(built, collapse = ", "),
+      ", so it is not rebuilt automatically; run jlbind::build_library() ",
+      "to rebuild it.",
+      call. = FALSE
+    )
+    return(invisible(NULL))
+  }
+  message(why, " Rebuilding it.")
+  develop <- .read_build(dir)$Develop
+  develop <- if (!is.na(develop) && nzchar(develop)) {
+    strsplit(develop, "\n", fixed = TRUE)[[1L]]
+  }
+  res <- tryCatch(
+    build_library(src, out = dir, develop = develop),
+    error = identity
+  )
+  if (inherits(res, "error")) {
+    warning(
+      "Rebuilding the development library of ",
+      pkg,
+      " failed, so the out-of-date one is used.\n",
+      conditionMessage(res),
+      call. = FALSE
+    )
+  }
+  invisible(NULL)
+}
+
+# Why a library built by build_library() from `built`, as `build`, leaving
+# out `excluded` (.read_clients(), .read_build(), .read_excluded()) is out of
+# date with the client sources in `src`: a character vector, empty if it is
+# up to date or records nothing to compare. Unlike .stale_reasons(), local
+# checkouts and other clients are no reason, and the Julia version is not
+# checked, as that means running Julia.
+.dev_stale_reasons <- function(src, built, build, excluded) {
+  if (is.null(built) || is.null(build)) {
+    return(character())
+  }
+  client <- .client_table(list(.client_info(src)))
+  status <- .client_status(client, built, excluded)
+  status <- status[status$package == client$package, , drop = FALSE]
+  build$Develop <- NA
+  c(
+    .build_reasons(build, NA),
+    status$status[!status$status %in% c("ok", "left out")]
+  )
+}
+
 # Loads the library unless it is already loaded; TRUE if it is. `pkg` is the
 # client asking for it.
 .load_library <- function(pkg = NULL) {
@@ -81,6 +184,7 @@
   .state$dll <- dll
   .state$clients <- .read_clients(dirname(path))
   .state$excluded <- .read_excluded(dirname(path))
+  .state$build <- .read_build(dirname(path))
   .state$problem <- NULL
   TRUE
 }
@@ -162,7 +266,10 @@
 #'
 #' The library is the one from [install_library()], unless `JLBIND_LIBRARY`
 #' names another, or the first package bound was loaded with
-#' `pkgload::load_all()` and has one from [build_library()].
+#' `pkgload::load_all()` and has one from [build_library()]. That library is
+#' rebuilt as the package loads if it is out of date with the package's
+#' sources, as when its Julia code has changed. A library that has already
+#' loaded cannot be replaced, so after a change, restart R.
 #'
 #' To run Julia with more threads, set `JULIA_NUM_THREADS` (a number or
 #' `"auto"`) before loading the first package that uses jlbind.
@@ -180,9 +287,10 @@
 #' }
 bind_client <- function(pkg) {
   .state$requested <- union(.state$requested, pkg)
-  if (pkg %in% .state$bound) {
-    return(invisible(TRUE))
-  }
+  .refresh_dev_library(pkg)
+  # A bound package is bound again: pkgload::load_all() reloads its DLL, whose
+  # function pointers then start out NULL.
+  .state$bound <- setdiff(.state$bound, pkg)
   if (!.load_library(pkg)) {
     return(invisible(FALSE))
   }
@@ -202,7 +310,7 @@ bind_client <- function(pkg) {
       tryCatch(.Call(info, .state$dll[["name"]]), error = identity)
     }
     if (inherits(res, "error")) {
-      problem <- conditionMessage(res)
+      problem <- paste(conditionMessage(res), .rebuild_hint(pkg))
     }
   }
   .state$problems[[pkg]] <- problem
@@ -236,7 +344,8 @@ bind_client <- function(pkg) {
     return(paste0(
       "The compiled Julia library was built without ",
       pkg,
-      ". Run jlbind::install_library() to rebuild it, then restart R."
+      ". ",
+      .rebuild_hint(pkg)
     ))
   }
   if (!identical(row$Version[[1L]], version)) {
@@ -247,10 +356,35 @@ bind_client <- function(pkg) {
       row$Version[[1L]],
       ", not the installed version ",
       version,
-      ". Run jlbind::install_library() to rebuild it, then restart R."
+      ". ",
+      .rebuild_hint(pkg)
     ))
   }
   NULL
+}
+
+# How to get a library that serves `pkg` in place of the loaded one, which
+# cannot be replaced in a running process.
+.rebuild_hint <- function(pkg) {
+  path <- .state$path
+  if (identical(path, file.path(.library_dir(), .library_file()))) {
+    return("Run jlbind::install_library() to rebuild it, then restart R.")
+  }
+  # .refresh_dev_library() rebuilds a package's own library as it loads.
+  if (
+    !is.null(path) &&
+      identical(path, .dev_library(pkg)) &&
+      identical(.state$clients$Package, pkg)
+  ) {
+    return(paste0(
+      "Restart R and run devtools::load_all() again, which rebuilds it."
+    ))
+  }
+  paste0(
+    "Rebuild it (",
+    path,
+    ") with jlbind::build_library(), then restart R."
+  )
 }
 
 # Binds the clients that asked to be, once a library has been built.

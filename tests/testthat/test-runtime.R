@@ -182,8 +182,11 @@ test_that("bind_client() records why a client could not be bound", {
   expect_false(is_bound("stats"))
   expect_error(check_bound("stats"), "has no routine `jlbind_bind`")
 
+  # A bound client is bound again, as load_all() reloads its DLL.
   .state$bound <- "stats"
-  expect_true(bind_client("stats"))
+  expect_false(bind_client("stats"))
+  expect_false(is_bound("stats"))
+  .state$bound <- "stats"
   expect_true(check_bound("stats"))
 
   # Without a library, the reason is that it could not be loaded.
@@ -191,6 +194,121 @@ test_that("bind_client() records why a client could not be bound", {
   .state$bound <- character()
   .state$problem <- "No library."
   expect_error(check_bound("stats"), "No library.", fixed = TRUE)
+})
+
+# Writes what build_library() records for a library in `dir` built from the
+# client in `src`.
+fake_dev_library <- function(src, dir, version = NULL, hash = NULL) {
+  client <- .client_info(src)
+  dir.create(dir, showWarnings = FALSE)
+  file.create(file.path(dir, .library_file()))
+  write.dcf(
+    data.frame(
+      Package = client$package,
+      Version = if (is.null(version)) client$version else version,
+      Module = client$module,
+      Hash = if (is.null(hash)) client$hash else hash
+    ),
+    file.path(dir, "clients")
+  )
+  write.dcf(
+    data.frame(
+      jlbind = as.character(utils::packageVersion("jlbind")),
+      Julia = "1.14.0",
+      Develop = "/some/checkout"
+    ),
+    file.path(dir, "build")
+  )
+}
+
+test_that("a development library is out of date when its client changes", {
+  src <- local_client()
+  dir <- file.path(src, .dev_dir)
+  stale <- function() {
+    .dev_stale_reasons(
+      src,
+      .read_clients(dir),
+      .read_build(dir),
+      .read_excluded(dir)
+    )
+  }
+  expect_length(stale(), 0L)
+  fake_dev_library(src, dir)
+  # Local checkouts are expected in development.
+  expect_length(stale(), 0L)
+  fake_dev_library(src, dir, hash = "old")
+  expect_equal(stale(), "Julia code changed")
+  fake_dev_library(src, dir, version = "0.0.1")
+  expect_equal(stale(), "built for version 0.0.1")
+})
+
+test_that("an out-of-date development library is rebuilt before loading", {
+  local_state()
+  withr::local_envvar(JLBIND_LIBRARY = NA)
+  src <- local_client()
+  dir <- file.path(src, .dev_dir)
+  fake_dev_library(src, dir, hash = "old")
+  path <- file.path(dir, .library_file())
+  local_mocked_bindings(.dev_library = function(pkg) path)
+  built <- NULL
+  local_mocked_bindings(build_library = function(packages, out, develop) {
+    built <<- list(packages = packages, out = out, develop = develop)
+  })
+
+  .state$dll <- NULL
+  expect_message(.refresh_dev_library("demo"), "Julia code changed")
+  expect_equal(normalizePath(built$packages), normalizePath(src))
+  expect_equal(normalizePath(built$out), normalizePath(dir))
+  expect_equal(built$develop, "/some/checkout")
+
+  built <- NULL
+
+  # Once a library is loaded it cannot be replaced, and it is the loaded one
+  # that is compared with the sources, though the one on disk is rebuilt.
+  .state$dll <- list(name = "jlbind")
+  .state$path <- path
+  .state$clients <- .read_clients(dir)
+  .state$build <- .read_build(dir)
+  .state$excluded <- NULL
+  fake_dev_library(src, dir)
+  local_mocked_bindings(.rebuild_hint = function(pkg) "Restart R.")
+  expect_warning(.refresh_dev_library("demo"), "Julia code changed")
+  .state$clients <- .read_clients(dir)
+  expect_silent(.refresh_dev_library("demo"))
+  .state$clients$Hash <- "old"
+  .state$path <- "elsewhere"
+  expect_silent(.refresh_dev_library("demo"))
+  expect_null(built)
+
+  # A library built from other clients too is not rebuilt.
+  .state$dll <- NULL
+  fake_dev_library(src, dir, hash = "old")
+  write.dcf(
+    data.frame(Package = c("demo", "other"), Version = "0.1.0", Hash = "x"),
+    file.path(dir, "clients")
+  )
+  expect_warning(.refresh_dev_library("demo"), "built from demo, other")
+  expect_null(built)
+
+  withr::local_envvar(JLBIND_LIBRARY = "override")
+  expect_silent(.refresh_dev_library("demo"))
+})
+
+test_that("the advice to rebuild depends on the library loaded", {
+  local_state()
+  .state$path <- file.path(.library_dir(), .library_file())
+  expect_match(.rebuild_hint("demo"), "install_library()", fixed = TRUE)
+
+  .state$path <- "dev/.jlbind/lib"
+  .state$clients <- data.frame(Package = "demo")
+  local_mocked_bindings(.dev_library = function(pkg) "dev/.jlbind/lib")
+  expect_match(.rebuild_hint("demo"), "load_all() again", fixed = TRUE)
+
+  # Built from other clients too, so load_all() does not rebuild it.
+  .state$clients <- data.frame(Package = c("demo", "other"))
+  expect_match(.rebuild_hint("demo"), "build_library()", fixed = TRUE)
+  .state$path <- "elsewhere/lib"
+  expect_match(.rebuild_hint("demo"), "(elsewhere/lib)", fixed = TRUE)
 })
 
 test_that("clients that asked are bound once a library is built", {

@@ -22,7 +22,10 @@ give an error; \code{\link[=check_bound]{check_bound()}} says why.
 \details{
 The library is the one from \code{\link[=install_library]{install_library()}}, unless \code{JLBIND_LIBRARY}
 names another, or the first package bound was loaded with
-\code{pkgload::load_all()} and has one from \code{\link[=build_library]{build_library()}}.
+\code{pkgload::load_all()} and has one from \code{\link[=build_library]{build_library()}}. That library is
+rebuilt as the package loads if it is out of date with the package's
+sources, as when its Julia code has changed. A library that has already
+loaded cannot be replaced, so after a change, restart R.
 
 To run Julia with more threads, set \code{JULIA_NUM_THREADS} (a number or
 \code{"auto"}) before loading the first package that uses jlbind.

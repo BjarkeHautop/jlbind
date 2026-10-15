@@ -63,8 +63,8 @@ static jlbind_fn find(const char *dll, const char *symbol)
 {
     DL_FUNC f = R_FindSymbol(symbol, dll, NULL);
     if (f == NULL)
-        Rf_error("Symbol '%s' not found in the compiled Julia library; run "
-                 "jlbind::install_library() to rebuild it.",
+        Rf_error("Symbol '%s' not found in the compiled Julia library, which "
+                 "was built from other Julia code.",
                  symbol);
     return (jlbind_fn)f;
 }
