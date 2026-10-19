@@ -147,6 +147,71 @@ install_library <- function(
   invisible(path)
 }
 
+#' Remove the Julia library
+#'
+#' Deletes the library built by [install_library()], with everything else
+#' jlbind stores in `tools::R_user_dir("jlbind", "data")`. Packages that use
+#' jlbind can't call their Julia code until you run [install_library()] again.
+#'
+#' Libraries that [build_library()] wrote elsewhere are left alone, as are the
+#' Julia packages that builds downloaded into Julia's package depot; run
+#' `Pkg.gc()` in Julia to remove the ones nothing uses.
+#'
+#' @param ask If `TRUE`, ask before removing. Defaults to [interactive()].
+#'
+#' @return `TRUE` if there was a library to remove, otherwise `FALSE`,
+#'   invisibly.
+#' @export
+#' @examples
+#' \dontrun{
+#' remove_library()
+#' }
+remove_library <- function(ask = interactive()) {
+  dir <- .library_dir()
+  root <- dirname(dir)
+  if (!dir.exists(root)) {
+    message("There is no compiled Julia library to remove.")
+    return(invisible(FALSE))
+  }
+  loaded <- identical(.state$path, file.path(dir, .library_file()))
+  # A loaded DLL cannot be deleted on Windows, and deleting the rest would
+  # leave a library that cannot be used.
+  if (loaded && .Platform$OS.type == "windows") {
+    stop(
+      "The library is loaded in this R session. Restart R and run ",
+      "jlbind::remove_library() before loading a package that uses jlbind.",
+      call. = FALSE
+    )
+  }
+  if (isTRUE(ask)) {
+    choice <- utils::menu(
+      c("Yes", "No"),
+      title = paste0("Remove the compiled Julia library in ", root, "?")
+    )
+    if (choice != 1L) {
+      message("Cancelled.")
+      return(invisible(FALSE))
+    }
+  }
+  unlink(root, recursive = TRUE)
+  if (dir.exists(root)) {
+    stop(
+      "Could not remove all of ",
+      root,
+      ". If the library is loaded in another R session, close it and try ",
+      "again.",
+      call. = FALSE
+    )
+  }
+  message(
+    "Removed the compiled Julia library.",
+    if (loaded) {
+      " Packages bound to it keep working until R is restarted."
+    }
+  )
+  invisible(TRUE)
+}
+
 #' Build a Julia library from specific packages
 #'
 #' Like [install_library()], but compiles only `packages` and writes the library

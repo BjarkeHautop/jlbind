@@ -10,6 +10,7 @@ reference:
     contents:
       - install_library
       - build_library
+      - remove_library
       - jlbind_clients
 
   - title: "At run time"
@@ -24,3 +25,4 @@ reference:
     contents:
       - use_jlbind
       - update_entrypoints
+      - use_jlbind_ci

@@ -196,6 +196,16 @@ skip_if_not(jlbind::is_bound("mypkg"))
 In examples, wrap calls that require the library in
 `if (jlbind::is_bound("mypkg"))`.
 
+To check your package on GitHub Actions both ways, run:
+
+```r
+jlbind::use_jlbind_ci()
+```
+
+This writes `.github/workflows/R-CMD-check.yaml`, which runs `R CMD check` on
+Linux, Windows and macOS after compiling your package's Julia code with
+`build_library()`, and once on Linux without Julia, as CRAN does.
+
 ## Types
 
 `@rcall` converts each argument using `from_sexp()` and converts the return

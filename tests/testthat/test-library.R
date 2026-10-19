@@ -110,6 +110,48 @@ test_that("install_library() keeps the old library if the new one fails", {
   expect_equal(list.files(root), "library")
 })
 
+test_that("remove_library() deletes the library and the builds next to it", {
+  local_state()
+  root <- file.path(withr::local_tempdir(), "jlbind")
+  dir <- file.path(root, "library")
+  dir.create(dir, recursive = TRUE)
+  dir.create(file.path(root, "old-a"))
+  file.create(file.path(dir, .library_file()))
+  local_mocked_bindings(.library_dir = function() dir)
+
+  local_mocked_bindings(menu = function(choices, title) 2L, .package = "utils")
+  expect_message(res <- remove_library(ask = TRUE), "Cancelled")
+  expect_false(res)
+  expect_true(dir.exists(dir))
+
+  expect_message(
+    res <- remove_library(ask = FALSE),
+    "^Removed the compiled Julia library\\.\n$"
+  )
+  expect_true(res)
+  expect_false(dir.exists(root))
+
+  expect_message(
+    res <- remove_library(ask = FALSE),
+    "no compiled Julia library"
+  )
+  expect_false(res)
+})
+
+test_that("remove_library() says a loaded library goes on working", {
+  local_state()
+  dir <- file.path(withr::local_tempdir(), "library")
+  dir.create(dir)
+  local_mocked_bindings(.library_dir = function() dir)
+  .state$path <- file.path(dir, .library_file())
+  if (.Platform$OS.type == "windows") {
+    expect_error(remove_library(ask = FALSE), "Restart R")
+    expect_true(dir.exists(dir))
+  } else {
+    expect_message(remove_library(ask = FALSE), "keep working")
+  }
+})
+
 test_that("only old libraries and abandoned builds are pruned", {
   root <- withr::local_tempdir()
   for (d in c("old-a", "build-new", "build-abandoned", "library")) {

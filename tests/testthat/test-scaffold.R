@@ -171,6 +171,24 @@ test_that("use_jlbind() needs a package and a valid module name", {
   expect_error(use_jlbind(dir, module = "1Bad"), "valid Julia package name")
 })
 
+test_that("use_jlbind_ci() writes a workflow that builds the library", {
+  expect_error(use_jlbind_ci(withr::local_tempdir()), "No package found")
+  pkg <- local_client()
+  expect_message(file <- use_jlbind_ci(pkg), "Wrote")
+  expect_equal(file, file.path(pkg, ".github", "workflows", "R-CMD-check.yaml"))
+  workflow <- readLines(file)
+  expect_true(any(grepl("jlbind::build_library()", workflow, fixed = TRUE)))
+  expect_true(any(grepl("JLBIND_LIBRARY=", workflow, fixed = TRUE)))
+  expect_true(any(grepl("julia: ''", workflow, fixed = TRUE)))
+  expect_true("^\\.github$" %in% readLines(file.path(pkg, ".Rbuildignore")))
+
+  writeLines("mine", file)
+  expect_error(use_jlbind_ci(pkg), "overwrite = TRUE")
+  expect_equal(readLines(file), "mine")
+  expect_message(use_jlbind_ci(pkg, overwrite = TRUE), "Wrote")
+  expect_equal(readLines(file), workflow)
+})
+
 test_that("use_jlbind() leaves a roxygen NAMESPACE to roxygen", {
   dir <- withr::local_tempdir()
   writeLines(c("Package: rox", "Version: 1.0"), file.path(dir, "DESCRIPTION"))

@@ -150,6 +150,52 @@ use_jlbind <- function(path = ".", module = NULL, dir = "julia") {
   invisible(path)
 }
 
+#' Check a package with its Julia code on GitHub Actions
+#'
+#' Writes a GitHub Actions workflow that checks the package with and without
+#' Julia. With Julia, it runs `R CMD check` on Linux, Windows and macOS after
+#' compiling the package's Julia code with [build_library()], so tests and
+#' examples that need the library run. Without Julia, it checks the package
+#' once on Linux, as CRAN does, where those tests and examples must be skipped.
+#' The workflow is written to `.github/workflows/R-CMD-check.yaml`.
+#'
+#' The workflow replaces the standard one written by
+#' `usethis::use_github_action("check-standard")`, which has the same name.
+#'
+#' @param path Path to the package sources.
+#' @param overwrite If `TRUE`, replace an existing
+#'   `.github/workflows/R-CMD-check.yaml`.
+#'
+#' @return The path to the workflow, invisibly.
+#' @export
+#' @examples
+#' # A package in a temporary directory
+#' pkg <- tempfile("mypkg")
+#' dir.create(pkg)
+#' writeLines(c("Package: mypkg", "Version: 0.1.0"), file.path(pkg, "DESCRIPTION"))
+#'
+#' file <- use_jlbind_ci(pkg)
+#' writeLines(readLines(file))
+use_jlbind_ci <- function(path = ".", overwrite = FALSE) {
+  if (!file.exists(file.path(path, "DESCRIPTION"))) {
+    stop("No package found in ", path, ".", call. = FALSE)
+  }
+  dir <- file.path(path, ".github", "workflows")
+  file <- file.path(dir, "R-CMD-check.yaml")
+  if (file.exists(file) && !overwrite) {
+    stop(
+      file,
+      " exists already; use `overwrite = TRUE` to replace it.",
+      call. = FALSE
+    )
+  }
+  dir.create(dir, recursive = TRUE, showWarnings = FALSE)
+  writeLines(.template("R-CMD-check.yaml"), file)
+  .add_line(file.path(path, ".Rbuildignore"), "^\\.github$")
+  message("Wrote ", file, ".")
+  invisible(file)
+}
+
 #' Update the list of Julia functions R can call
 #'
 #' Finds the `@rcall` declarations in the package's Julia binding package and
