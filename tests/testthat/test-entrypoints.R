@@ -111,7 +111,9 @@ test_that("update_entrypoints() writes the header the shim includes", {
     ),
     file.path(pkg, "inst", "julia", "src", "DemoBindings.jl")
   )
-  msgs <- capture_messages(entries <- update_entrypoints(pkg))
+  msgs <- capture_messages({
+    entries <- update_entrypoints(pkg)
+  })
   expect_match(msgs, "2 entrypoints", all = FALSE)
   expect_match(msgs, "jlbind-wrappers.R", all = FALSE)
   expect_equal(entries$name, c("nothing_in", "two"))

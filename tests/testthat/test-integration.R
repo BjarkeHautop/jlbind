@@ -169,7 +169,9 @@ test_that("two clients share one compiled library", {
         reloaded = tryCatch(increment(readRDS(f)), error = conditionMessage),
         live = live(),
         sitrep = local({
-          utils::capture.output(report <- jlbind::jlbind_sitrep())
+          utils::capture.output({
+            report <- jlbind::jlbind_sitrep()
+          })
           report
         })
       )

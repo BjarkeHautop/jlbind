@@ -411,7 +411,7 @@ update_entrypoints <- function(path = ".") {
     if (depth == 0L || (depth == 1L && c == ",")) {
       seg <- seq.int(start, length.out = j - start)
       # A trailing comma does not start another argument.
-      if (any(!grepl("\\s", ch[seg]))) {
+      if (!all(grepl("\\s", ch[seg]))) {
         out[[length(out) + 1L]] <- seg
       }
       if (depth == 0L) {

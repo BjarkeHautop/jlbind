@@ -91,7 +91,12 @@ test_that("jlbind_sitrep() reports on Julia, the library and its clients", {
     jlbind_clients = function(lib.loc = NULL) clients,
     .julia_version = function(julia) package_version("1.14.0")
   )
-  expect_output(report <- jlbind_sitrep("my/julia"), "Julia 1.14.0 at my/julia")
+  expect_output(
+    {
+      report <- jlbind_sitrep("my/julia")
+    },
+    "Julia 1.14.0 at my/julia"
+  )
   expect_equal(report$julia$source, "argument")
   expect_true(report$julia$ok)
   expect_equal(report$library$how, "JLBIND_LIBRARY")
@@ -102,13 +107,17 @@ test_that("jlbind_sitrep() reports on Julia, the library and its clients", {
   expect_false(report$threads$fixed)
 
   writeLines(R.home(), file.path(dir, "julia_bindir"))
-  expect_output(report <- jlbind_sitrep("my/julia"))
+  expect_output({
+    report <- jlbind_sitrep("my/julia")
+  })
   expect_equal(report$library$problems, character())
 
   local_mocked_bindings(.julia_version = function(julia) {
     package_version("1.13.1")
   })
-  out <- capture.output(report <- jlbind_sitrep("my/julia"))
+  out <- capture.output({
+    report <- jlbind_sitrep("my/julia")
+  })
   expect_false(report$julia$ok)
   expect_match(out, "needs Julia >= 1.14", all = FALSE)
   expect_match(out, "built with Julia 1.14.0, not 1.13.1", all = FALSE)
@@ -124,7 +133,9 @@ test_that("jlbind_sitrep() reports a missing Julia and library", {
     jlbind_clients = function(lib.loc = NULL) fake_clients("a"),
     .locate_julia = function(julia) list(path = "", source = "PATH")
   )
-  out <- capture.output(report <- jlbind_sitrep())
+  out <- capture.output({
+    report <- jlbind_sitrep()
+  })
   expect_true(is.na(report$julia$path))
   expect_false(report$library$exists)
   expect_equal(report$library$problems, "it has not been built")
