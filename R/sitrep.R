@@ -1,10 +1,10 @@
 #' Report on the jlbind setup
 #'
-#' Prints what jlbind finds: the Julia that builds the library, the library
-#' that is loaded (or would be) and what it was built from, the installed
-#' packages that use jlbind and whether the library is current for each, and
-#' the Julia thread count. Run it when a package that uses jlbind doesn't
-#' work; it also works before a library has loaded.
+#' Prints a report to run when a package that uses jlbind doesn't work. It
+#' shows the Julia that builds the library, the library that is loaded (or
+#' would be) and what it was built from, the installed packages that use
+#' jlbind and whether the library is current for each, and the Julia thread
+#' count. It also works before a library has loaded.
 #'
 #' @inheritParams install_library
 #'
@@ -206,7 +206,7 @@ jlbind_sitrep <- function(julia = NULL) {
 
   stale <- !lib$exists ||
     length(lib$problems) ||
-    any(!clients$status %in% c("ok", "left out"))
+    !all(clients$status %in% c("ok", "left out"))
   if (stale && nrow(clients)) {
     line(
       "  ",
