@@ -375,3 +375,45 @@ test_that("a client can turn trimming off", {
   expect_identical(res$evens, c(2L, 4L, 6L))
   expect_equal(res$fail, "custom failure")
 })
+
+test_that("a client reloaded with pkgload::load_all() binds its new DLL", {
+  skip_on_cran()
+  skip_if_not(
+    identical(Sys.getenv("JLBIND_TEST_BUILD"), "true"),
+    "set JLBIND_TEST_BUILD=true to compile a library"
+  )
+  skip_if_not_installed("callr")
+  skip_if_not_installed("pkgload")
+  julia <- tryCatch(.find_julia(), error = function(e) NULL)
+  skip_if(is.null(julia), "Julia >= 1.13 not found")
+
+  src <- withr::local_tempdir()
+  file.copy(test_path("..", "clients", "hellojl"), src, recursive = TRUE)
+  pkg <- file.path(src, "hellojl")
+  suppressMessages(build_library(pkg, julia = julia))
+  libpath <- local_install()
+
+  # pkgload loads a fresh copy of the client's DLL on each load_all() and
+  # leaves the old one loaded, so two DLLs named hellojl are loaded.
+  res <- callr::r(
+    function(pkg) {
+      Sys.unsetenv("JLBIND_LIBRARY")
+      pkgload::load_all(pkg, quiet = TRUE)
+      pkgload::load_all(pkg, quiet = TRUE)
+      dlls <- Filter(function(d) d[["name"]] == "hellojl", getLoadedDLLs())
+      list(
+        dlls = length(dlls),
+        bound = jlbind::is_bound("hellojl"),
+        greet = tryCatch(greet("R"), error = conditionMessage)
+      )
+    },
+    args = list(pkg = pkg),
+    # pkgload comes from the libraries of this session.
+    libpath = unique(c(libpath, .libPaths())),
+    env = callr::rcmd_safe_env(),
+    show = TRUE
+  )
+  expect_gte(res$dlls, 1L)
+  expect_true(res$bound)
+  expect_equal(res$greet, "Hello, R!")
+})

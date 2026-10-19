@@ -297,8 +297,12 @@ bind_client <- function(pkg) {
   problem <- .bind_problem(pkg)
   if (is.null(problem)) {
     # The package's routines can only be looked up by registration, as the
-    # package forces symbols.
-    info <- getDLLRegisteredRoutines(pkg)$.Call$jlbind_bind
+    # package forces symbols. The DLL is the one its namespace loaded, not one
+    # found by name: pkgload::load_all() loads a fresh copy of the DLL on each
+    # reload and leaves the old copies loaded, and binding one of those would
+    # leave the namespace's routines unbound.
+    dll <- getNamespaceInfo(pkg, "DLLs")[[pkg]]
+    info <- if (!is.null(dll)) getDLLRegisteredRoutines(dll)$.Call$jlbind_bind
     res <- if (is.null(info)) {
       simpleError(paste0(
         "Package ",
