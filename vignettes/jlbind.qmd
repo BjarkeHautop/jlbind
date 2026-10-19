@@ -32,9 +32,10 @@ which passes plain values, and
 which keeps Julia objects in R (see [Julia objects in R](#julia-objects-in-r)).
 
 [^privatize]: JuliaC can *privatize* a library, giving it its own copy of the
-    Julia runtime, but jlbind doesn't use this. Since each client would then
-    ship its own runtime it would add roughly 100MB per client. Privatization
-    also doesn't work on Windows yet
+    Julia runtime, but jlbind doesn't use this. Each client would then load its
+    own runtime, adding tens of MB per client on disk, its own garbage-collected
+    heap and threads in memory, and Julia objects couldn't be passed between
+    clients. Privatization also doesn't work on Windows yet
     ([JuliaC.jl#151](https://github.com/JuliaLang/JuliaC.jl/pull/151)).
 
 ## Set up
