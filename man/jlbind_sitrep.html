@@ -78,9 +78,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-6f1807773e46e89979bbe455adae23f4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-fe45675247739dffee76f114a0f81a45.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-6f1807773e46e89979bbe455adae23f4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
+<link href="../site_libs/bootstrap/bootstrap-ce80eb38b4ff0a069bed34489cac8baa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-14b6e9e50bb12fbffe2adc5b09422565.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-ce80eb38b4ff0a069bed34489cac8baa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
   "collapse-after": 3,
@@ -127,12 +127,12 @@ visitor has never toggled here before - an explicit past choice always wins.
   }
 })();
 </script>
-<!-- reftip -->
+<!-- altdown-tooltips -->
 <style>
-.reftip-float{display:none;position:fixed;z-index:10000;min-width:220px;max-width:420px;background:var(--bs-body-bg,#1e1e1e);color:var(--bs-body-color,#eee);border:1px solid var(--bs-border-color,#444);border-radius:6px;padding:.5em .75em;font-size:.85em;line-height:1.4;box-shadow:0 4px 14px rgba(0,0,0,.35);white-space:normal;text-align:left;font-weight:normal;font-style:normal;}
-.reftip-float .reftip-sig{display:block;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:600;color:var(--bs-link-color,#9cdcfe);margin-bottom:.35em;background-color:transparent;padding:0;border-radius:0;}
-.reftip-float .reftip-brief{margin:0;color:var(--bs-secondary-color,#ccc);}
-a.reftip-ref{cursor:help;}
+.altdown-tip-float{display:none;position:fixed;z-index:10000;min-width:220px;max-width:420px;background:var(--bs-body-bg,#1e1e1e);color:var(--bs-body-color,#eee);border:1px solid var(--bs-border-color,#444);border-radius:6px;padding:.5em .75em;font-size:.85em;line-height:1.4;box-shadow:0 4px 14px rgba(0,0,0,.35);white-space:normal;text-align:left;font-weight:normal;font-style:normal;}
+.altdown-tip-float .altdown-tip-sig{display:block;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:600;color:var(--bs-link-color,#9cdcfe);margin-bottom:.35em;background-color:transparent;padding:0;border-radius:0;}
+.altdown-tip-float .altdown-tip-brief{margin:0;color:var(--bs-secondary-color,#ccc);}
+a.altdown-tip-ref{cursor:help;}
 </style>
 </head>
 <body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
@@ -370,9 +370,9 @@ a.reftip-ref{cursor:help;}
 <!-- main -->
 <main class="content" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header><section id="report-on-the-jlbind-setup" class="level2 unnumbered"><h2 class="unnumbered anchored" data-anchor-id="report-on-the-jlbind-setup">Report on the jlbind setup</h2>
 <section id="description" class="level3"><h3 class="anchored" data-anchor-id="description">Description</h3>
-<p>Prints what jlbind finds: the Julia that builds the library, the library that is loaded (or would be) and what it was built from, the installed packages that use jlbind and whether the library is current for each, and the Julia thread count. Run it when a package that uses jlbind doesn’t work; it also works before a library has loaded.</p>
+<p>Prints a report to run when a package that uses jlbind doesn’t work. It shows the Julia that builds the library, the library that is loaded (or would be) and what it was built from, the installed packages that use jlbind and whether the library is current for each, and the Julia thread count. It also works before a library has loaded.</p>
 </section><section id="usage" class="level3"><h3 class="anchored" data-anchor-id="usage">Usage</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a class="reftip-ref" data-reftip="t1" href="./jlbind_sitrep.html">jlbind_sitrep</a></span><span class="op">(</span>julia <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a class="altdown-tip-ref" data-altdown-tip="t1" href="./jlbind_sitrep.html">jlbind_sitrep</a></span><span class="op">(</span>julia <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section><section id="arguments" class="level3"><h3 class="anchored" data-anchor-id="arguments">Arguments</h3>
 <table role="presentation"><tbody><tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
@@ -398,7 +398,7 @@ Path to the <code>julia</code> executable. By default, the <code>JULIA</code> en
 </li>
 </ul></section><section id="examples" class="level3"><h3 class="anchored" data-anchor-id="examples">Examples</h3>
 <div class="cell">
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a class="reftip-ref" data-reftip="t1" href="./jlbind_sitrep.html">jlbind_sitrep</a></span><span class="op">(</span><span class="op">)</span></span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a class="altdown-tip-ref" data-altdown-tip="t1" href="./jlbind_sitrep.html">jlbind_sitrep</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; ── Julia (for building the library)</span></span>
 <span><span class="co">#&gt; ✖ Julia 1.13.1 at /usr/bin/julia (from PATH); jlbind needs Julia &gt;= 1.14</span></span>
 <span><span class="co">#&gt; ── Library</span></span>
@@ -901,12 +901,12 @@ instead, on every page, after layout settles.
 </footer>
 
 
-<div class="reftip-payload" hidden><div class="reftip-tip" data-for="t1"><code class="reftip-sig">jlbind_sitrep(julia = NULL)</code><span class="reftip-brief">Prints what jlbind finds: the Julia that builds the library, the library that is loaded (or would be) and what it was built from, the installed packages that use jlbind and whether the library is curr...</span></div></div>
+<div class="altdown-tip-payload" hidden><div data-for="t1"><code class="altdown-tip-sig">jlbind_sitrep(julia = NULL)</code><span class="altdown-tip-brief">Prints a report to run when a package that uses jlbind doesn't work.</span></div></div>
 <script>
 (function(){
   var payload = document.currentScript.previousElementSibling;
   var float = document.createElement('div');
-  float.className = 'reftip-float';
+  float.className = 'altdown-tip-float';
   float.setAttribute('role', 'tooltip');
   document.body.appendChild(float);
   var hideTimer;
@@ -922,7 +922,7 @@ instead, on every page, after layout settles.
     float.style.left = left + 'px';
   }
   function show(el){
-    var key = el.getAttribute('data-reftip');
+    var key = el.getAttribute('data-altdown-tip');
     var tip = payload.querySelector('[data-for="' + key + '"]');
     if (!tip) return;
     float.innerHTML = tip.innerHTML;
@@ -932,7 +932,7 @@ instead, on every page, after layout settles.
   function hide(){ float.style.display = 'none'; }
   function cancelHide(){ clearTimeout(hideTimer); }
   function scheduleHide(){ hideTimer = setTimeout(hide, 150); }
-  var links = document.querySelectorAll('a.reftip-ref');
+  var links = document.querySelectorAll('a.altdown-tip-ref');
   for (var i = 0; i < links.length; i++) {
     (function(el){
       el.addEventListener('mouseenter', function(){ cancelHide(); show(el); });

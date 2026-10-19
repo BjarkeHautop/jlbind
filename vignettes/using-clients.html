@@ -82,9 +82,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-6f1807773e46e89979bbe455adae23f4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-fe45675247739dffee76f114a0f81a45.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-6f1807773e46e89979bbe455adae23f4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-ce80eb38b4ff0a069bed34489cac8baa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-14b6e9e50bb12fbffe2adc5b09422565.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-ce80eb38b4ff0a069bed34489cac8baa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -136,12 +136,12 @@ visitor has never toggled here before - an explicit past choice always wins.
 </script>
 
 
-<!-- reftip -->
+<!-- altdown-tooltips -->
 <style>
-.reftip-float{display:none;position:fixed;z-index:10000;min-width:220px;max-width:420px;background:var(--bs-body-bg,#1e1e1e);color:var(--bs-body-color,#eee);border:1px solid var(--bs-border-color,#444);border-radius:6px;padding:.5em .75em;font-size:.85em;line-height:1.4;box-shadow:0 4px 14px rgba(0,0,0,.35);white-space:normal;text-align:left;font-weight:normal;font-style:normal;}
-.reftip-float .reftip-sig{display:block;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:600;color:var(--bs-link-color,#9cdcfe);margin-bottom:.35em;background-color:transparent;padding:0;border-radius:0;}
-.reftip-float .reftip-brief{margin:0;color:var(--bs-secondary-color,#ccc);}
-a.reftip-ref{cursor:help;}
+.altdown-tip-float{display:none;position:fixed;z-index:10000;min-width:220px;max-width:420px;background:var(--bs-body-bg,#1e1e1e);color:var(--bs-body-color,#eee);border:1px solid var(--bs-border-color,#444);border-radius:6px;padding:.5em .75em;font-size:.85em;line-height:1.4;box-shadow:0 4px 14px rgba(0,0,0,.35);white-space:normal;text-align:left;font-weight:normal;font-style:normal;}
+.altdown-tip-float .altdown-tip-sig{display:block;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:600;color:var(--bs-link-color,#9cdcfe);margin-bottom:.35em;background-color:transparent;padding:0;border-radius:0;}
+.altdown-tip-float .altdown-tip-brief{margin:0;color:var(--bs-secondary-color,#ccc);}
+a.altdown-tip-ref{cursor:help;}
 </style>
 </head>
 
@@ -408,14 +408,14 @@ a.reftip-ref{cursor:help;}
 <section id="how-it-works" class="level2">
 <h2 class="anchored" data-anchor-id="how-it-works">How it works</h2>
 <p>An R process can load only one compiled Julia library. Julia has one runtime per process, and that runtime uses a single compiled image. If two R packages loaded separate copies of the library, they could conflict and crash the R session.</p>
-<p>To avoid this, jlbind builds one shared library for each user, combining the Julia code of all installed R packages that use jlbind (<em>clients</em>). When you run <code><a class="reftip-ref" data-reftip="t1" href="../man/install_library.html">install_library()</a></code>, jlbind finds the installed clients, compiles their binding packages into one library, and saves it under <code>tools::R_user_dir("jlbind", "data")</code>. Loading a client loads that library and connects the client to it.</p>
+<p>To avoid this, jlbind builds one shared library for each user, combining the Julia code of all installed R packages that use jlbind (<em>clients</em>). When you run <code><a class="altdown-tip-ref" data-altdown-tip="t1" href="../man/install_library.html">install_library()</a></code>, jlbind finds the installed clients, compiles their binding packages into one library, and saves it under <code>tools::R_user_dir("jlbind", "data")</code>. Loading a client loads that library and connects the client to it.</p>
 <p>A client can only be bound to a library built from the version of that client currently installed. If you update a package without rebuilding the library, its functions will report that the library needs to be rebuilt.</p>
 </section>
 <section id="using-a-package-built-on-jlbind" class="level2">
 <h2 class="anchored" data-anchor-id="using-a-package-built-on-jlbind">Using a package built on jlbind</h2>
 <p>You need <a href="https://julialang.org/install/">Julia</a> 1.14 or later to build the shared library.</p>
 <p>After installing or updating an R package that uses jlbind, run:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="reftip-ref" data-reftip="t1" href="../man/install_library.html">install_library</a></span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="altdown-tip-ref" data-altdown-tip="t1" href="../man/install_library.html">install_library</a></span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>The first build downloads and compiles the required Julia dependencies, so it may take a few minutes.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -434,13 +434,13 @@ Note
 <section id="if-something-doesnt-work-correctly" class="level3">
 <h3 class="anchored" data-anchor-id="if-something-doesnt-work-correctly">If something doesn’t work correctly</h3>
 <p>If a package that uses jlbind doesn’t work, first check its status:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="reftip-ref" data-reftip="t2" href="../man/is_bound.html">check_bound</a></span>(<span class="st">"somepkg"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="altdown-tip-ref" data-altdown-tip="t2" href="../man/is_bound.html">check_bound</a></span>(<span class="st">"somepkg"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>The most common causes are that the shared library hasn’t been built yet, or that the package was updated after the last build. For a full report, run:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="reftip-ref" data-reftip="t3" href="../man/jlbind_sitrep.html">jlbind_sitrep</a></span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>It shows the Julia that <code><a class="reftip-ref" data-reftip="t1" href="../man/install_library.html">install_library()</a></code> would use (with its version, and whether it came from <code>JULIA</code> or the <code>PATH</code>), the library and what it was built from, each installed package that uses jlbind and whether the library is current for it, and the thread count. It works whether or not a library has loaded, and returns the same information invisibly as a list.</p>
-<p>If the Julia installation used for the build has been removed or replaced, for example by a <code>juliaup</code> update, rebuild the library. <code><a class="reftip-ref" data-reftip="t1" href="../man/install_library.html">install_library()</a></code> rebuilds it when the Julia version differs from the one it was built with. If the version is the same, use <code>force = TRUE</code>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="reftip-ref" data-reftip="t1" href="../man/install_library.html">install_library</a></span>(<span class="at">force =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>You can select the Julia installation to use by setting the <code>JULIA</code> environment variable or by passing <code>julia =</code> to <code><a class="reftip-ref" data-reftip="t1" href="../man/install_library.html">install_library()</a></code>.</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="altdown-tip-ref" data-altdown-tip="t3" href="../man/jlbind_sitrep.html">jlbind_sitrep</a></span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>It shows the Julia that <code><a class="altdown-tip-ref" data-altdown-tip="t1" href="../man/install_library.html">install_library()</a></code> would use (with its version, and whether it came from <code>JULIA</code> or the <code>PATH</code>), the library and what it was built from, each installed package that uses jlbind and whether the library is current for it, and the thread count. It works whether or not a library has loaded, and returns the same information invisibly as a list.</p>
+<p>If the Julia installation used for the build has been removed or replaced, for example by a <code>juliaup</code> update, rebuild the library. <code><a class="altdown-tip-ref" data-altdown-tip="t1" href="../man/install_library.html">install_library()</a></code> rebuilds it when the Julia version differs from the one it was built with. If the version is the same, use <code>force = TRUE</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="altdown-tip-ref" data-altdown-tip="t1" href="../man/install_library.html">install_library</a></span>(<span class="at">force =</span> <span class="cn">TRUE</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>You can select the Julia installation to use by setting the <code>JULIA</code> environment variable or by passing <code>julia =</code> to <code><a class="altdown-tip-ref" data-altdown-tip="t1" href="../man/install_library.html">install_library()</a></code>.</p>
 <p>The library is compiled for the building machine’s CPU. To use it on other machines (e.g.&nbsp;cluster nodes), set <code>JULIA_CPU_TARGET=generic</code> and rebuild with <code>force = TRUE</code>.</p>
 </section>
 <section id="threads" class="level3">
@@ -452,9 +452,9 @@ Note
 <section id="dependency-versions" class="level3">
 <h3 class="anchored" data-anchor-id="dependency-versions">Dependency versions</h3>
 <p>All clients share a single set of Julia dependencies. By default, the build starts from the versions in the <code>Manifest.toml</code> of the first client that has one, and keeps them for the other clients where their <code>[compat]</code> bounds allow. Pass <code>versions = "compat"</code> to ignore the manifests and let Julia’s resolver choose versions from the clients’ <code>[compat]</code> bounds alone.</p>
-<p>If a client’s <code>[compat]</code> bounds conflict with those of the clients listed before it by <code><a class="reftip-ref" data-reftip="t4" href="../man/jlbind_clients.html">jlbind_clients()</a></code>, it is left out of the build; <code><a class="reftip-ref" data-reftip="t2" href="../man/is_bound.html">check_bound()</a></code> says which clients it conflicts with.</p>
+<p>If a client’s <code>[compat]</code> bounds conflict with those of the clients listed before it by <code><a class="altdown-tip-ref" data-altdown-tip="t4" href="../man/jlbind_clients.html">jlbind_clients()</a></code>, it is left out of the build; <code><a class="altdown-tip-ref" data-altdown-tip="t2" href="../man/is_bound.html">check_bound()</a></code> says which clients it conflicts with.</p>
 <p>You can control which clients are included by specifying them explicitly:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="reftip-ref" data-reftip="t1" href="../man/install_library.html">install_library</a></span>(<span class="at">packages =</span> <span class="fu">c</span>(<span class="st">"pkgA"</span>, <span class="st">"pkgC"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="altdown-tip-ref" data-altdown-tip="t1" href="../man/install_library.html">install_library</a></span>(<span class="at">packages =</span> <span class="fu">c</span>(<span class="st">"pkgA"</span>, <span class="st">"pkgC"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <div class="callout callout-style-default callout-important callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -468,8 +468,8 @@ Important
 <p><strong>Clients with incompatible dependencies cannot share a library</strong></p>
 <p>If you need both clients but never need them in the same R session, build a separate library for each. Set <code>JLBIND_LIBRARY</code> before loading the client to select the library for that session.</p>
 <p>For example, build the two libraries:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="reftip-ref" data-reftip="t5" href="../man/build_library.html">build_library</a></span>(<span class="st">"pkgA"</span>, <span class="st">"~/jlbind/pkgA"</span>)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="reftip-ref" data-reftip="t5" href="../man/build_library.html">build_library</a></span>(<span class="st">"pkgB"</span>, <span class="st">"~/jlbind/pkgB"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="altdown-tip-ref" data-altdown-tip="t5" href="../man/build_library.html">build_library</a></span>(<span class="st">"pkgA"</span>, <span class="st">"~/jlbind/pkgA"</span>)</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="altdown-tip-ref" data-altdown-tip="t5" href="../man/build_library.html">build_library</a></span>(<span class="st">"pkgB"</span>, <span class="st">"~/jlbind/pkgB"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 <p>Then select one in an R session:</p>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># jlbind.dll on Windows, jlbind.dylib on macOS</span></span>
 <span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">Sys.setenv</span>(<span class="at">JLBIND_LIBRARY =</span> <span class="st">"~/jlbind/pkgA/jlbind.so"</span>)</span>
@@ -977,25 +977,25 @@ instead, on every page, after layout settles.
 
 
 
-<div class="reftip-payload" hidden><div class="reftip-tip" data-for="t1"><code class="reftip-sig">install_library(
+<div class="altdown-tip-payload" hidden><div data-for="t1"><code class="altdown-tip-sig">install_library(
   packages = NULL,
   julia = NULL,
   ask = interactive(),
   force = FALSE,
   versions = c(&quot;manifest&quot;, &quot;compat&quot;),
   develop = NULL
-)</code><span class="reftip-brief">Compiles the Julia code of every installed package that uses jlbind into one shared library, stored in <code>tools::R_user_dir(&quot;jlbind&quot;, &quot;data&quot;)</code>.</span></div><div class="reftip-tip" data-for="t2"><code class="reftip-sig">check_bound(pkg)</code><span class="reftip-brief"><code>is_bound()</code> returns <code>TRUE</code> or <code>FALSE</code>.</span></div><div class="reftip-tip" data-for="t3"><code class="reftip-sig">jlbind_sitrep(julia = NULL)</code><span class="reftip-brief">Prints what jlbind finds: the Julia that builds the library, the library that is loaded (or would be) and what it was built from, the installed packages that use jlbind and whether the library is curr...</span></div><div class="reftip-tip" data-for="t4"><code class="reftip-sig">jlbind_clients(lib.loc = NULL)</code><span class="reftip-brief">Lists the installed packages that <code>install_library()</code> will compile.</span></div><div class="reftip-tip" data-for="t5"><code class="reftip-sig">build_library(
+)</code><span class="altdown-tip-brief">Compiles the Julia code of every installed package that uses jlbind into one shared library, stored in <code>tools::R_user_dir(&quot;jlbind&quot;, &quot;data&quot;)</code>.</span></div><div data-for="t2"><code class="altdown-tip-sig">check_bound(pkg)</code><span class="altdown-tip-brief"><code>is_bound()</code> returns <code>TRUE</code> or <code>FALSE</code>.</span></div><div data-for="t3"><code class="altdown-tip-sig">jlbind_sitrep(julia = NULL)</code><span class="altdown-tip-brief">Prints a report to run when a package that uses jlbind doesn't work.</span></div><div data-for="t4"><code class="altdown-tip-sig">jlbind_clients(lib.loc = NULL)</code><span class="altdown-tip-brief">Lists the installed packages that <code>install_library()</code> will compile.</span></div><div data-for="t5"><code class="altdown-tip-sig">build_library(
   packages = &quot;.&quot;,
   out = NULL,
   julia = NULL,
   versions = c(&quot;manifest&quot;, &quot;compat&quot;),
   develop = NULL
-)</code><span class="reftip-brief">Like <code>install_library()</code>, but compiles only <code>packages</code> and writes the library to <code>out</code>, for package development.</span></div></div>
+)</code><span class="altdown-tip-brief">Like <code>install_library()</code>, but compiles only <code>packages</code> and writes the library to <code>out</code>, for package development.</span></div></div>
 <script>
 (function(){
   var payload = document.currentScript.previousElementSibling;
   var float = document.createElement('div');
-  float.className = 'reftip-float';
+  float.className = 'altdown-tip-float';
   float.setAttribute('role', 'tooltip');
   document.body.appendChild(float);
   var hideTimer;
@@ -1011,7 +1011,7 @@ instead, on every page, after layout settles.
     float.style.left = left + 'px';
   }
   function show(el){
-    var key = el.getAttribute('data-reftip');
+    var key = el.getAttribute('data-altdown-tip');
     var tip = payload.querySelector('[data-for="' + key + '"]');
     if (!tip) return;
     float.innerHTML = tip.innerHTML;
@@ -1021,7 +1021,7 @@ instead, on every page, after layout settles.
   function hide(){ float.style.display = 'none'; }
   function cancelHide(){ clearTimeout(hideTimer); }
   function scheduleHide(){ hideTimer = setTimeout(hide, 150); }
-  var links = document.querySelectorAll('a.reftip-ref');
+  var links = document.querySelectorAll('a.altdown-tip-ref');
   for (var i = 0; i < links.length; i++) {
     (function(el){
       el.addEventListener('mouseenter', function(){ cancelHide(); show(el); });

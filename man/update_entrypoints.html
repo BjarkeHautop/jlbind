@@ -78,9 +78,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-6f1807773e46e89979bbe455adae23f4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-fe45675247739dffee76f114a0f81a45.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-6f1807773e46e89979bbe455adae23f4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
+<link href="../site_libs/bootstrap/bootstrap-ce80eb38b4ff0a069bed34489cac8baa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-14b6e9e50bb12fbffe2adc5b09422565.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-ce80eb38b4ff0a069bed34489cac8baa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light"><script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
   "collapse-after": 3,
@@ -127,12 +127,12 @@ visitor has never toggled here before - an explicit past choice always wins.
   }
 })();
 </script>
-<!-- reftip -->
+<!-- altdown-tooltips -->
 <style>
-.reftip-float{display:none;position:fixed;z-index:10000;min-width:220px;max-width:420px;background:var(--bs-body-bg,#1e1e1e);color:var(--bs-body-color,#eee);border:1px solid var(--bs-border-color,#444);border-radius:6px;padding:.5em .75em;font-size:.85em;line-height:1.4;box-shadow:0 4px 14px rgba(0,0,0,.35);white-space:normal;text-align:left;font-weight:normal;font-style:normal;}
-.reftip-float .reftip-sig{display:block;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:600;color:var(--bs-link-color,#9cdcfe);margin-bottom:.35em;background-color:transparent;padding:0;border-radius:0;}
-.reftip-float .reftip-brief{margin:0;color:var(--bs-secondary-color,#ccc);}
-a.reftip-ref{cursor:help;}
+.altdown-tip-float{display:none;position:fixed;z-index:10000;min-width:220px;max-width:420px;background:var(--bs-body-bg,#1e1e1e);color:var(--bs-body-color,#eee);border:1px solid var(--bs-border-color,#444);border-radius:6px;padding:.5em .75em;font-size:.85em;line-height:1.4;box-shadow:0 4px 14px rgba(0,0,0,.35);white-space:normal;text-align:left;font-weight:normal;font-style:normal;}
+.altdown-tip-float .altdown-tip-sig{display:block;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:600;color:var(--bs-link-color,#9cdcfe);margin-bottom:.35em;background-color:transparent;padding:0;border-radius:0;}
+.altdown-tip-float .altdown-tip-brief{margin:0;color:var(--bs-secondary-color,#ccc);}
+a.altdown-tip-ref{cursor:help;}
 </style>
 </head>
 <body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
@@ -373,7 +373,7 @@ a.reftip-ref{cursor:help;}
 <section id="description" class="level3"><h3 class="anchored" data-anchor-id="description">Description</h3>
 <p>Finds the <code>@rcall</code> declarations in the package’s Julia binding package and generates the code that lets R call them. Run this whenever you add or remove an <code>@rcall</code>, or change its arguments. It writes two files:</p>
 </section><section id="usage" class="level3"><h3 class="anchored" data-anchor-id="usage">Usage</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a class="reftip-ref" data-reftip="t1" href="./update_entrypoints.html">update_entrypoints</a></span><span class="op">(</span>path <span class="op">=</span> <span class="st">"."</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a class="altdown-tip-ref" data-altdown-tip="t1" href="./update_entrypoints.html">update_entrypoints</a></span><span class="op">(</span>path <span class="op">=</span> <span class="st">"."</span><span class="op">)</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 </section><section id="arguments" class="level3"><h3 class="anchored" data-anchor-id="arguments">Arguments</h3>
 <table role="presentation"><tbody><tr>
 <td style="white-space: collapse; font-family: monospace; vertical-align: top">
@@ -409,7 +409,7 @@ Path to the package sources.
 <span>  <span class="op">)</span>,</span>
 <span>  <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">pkg</span>, <span class="st">"DESCRIPTION"</span><span class="op">)</span></span>
 <span><span class="op">)</span></span>
-<span><span class="fu"><a class="reftip-ref" data-reftip="t2" href="./use_jlbind.html">use_jlbind</a></span><span class="op">(</span><span class="va">pkg</span><span class="op">)</span></span>
+<span><span class="fu"><a class="altdown-tip-ref" data-altdown-tip="t2" href="./use_jlbind.html">use_jlbind</a></span><span class="op">(</span><span class="va">pkg</span><span class="op">)</span></span>
 <span></span>
 <span><span class="co"># Add an entrypoint to the binding package, before its closing `end`</span></span>
 <span><span class="va">file</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">pkg</span>, <span class="st">"inst/julia/src/addpkgBindings.jl"</span><span class="op">)</span></span>
@@ -426,7 +426,7 @@ Path to the package sources.
 <span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html">writeLines</a></span><span class="op">(</span><span class="va">code</span>, <span class="va">file</span><span class="op">)</span></span>
 <span></span>
-<span><span class="fu"><a class="reftip-ref" data-reftip="t1" href="./update_entrypoints.html">update_entrypoints</a></span><span class="op">(</span><span class="va">pkg</span><span class="op">)</span></span>
+<span><span class="fu"><a class="altdown-tip-ref" data-altdown-tip="t1" href="./update_entrypoints.html">update_entrypoints</a></span><span class="op">(</span><span class="va">pkg</span><span class="op">)</span></span>
 <span><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html">writeLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/readLines.html">readLines</a></span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span><span class="op">(</span><span class="va">pkg</span>, <span class="st">"R"</span>, <span class="st">"jlbind-wrappers.R"</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
 <span><span class="co">#&gt; # Generated by jlbind::update_entrypoints(): do not edit by hand</span></span>
 <span><span class="co">#&gt; </span></span>
@@ -925,12 +925,12 @@ instead, on every page, after layout settles.
 </footer>
 
 
-<div class="reftip-payload" hidden><div class="reftip-tip" data-for="t1"><code class="reftip-sig">update_entrypoints(path = &quot;.&quot;)</code><span class="reftip-brief">Finds the <code>@rcall</code> declarations in the package's Julia binding package and generates the code that lets R call them.</span></div><div class="reftip-tip" data-for="t2"><code class="reftip-sig">use_jlbind(path = &quot;.&quot;, module = NULL, dir = &quot;julia&quot;)</code><span class="reftip-brief">Adds what a package needs to call Julia code through jlbind.</span></div></div>
+<div class="altdown-tip-payload" hidden><div data-for="t1"><code class="altdown-tip-sig">update_entrypoints(path = &quot;.&quot;)</code><span class="altdown-tip-brief">Finds the <code>@rcall</code> declarations in the package's Julia binding package and generates the code that lets R call them.</span></div><div data-for="t2"><code class="altdown-tip-sig">use_jlbind(path = &quot;.&quot;, module = NULL, dir = &quot;julia&quot;)</code><span class="altdown-tip-brief">Adds what a package needs to call Julia code through jlbind.</span></div></div>
 <script>
 (function(){
   var payload = document.currentScript.previousElementSibling;
   var float = document.createElement('div');
-  float.className = 'reftip-float';
+  float.className = 'altdown-tip-float';
   float.setAttribute('role', 'tooltip');
   document.body.appendChild(float);
   var hideTimer;
@@ -946,7 +946,7 @@ instead, on every page, after layout settles.
     float.style.left = left + 'px';
   }
   function show(el){
-    var key = el.getAttribute('data-reftip');
+    var key = el.getAttribute('data-altdown-tip');
     var tip = payload.querySelector('[data-for="' + key + '"]');
     if (!tip) return;
     float.innerHTML = tip.innerHTML;
@@ -956,7 +956,7 @@ instead, on every page, after layout settles.
   function hide(){ float.style.display = 'none'; }
   function cancelHide(){ clearTimeout(hideTimer); }
   function scheduleHide(){ hideTimer = setTimeout(hide, 150); }
-  var links = document.querySelectorAll('a.reftip-ref');
+  var links = document.querySelectorAll('a.altdown-tip-ref');
   for (var i = 0; i < links.length; i++) {
     (function(el){
       el.addEventListener('mouseenter', function(){ cancelHide(); show(el); });

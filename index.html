@@ -82,9 +82,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-6f1807773e46e89979bbe455adae23f4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-fe45675247739dffee76f114a0f81a45.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-6f1807773e46e89979bbe455adae23f4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-ce80eb38b4ff0a069bed34489cac8baa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-14b6e9e50bb12fbffe2adc5b09422565.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-ce80eb38b4ff0a069bed34489cac8baa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -136,12 +136,12 @@ visitor has never toggled here before - an explicit past choice always wins.
 </script>
 
 
-<!-- reftip -->
+<!-- altdown-tooltips -->
 <style>
-.reftip-float{display:none;position:fixed;z-index:10000;min-width:220px;max-width:420px;background:var(--bs-body-bg,#1e1e1e);color:var(--bs-body-color,#eee);border:1px solid var(--bs-border-color,#444);border-radius:6px;padding:.5em .75em;font-size:.85em;line-height:1.4;box-shadow:0 4px 14px rgba(0,0,0,.35);white-space:normal;text-align:left;font-weight:normal;font-style:normal;}
-.reftip-float .reftip-sig{display:block;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:600;color:var(--bs-link-color,#9cdcfe);margin-bottom:.35em;background-color:transparent;padding:0;border-radius:0;}
-.reftip-float .reftip-brief{margin:0;color:var(--bs-secondary-color,#ccc);}
-a.reftip-ref{cursor:help;}
+.altdown-tip-float{display:none;position:fixed;z-index:10000;min-width:220px;max-width:420px;background:var(--bs-body-bg,#1e1e1e);color:var(--bs-body-color,#eee);border:1px solid var(--bs-border-color,#444);border-radius:6px;padding:.5em .75em;font-size:.85em;line-height:1.4;box-shadow:0 4px 14px rgba(0,0,0,.35);white-space:normal;text-align:left;font-weight:normal;font-style:normal;}
+.altdown-tip-float .altdown-tip-sig{display:block;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:600;color:var(--bs-link-color,#9cdcfe);margin-bottom:.35em;background-color:transparent;padding:0;border-radius:0;}
+.altdown-tip-float .altdown-tip-brief{margin:0;color:var(--bs-secondary-color,#ccc);}
+a.altdown-tip-ref{cursor:help;}
 </style>
 </head>
 
@@ -388,8 +388,46 @@ a.reftip-ref{cursor:help;}
 
 
 
-<section id="jlbind" class="level1 page-columns page-full">
+<section id="jlbind" class="level1 altdown-home">
 <h1>jlbind <img src="man/figures/logo-light.png" align="right" height="139" alt="jlbind logo" class="light-content"><img src="man/figures/logo.png" align="right" height="139" alt="jlbind logo" class="dark-content"></h1>
+<p>Call Julia code from R without starting a Julia session.</p>
+<p>jlbind compiles Julia code into a shared library with <a href="https://github.com/JuliaLang/JuliaC.jl">JuliaC.jl</a> (by default with <code>--trim=safe</code>), and R calls it through R’s official C API. Thus, there is almost no overhead (see <a href="https://bjarkehautop.github.io/jlbind/vignettes/articles/performance.html">Performance</a>).</p>
+<p>Several R packages using jlbind can be installed side by side: their Julia code is compiled into one shared library.</p>
+<section id="installation" class="level2">
+<h2 class="anchored" data-anchor-id="installation">Installation</h2>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("pak")</span></span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">"BjarkeHautop/jlbind"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Building the shared library requires <a href="https://julialang.org">Julia</a> &gt;= 1.14. Installing jlbind does not itself build the library.</p>
+</section>
+<section id="using-a-package-built-on-jlbind" class="level2">
+<h2 class="anchored" data-anchor-id="using-a-package-built-on-jlbind">Using a package built on jlbind</h2>
+<p>After installing or updating an R package that uses jlbind, build the shared library:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="altdown-tip-ref" data-altdown-tip="t1" href="man/install_library.html">install_library</a></span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>This compiles the Julia code of every installed package that uses jlbind and may take a few minutes. Run it again whenever you install or update one of them.</p>
+<p>See <a href="https://bjarkehautop.github.io/jlbind/vignettes/using-clients.html">Using packages built on jlbind</a> for threads, troubleshooting and Julia dependency versions.</p>
+</section>
+<section id="writing-a-package-that-uses-jlbind" class="level2">
+<h2 class="anchored" data-anchor-id="writing-a-package-that-uses-jlbind">Writing a package that uses jlbind</h2>
+<p>Set up a package with <code><a class="altdown-tip-ref" data-altdown-tip="t2" href="man/use_jlbind.html">jlbind::use_jlbind()</a></code>, then declare the Julia functions R can call in the generated binding package under <code>inst/julia/</code>:</p>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> MyPkgBindings</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">JLBind</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">greet</span>(name<span class="op">::</span><span class="dt">String</span>) <span class="op">=</span> <span class="st">"Hello, "</span> <span class="op">*</span> name <span class="op">*</span> <span class="st">"!"</span></span>
+<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">greet</span>(name<span class="op">::</span><span class="dt">String</span>)<span class="op">::</span><span class="dt">String</span></span>
+<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<p>Run <code><a class="altdown-tip-ref" data-altdown-tip="t3" href="man/update_entrypoints.html">jlbind::update_entrypoints()</a></code>, which generates the R function <code>greet(name)</code> that calls it.</p>
+<p>See <a href="https://bjarkehautop.github.io/jlbind/vignettes/jlbind.html">Get started with jlbind</a> for a full walkthrough.</p>
+</section>
+<section id="contributing" class="level2">
+<h2 class="anchored" data-anchor-id="contributing">Contributing</h2>
+<p>Contributions of all kinds are very welcome! You may use LLMs, but please write issue and PR descriptions in your own words. If you submit a PR, you should understand the code you’re contributing.</p>
+</section>
+</section>
+
+
+
 
 <div class="no-row-height column-margin column-container"><div class="">
 <section id="links" class="level4">
@@ -414,45 +452,7 @@ a.reftip-ref{cursor:help;}
 <h4 class="anchored" data-anchor-id="dev-status">Dev status</h4>
 <p><a href="https://github.com/BjarkeHautop/jlbind/actions/workflows/R-CMD-check.yaml"><img src="https://github.com/BjarkeHautop/jlbind/actions/workflows/R-CMD-check.yaml/badge.svg" class="img-fluid" alt="R-CMD-check"></a> <a href="https://app.codecov.io/gh/BjarkeHautop/jlbind"><img src="https://codecov.io/gh/BjarkeHautop/jlbind/graph/badge.svg" class="img-fluid" alt="Codecov test coverage"></a></p>
 </section>
-</div></div><p>Call Julia code from R without starting a Julia session.</p>
-<p>jlbind compiles Julia code into a shared library with <a href="https://github.com/JuliaLang/JuliaC.jl">JuliaC.jl</a> (by default with <code>--trim=safe</code>), and R calls it through R’s official C API. Thus, there is almost no overhead (see <a href="https://bjarkehautop.github.io/jlbind/vignettes/articles/performance.html">Performance</a>).</p>
-<p>Several R packages using jlbind can be installed side by side: their Julia code is compiled into one shared library.</p>
-<section id="installation" class="level2">
-<h2 class="anchored" data-anchor-id="installation">Installation</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("pak")</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">"BjarkeHautop/jlbind"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Building the shared library requires <a href="https://julialang.org">Julia</a> &gt;= 1.14. Installing jlbind does not itself build the library.</p>
-</section>
-<section id="using-a-package-built-on-jlbind" class="level2">
-<h2 class="anchored" data-anchor-id="using-a-package-built-on-jlbind">Using a package built on jlbind</h2>
-<p>After installing or updating an R package that uses jlbind, build the shared library:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="reftip-ref" data-reftip="t1" href="man/install_library.html">install_library</a></span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>This compiles the Julia code of every installed package that uses jlbind and may take a few minutes. Run it again whenever you install or update one of them.</p>
-<p>See <a href="https://bjarkehautop.github.io/jlbind/vignettes/using-clients.html">Using packages built on jlbind</a> for threads, troubleshooting and Julia dependency versions.</p>
-</section>
-<section id="writing-a-package-that-uses-jlbind" class="level2">
-<h2 class="anchored" data-anchor-id="writing-a-package-that-uses-jlbind">Writing a package that uses jlbind</h2>
-<p>Set up a package with <code><a class="reftip-ref" data-reftip="t2" href="man/use_jlbind.html">jlbind::use_jlbind()</a></code>, then declare the Julia functions R can call in the generated binding package under <code>inst/julia/</code>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> MyPkgBindings</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">JLBind</span></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">greet</span>(name<span class="op">::</span><span class="dt">String</span>) <span class="op">=</span> <span class="st">"Hello, "</span> <span class="op">*</span> name <span class="op">*</span> <span class="st">"!"</span></span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">greet</span>(name<span class="op">::</span><span class="dt">String</span>)<span class="op">::</span><span class="dt">String</span></span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Run <code><a class="reftip-ref" data-reftip="t3" href="man/update_entrypoints.html">jlbind::update_entrypoints()</a></code>, which generates the R function <code>greet(name)</code> that calls it.</p>
-<p>See <a href="https://bjarkehautop.github.io/jlbind/vignettes/jlbind.html">Get started with jlbind</a> for a full walkthrough.</p>
-</section>
-<section id="contributing" class="level2">
-<h2 class="anchored" data-anchor-id="contributing">Contributing</h2>
-<p>Contributions of all kinds are very welcome! You may use LLMs, but please write issue and PR descriptions in your own words. If you submit a PR, you should understand the code you’re contributing.</p>
-
-
-</section>
-</section>
-
-</main> <!-- /main -->
+</div></div></main> <!-- /main -->
 <!--
 A fixed CSS padding can't align the navbar title with the body text on every
 page: Quarto lays pages out differently depending on whether they have margin
@@ -948,19 +948,19 @@ instead, on every page, after layout settles.
 
 
 
-<div class="reftip-payload" hidden><div class="reftip-tip" data-for="t1"><code class="reftip-sig">install_library(
+<div class="altdown-tip-payload" hidden><div data-for="t1"><code class="altdown-tip-sig">install_library(
   packages = NULL,
   julia = NULL,
   ask = interactive(),
   force = FALSE,
   versions = c(&quot;manifest&quot;, &quot;compat&quot;),
   develop = NULL
-)</code><span class="reftip-brief">Compiles the Julia code of every installed package that uses jlbind into one shared library, stored in <code>tools::R_user_dir(&quot;jlbind&quot;, &quot;data&quot;)</code>.</span></div><div class="reftip-tip" data-for="t2"><code class="reftip-sig">use_jlbind(path = &quot;.&quot;, module = NULL, dir = &quot;julia&quot;)</code><span class="reftip-brief">Adds what a package needs to call Julia code through jlbind.</span></div><div class="reftip-tip" data-for="t3"><code class="reftip-sig">update_entrypoints(path = &quot;.&quot;)</code><span class="reftip-brief">Finds the <code>@rcall</code> declarations in the package's Julia binding package and generates the code that lets R call them.</span></div></div>
+)</code><span class="altdown-tip-brief">Compiles the Julia code of every installed package that uses jlbind into one shared library, stored in <code>tools::R_user_dir(&quot;jlbind&quot;, &quot;data&quot;)</code>.</span></div><div data-for="t2"><code class="altdown-tip-sig">use_jlbind(path = &quot;.&quot;, module = NULL, dir = &quot;julia&quot;)</code><span class="altdown-tip-brief">Adds what a package needs to call Julia code through jlbind.</span></div><div data-for="t3"><code class="altdown-tip-sig">update_entrypoints(path = &quot;.&quot;)</code><span class="altdown-tip-brief">Finds the <code>@rcall</code> declarations in the package's Julia binding package and generates the code that lets R call them.</span></div></div>
 <script>
 (function(){
   var payload = document.currentScript.previousElementSibling;
   var float = document.createElement('div');
-  float.className = 'reftip-float';
+  float.className = 'altdown-tip-float';
   float.setAttribute('role', 'tooltip');
   document.body.appendChild(float);
   var hideTimer;
@@ -976,7 +976,7 @@ instead, on every page, after layout settles.
     float.style.left = left + 'px';
   }
   function show(el){
-    var key = el.getAttribute('data-reftip');
+    var key = el.getAttribute('data-altdown-tip');
     var tip = payload.querySelector('[data-for="' + key + '"]');
     if (!tip) return;
     float.innerHTML = tip.innerHTML;
@@ -986,7 +986,7 @@ instead, on every page, after layout settles.
   function hide(){ float.style.display = 'none'; }
   function cancelHide(){ clearTimeout(hideTimer); }
   function scheduleHide(){ hideTimer = setTimeout(hide, 150); }
-  var links = document.querySelectorAll('a.reftip-ref');
+  var links = document.querySelectorAll('a.altdown-tip-ref');
   for (var i = 0; i < links.length; i++) {
     (function(el){
       el.addEventListener('mouseenter', function(){ cancelHide(); show(el); });

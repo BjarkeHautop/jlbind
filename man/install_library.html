@@ -82,9 +82,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script>
 <link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-6f1807773e46e89979bbe455adae23f4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-fe45675247739dffee76f114a0f81a45.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-6f1807773e46e89979bbe455adae23f4.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-ce80eb38b4ff0a069bed34489cac8baa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-14b6e9e50bb12fbffe2adc5b09422565.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-ce80eb38b4ff0a069bed34489cac8baa.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -136,12 +136,12 @@ visitor has never toggled here before - an explicit past choice always wins.
 </script>
 
 
-<!-- reftip -->
+<!-- altdown-tooltips -->
 <style>
-.reftip-float{display:none;position:fixed;z-index:10000;min-width:220px;max-width:420px;background:var(--bs-body-bg,#1e1e1e);color:var(--bs-body-color,#eee);border:1px solid var(--bs-border-color,#444);border-radius:6px;padding:.5em .75em;font-size:.85em;line-height:1.4;box-shadow:0 4px 14px rgba(0,0,0,.35);white-space:normal;text-align:left;font-weight:normal;font-style:normal;}
-.reftip-float .reftip-sig{display:block;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:600;color:var(--bs-link-color,#9cdcfe);margin-bottom:.35em;background-color:transparent;padding:0;border-radius:0;}
-.reftip-float .reftip-brief{margin:0;color:var(--bs-secondary-color,#ccc);}
-a.reftip-ref{cursor:help;}
+.altdown-tip-float{display:none;position:fixed;z-index:10000;min-width:220px;max-width:420px;background:var(--bs-body-bg,#1e1e1e);color:var(--bs-body-color,#eee);border:1px solid var(--bs-border-color,#444);border-radius:6px;padding:.5em .75em;font-size:.85em;line-height:1.4;box-shadow:0 4px 14px rgba(0,0,0,.35);white-space:normal;text-align:left;font-weight:normal;font-style:normal;}
+.altdown-tip-float .altdown-tip-sig{display:block;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:600;color:var(--bs-link-color,#9cdcfe);margin-bottom:.35em;background-color:transparent;padding:0;border-radius:0;}
+.altdown-tip-float .altdown-tip-brief{margin:0;color:var(--bs-secondary-color,#ccc);}
+a.altdown-tip-ref{cursor:help;}
 </style>
 </head>
 
@@ -398,7 +398,7 @@ a.reftip-ref{cursor:help;}
 </section>
 <section id="usage" class="level3">
 <h3 class="anchored" data-anchor-id="usage">Usage</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="reftip-ref" data-reftip="t1" href="./install_library.html">install_library</a></span>(</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="altdown-tip-ref" data-altdown-tip="t1" href="./install_library.html">install_library</a></span>(</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">packages =</span> <span class="cn">NULL</span>,</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">julia =</span> <span class="cn">NULL</span>,</span>
 <span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">ask =</span> <span class="fu">interactive</span>(),</span>
@@ -415,7 +415,7 @@ a.reftip-ref{cursor:help;}
 <code>packages</code>
 </td>
 <td>
-Names of the installed packages to build. By default, every package listed by <code><a class="reftip-ref" data-reftip="t2" href="./jlbind_clients.html">jlbind_clients()</a></code>. The others aren’t bound.
+Names of the installed packages to build. By default, every package listed by <code><a class="altdown-tip-ref" data-altdown-tip="t2" href="./jlbind_clients.html">jlbind_clients()</a></code>. The others aren’t bound.
 </td>
 </tr>
 <tr>
@@ -462,7 +462,7 @@ Paths to local Julia packages to use instead of their released versions.
 </section>
 <section id="details" class="level3">
 <h3 class="anchored" data-anchor-id="details">Details</h3>
-<p>All packages share one Julia environment. By default, the dependencies get the versions in the first package’s <code>Manifest.toml</code>. If two packages conflict, the one listed later by <code><a class="reftip-ref" data-reftip="t2" href="./jlbind_clients.html">jlbind_clients()</a></code> is left out, and <code><a class="reftip-ref" data-reftip="t3" href="./is_bound.html">check_bound()</a></code> says why. See <code>vignette("using-clients", "jlbind")</code> for details.</p>
+<p>All packages share one Julia environment. By default, the dependencies get the versions in the first package’s <code>Manifest.toml</code>. If two packages conflict, the one listed later by <code><a class="altdown-tip-ref" data-altdown-tip="t2" href="./jlbind_clients.html">jlbind_clients()</a></code> is left out, and <code><a class="altdown-tip-ref" data-altdown-tip="t3" href="./is_bound.html">check_bound()</a></code> says why. See <code>vignette("using-clients", "jlbind")</code> for details.</p>
 <p>The library is rebuilt only if it is out of date: built from other versions of the packages or other Julia code in them, by another version of jlbind or Julia, or with <code>develop</code>. If a library is already loaded, restart R to use the new one.</p>
 </section>
 <section id="value" class="level3">
@@ -471,13 +471,13 @@ Paths to local Julia packages to use instead of their released versions.
 </section>
 <section id="examples" class="level3">
 <h3 class="anchored" data-anchor-id="examples">Examples</h3>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="reftip-ref" data-reftip="t1" href="./install_library.html">install_library</a></span>()</span>
+<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="altdown-tip-ref" data-altdown-tip="t1" href="./install_library.html">install_library</a></span>()</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># With a local checkout of a Julia dependency</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="reftip-ref" data-reftip="t1" href="./install_library.html">install_library</a></span>(<span class="at">develop =</span> <span class="st">"~/dev/SomePackage.jl"</span>)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="altdown-tip-ref" data-altdown-tip="t1" href="./install_library.html">install_library</a></span>(<span class="at">develop =</span> <span class="st">"~/dev/SomePackage.jl"</span>)</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Only two of the installed packages</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="reftip-ref" data-reftip="t1" href="./install_library.html">install_library</a></span>(<span class="at">packages =</span> <span class="fu">c</span>(<span class="st">"pkgA"</span>, <span class="st">"pkgB"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="altdown-tip-ref" data-altdown-tip="t1" href="./install_library.html">install_library</a></span>(<span class="at">packages =</span> <span class="fu">c</span>(<span class="st">"pkgA"</span>, <span class="st">"pkgB"</span>))</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
 
 
 </section>
@@ -979,19 +979,19 @@ instead, on every page, after layout settles.
 
 
 
-<div class="reftip-payload" hidden><div class="reftip-tip" data-for="t1"><code class="reftip-sig">install_library(
+<div class="altdown-tip-payload" hidden><div data-for="t1"><code class="altdown-tip-sig">install_library(
   packages = NULL,
   julia = NULL,
   ask = interactive(),
   force = FALSE,
   versions = c(&quot;manifest&quot;, &quot;compat&quot;),
   develop = NULL
-)</code><span class="reftip-brief">Compiles the Julia code of every installed package that uses jlbind into one shared library, stored in <code>tools::R_user_dir(&quot;jlbind&quot;, &quot;data&quot;)</code>.</span></div><div class="reftip-tip" data-for="t2"><code class="reftip-sig">jlbind_clients(lib.loc = NULL)</code><span class="reftip-brief">Lists the installed packages that <code>install_library()</code> will compile.</span></div><div class="reftip-tip" data-for="t3"><code class="reftip-sig">check_bound(pkg)</code><span class="reftip-brief"><code>is_bound()</code> returns <code>TRUE</code> or <code>FALSE</code>.</span></div></div>
+)</code><span class="altdown-tip-brief">Compiles the Julia code of every installed package that uses jlbind into one shared library, stored in <code>tools::R_user_dir(&quot;jlbind&quot;, &quot;data&quot;)</code>.</span></div><div data-for="t2"><code class="altdown-tip-sig">jlbind_clients(lib.loc = NULL)</code><span class="altdown-tip-brief">Lists the installed packages that <code>install_library()</code> will compile.</span></div><div data-for="t3"><code class="altdown-tip-sig">check_bound(pkg)</code><span class="altdown-tip-brief"><code>is_bound()</code> returns <code>TRUE</code> or <code>FALSE</code>.</span></div></div>
 <script>
 (function(){
   var payload = document.currentScript.previousElementSibling;
   var float = document.createElement('div');
-  float.className = 'reftip-float';
+  float.className = 'altdown-tip-float';
   float.setAttribute('role', 'tooltip');
   document.body.appendChild(float);
   var hideTimer;
@@ -1007,7 +1007,7 @@ instead, on every page, after layout settles.
     float.style.left = left + 'px';
   }
   function show(el){
-    var key = el.getAttribute('data-reftip');
+    var key = el.getAttribute('data-altdown-tip');
     var tip = payload.querySelector('[data-for="' + key + '"]');
     if (!tip) return;
     float.innerHTML = tip.innerHTML;
@@ -1017,7 +1017,7 @@ instead, on every page, after layout settles.
   function hide(){ float.style.display = 'none'; }
   function cancelHide(){ clearTimeout(hideTimer); }
   function scheduleHide(){ hideTimer = setTimeout(hide, 150); }
-  var links = document.querySelectorAll('a.reftip-ref');
+  var links = document.querySelectorAll('a.altdown-tip-ref');
   for (var i = 0; i < links.length; i++) {
     (function(el){
       el.addEventListener('mouseenter', function(){ cancelHide(); show(el); });
