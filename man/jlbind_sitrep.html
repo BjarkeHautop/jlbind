@@ -385,7 +385,7 @@ Path to the <code>julia</code> executable. By default, the <code>JULIA</code> en
 <p>Invisibly, a list with:</p>
 <ul>
 <li>
-<p><code>julia</code>: a list with <code>path</code> (<code>NA</code> if Julia was not found), <code>source</code> (<code>"argument"</code>, <code>"JULIA"</code> or <code>"PATH"</code>), <code>version</code> (<code>NA</code> if it could not be run) and <code>ok</code> (whether it is Julia 1.14 or later).</p>
+<p><code>julia</code>: a list with <code>path</code> (<code>NA</code> if Julia was not found), <code>source</code> (<code>"argument"</code>, <code>"JULIA"</code> or <code>"PATH"</code>), <code>version</code> (<code>NA</code> if it could not be run) and <code>ok</code> (whether it is Julia 1.13 or later).</p>
 </li>
 <li>
 <p><code>library</code>: a list with <code>path</code>, <code>how</code> (<code>"loaded"</code>, <code>"failed to load"</code>, <code>"JLBIND_LIBRARY"</code> or <code>"default"</code>), <code>exists</code>, <code>build</code> (how it was built: the jlbind and Julia versions, when, and whether it is trimmed, or <code>NULL</code>), <code>problems</code> (why it should be rebuilt or cannot load; empty if none) and <code>objects</code> (how many Julia objects R holds references to, or <code>NULL</code> if no library is loaded).</p>
@@ -400,7 +400,7 @@ Path to the <code>julia</code> executable. By default, the <code>JULIA</code> en
 <div class="cell">
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="downlit sourceCode r code-with-copy"><code class="sourceCode R"><span><span class="fu"><a class="altdown-tip-ref" data-altdown-tip="t1" href="./jlbind_sitrep.html">jlbind_sitrep</a></span><span class="op">(</span><span class="op">)</span></span>
 <span><span class="co">#&gt; ── Julia (for building the library)</span></span>
-<span><span class="co">#&gt; ✖ Julia 1.13.1 at /usr/bin/julia (from PATH); jlbind needs Julia &gt;= 1.14</span></span>
+<span><span class="co">#&gt; ✔ Julia 1.13.1 at /usr/bin/julia (from PATH)</span></span>
 <span><span class="co">#&gt; ── Library</span></span>
 <span><span class="co">#&gt; ✖ /home/runner/.local/share/R/jlbind/library/jlbind.so (default)</span></span>
 <span><span class="co">#&gt; ✖ it has not been built</span></span>

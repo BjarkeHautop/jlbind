@@ -397,7 +397,8 @@ a.altdown-tip-ref{cursor:help;}
 <h2 class="anchored" data-anchor-id="installation">Installation</h2>
 <div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("pak")</span></span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">"BjarkeHautop/jlbind"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Building the shared library requires <a href="https://julialang.org">Julia</a> &gt;= 1.14. Installing jlbind does not itself build the library.</p>
+<p>Building the shared library requires <a href="https://julialang.org">Julia</a> &gt;= 1.13. Installing jlbind does not itself build the library.</p>
+<p>Julia 1.14 or later is recommended: Julia 1.13 can compile a library that crashes as it loads when a function has a type parameter bounded by a <code>Union</code> (<code>where {T&lt;:Union{...}}</code>), fixed in <a href="https://github.com/JuliaLang/julia/pull/63664">JuliaLang/julia#63664</a>.</p>
 </section>
 <section id="using-a-package-built-on-jlbind" class="level2">
 <h2 class="anchored" data-anchor-id="using-a-package-built-on-jlbind">Using a package built on jlbind</h2>
