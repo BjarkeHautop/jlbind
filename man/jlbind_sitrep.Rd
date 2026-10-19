@@ -15,7 +15,7 @@ Invisibly, a list with:
 \itemize{
 \item \code{julia}: a list with \code{path} (\code{NA} if Julia was not found), \code{source}
 (\code{"argument"}, \code{"JULIA"} or \code{"PATH"}), \code{version} (\code{NA} if it could not
-be run) and \code{ok} (whether it is Julia 1.14 or later).
+be run) and \code{ok} (whether it is Julia 1.13 or later).
 \item \code{library}: a list with \code{path}, \code{how} (\code{"loaded"}, \code{"failed to load"},
 \code{"JLBIND_LIBRARY"} or \code{"default"}), \code{exists}, \code{build} (how it was
 built: the jlbind and Julia versions, when, and whether it is trimmed,

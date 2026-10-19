@@ -24,7 +24,6 @@ jobs:
       fail-fast: false
       matrix:
         config:
-          # jlbind needs Julia >= 1.14; until it is released, use nightly.
           - {os: ubuntu-latest,   r: 'release', julia: 'nightly'}
           - {os: windows-latest,  r: 'release', julia: 'nightly'}
           - {os: macos-latest,    r: 'release', julia: 'nightly'}

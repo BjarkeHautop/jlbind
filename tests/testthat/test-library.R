@@ -243,18 +243,18 @@ test_that(".build() fails if build.jl does", {
   )
 })
 
-test_that("Julia must be found and at least 1.14", {
+test_that("Julia must be found and at least 1.13", {
   withr::local_envvar(JULIA = NA, PATH = "")
   expect_error(.find_julia(), "Julia was not found")
   withr::local_envvar(JULIA = "my/julia")
   local_mocked_bindings(.julia_version = function(julia) NA)
   expect_error(.find_julia(), "Could not run `my/julia --version`")
   local_mocked_bindings(.julia_version = function(julia) {
-    package_version("1.13.1")
+    package_version("1.12.6")
   })
-  expect_error(.find_julia("old/julia"), "old/julia is version 1.13.1")
+  expect_error(.find_julia("old/julia"), "old/julia is version 1.12.6")
   local_mocked_bindings(.julia_version = function(julia) {
-    package_version("1.14.0")
+    package_version("1.13.0")
   })
   expect_equal(.find_julia(), "my/julia")
 })

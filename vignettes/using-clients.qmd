@@ -32,7 +32,7 @@ functions will report that the library needs to be rebuilt.
 
 ## Using a package built on jlbind
 
-You need [Julia](https://julialang.org/install/) 1.14 or later to build the
+You need [Julia](https://julialang.org/install/) 1.13 or later to build the
 shared library.
 
 After installing or updating an R package that uses jlbind, run:

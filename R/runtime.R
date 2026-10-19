@@ -161,7 +161,7 @@
     .state$problem <- paste0(
       "The compiled Julia library has not been built (it was looked for at ",
       path,
-      "). Run jlbind::install_library() to build it; this needs Julia >= 1.14."
+      "). Run jlbind::install_library() to build it; this needs Julia >= 1.13."
     )
     return(FALSE)
   }

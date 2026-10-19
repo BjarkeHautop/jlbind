@@ -1,0 +1,12 @@
+name = "benchjlBindings"
+uuid = "991ba786-9f10-35a0-a1b5-21e1e7124b2b"
+version = "0.1.0"
+
+# The binding package of the R package benchjl, compiled into the library
+# that jlbind::install_library() builds. Only runtime dependencies belong here.
+
+[deps]
+JLBind = "afbbfe3b-b84d-4508-8d61-b26819a6ee14"
+
+[compat]
+julia = "1.13"

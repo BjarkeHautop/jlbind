@@ -57,15 +57,15 @@ and a call costs `r fmt_time(greet_med[["jlbind"]])` rather than
 
 ## The benchmarks
 
-The functions are the same as in the `hellojl` test client in jlbind's
-repository:
+The functions are those of `benchjl`, a minimal jlbind client kept next to the
+benchmark script:
 
 ```julia
 greet(name::String) = "Hello, " * name * "!"
 shift(x::Vector{Float64}, by::Float64) = x .+ by
 ```
 
-jlbind calls them through `hellojl`, compiled into a jlbind library. JuliaCall
+jlbind calls them through `benchjl`, compiled into a jlbind library. JuliaCall
 and JuliaConnectoR evaluate the same definitions and call them with
 `julia_call()` and `juliaFun()`. Each interface runs in fresh R processes, since
 jlbind and JuliaCall can't share one.

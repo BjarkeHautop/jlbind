@@ -6,4 +6,4 @@ version = "0.1.0"
 JLBind = "afbbfe3b-b84d-4508-8d61-b26819a6ee14"
 
 [compat]
-julia = "1.14"
+julia = "1.13"

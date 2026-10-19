@@ -1,0 +1,11 @@
+Package: benchjl
+Title: The jlbind Client Benchmarked in the Performance Article
+Version: 0.1.0
+Authors@R: person("jlbind", "authors", role = c("aut", "cre"), email = "noreply@example.com")
+Description: The functions vignettes/articles/performance.qmd compares jlbind,
+    JuliaCall and JuliaConnectoR on.
+License: MIT
+Encoding: UTF-8
+Config/jlbind: julia
+Imports: jlbind
+SystemRequirements: Julia (>= 1.13)

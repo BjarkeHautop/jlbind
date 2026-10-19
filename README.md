@@ -24,8 +24,13 @@ is compiled into one shared library.
 pak::pak("BjarkeHautop/jlbind")
 ```
 
-Building the shared library requires [Julia](https://julialang.org) >= 1.14.
+Building the shared library requires [Julia](https://julialang.org) >= 1.13.
 Installing jlbind does not itself build the library.
+
+Julia 1.14 or later is recommended: Julia 1.13 can compile a library that
+crashes as it loads when a function has a type parameter bounded by a `Union`
+(`where {T<:Union{...}}`), fixed in
+[JuliaLang/julia#63664](https://github.com/JuliaLang/julia/pull/63664).
 
 ## Using a package built on jlbind
 

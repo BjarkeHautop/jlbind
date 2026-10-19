@@ -11,7 +11,7 @@
 #' @return Invisibly, a list with:
 #'   * `julia`: a list with `path` (`NA` if Julia was not found), `source`
 #'     (`"argument"`, `"JULIA"` or `"PATH"`), `version` (`NA` if it could not
-#'     be run) and `ok` (whether it is Julia 1.14 or later).
+#'     be run) and `ok` (whether it is Julia 1.13 or later).
 #'   * `library`: a list with `path`, `how` (`"loaded"`, `"failed to load"`,
 #'     `"JLBIND_LIBRARY"` or `"default"`), `exists`, `build` (how it was
 #'     built: the jlbind and Julia versions, when, and whether it is trimmed,
@@ -55,7 +55,7 @@ jlbind_sitrep <- function(julia = NULL) {
     path = path,
     source = found$source,
     version = if (is.na(version)) NA_character_ else as.character(version),
-    ok = !is.na(version) && version >= "1.14"
+    ok = !is.na(version) && version >= "1.13"
   )
 }
 
@@ -131,7 +131,7 @@ jlbind_sitrep <- function(julia = NULL) {
   if (is.na(julia$path)) {
     line(
       mark(FALSE),
-      " not found: install Julia >= 1.14, or set the JULIA environment ",
+      " not found: install Julia >= 1.13, or set the JULIA environment ",
       "variable to its path"
     )
   } else if (is.na(julia$version)) {
@@ -146,7 +146,7 @@ jlbind_sitrep <- function(julia = NULL) {
       " (from ",
       julia$source,
       ")",
-      if (!julia$ok) "; jlbind needs Julia >= 1.14"
+      if (!julia$ok) "; jlbind needs Julia >= 1.13"
     )
   }
 

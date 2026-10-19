@@ -1,10 +1,11 @@
 # Benchmarks behind vignettes/articles/performance.qmd, comparing jlbind with
-# JuliaCall and JuliaConnectoR on the functions of the hellojl test client.
+# JuliaCall and JuliaConnectoR on the functions of the benchjl client next to
+# this script.
 #
-# Needs the hellojl test client installed, a jlbind library built from it
-# (JLBIND_LIBRARY, or install_library()), and JuliaCall, JuliaConnectoR, bench
-# and callr. Each interface runs in fresh R processes, since jlbind and
-# JuliaCall can't share one. Run from the package root:
+# Needs benchjl installed (R CMD INSTALL vignettes/articles/performance/benchjl),
+# a jlbind library built from it (JLBIND_LIBRARY, or install_library()), and
+# JuliaCall, JuliaConnectoR, bench and callr. Each interface runs in fresh R
+# processes, since jlbind and JuliaCall can't share one. Run from the package root:
 #
 #   Rscript vignettes/articles/performance/benchmark.R
 #
@@ -14,7 +15,7 @@ out_dir <- "vignettes/articles/performance"
 startup_reps <- 10
 sizes <- 10^(1:7)
 
-# The Julia definitions JuliaCall and JuliaConnectoR evaluate, matching hellojl.
+# The Julia definitions JuliaCall and JuliaConnectoR evaluate, matching benchjl.
 julia_defs <- '
 greet(name::String) = "Hello, " * name * "!"
 shift(x::Vector{Float64}, by::Float64) = x .+ by
@@ -24,7 +25,7 @@ shift(x::Vector{Float64}, by::Float64) = x .+ by
 # and `shift`, run in a fresh process.
 interfaces <- list(
   jlbind = function(defs) {
-    library(hellojl)
+    library(benchjl)
     list(greet = greet, shift = shift)
   },
   JuliaCall = function(defs) {

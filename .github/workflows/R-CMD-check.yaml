@@ -20,11 +20,8 @@ jobs:
       matrix:
         config:
           # With Julia, the integration test compiles the test clients in
-          # tests/clients into a library and calls them. 1.14 is the minimum
-          # supported version (1.13.x can compile a --trim library that
-          # crashes as it loads, JuliaLang/julia#63664); until it is
-          # released, test with nightly. `notrim` also builds an untrimmed
-          # library (JLBIND_TEST_NOTRIM).
+          # tests/clients into a library and calls them. `notrim` also builds
+          # an untrimmed library (JLBIND_TEST_NOTRIM).
           - {os: ubuntu-latest,   r: 'release', julia: 'nightly', notrim: true}
           - {os: windows-latest,  r: 'release', julia: 'nightly'}
           - {os: macos-latest,    r: 'release', julia: 'nightly'}

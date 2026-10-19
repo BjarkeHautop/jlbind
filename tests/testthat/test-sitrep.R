@@ -113,14 +113,14 @@ test_that("jlbind_sitrep() reports on Julia, the library and its clients", {
   expect_equal(report$library$problems, character())
 
   local_mocked_bindings(.julia_version = function(julia) {
-    package_version("1.13.1")
+    package_version("1.12.6")
   })
   out <- capture.output({
     report <- jlbind_sitrep("my/julia")
   })
   expect_false(report$julia$ok)
-  expect_match(out, "needs Julia >= 1.14", all = FALSE)
-  expect_match(out, "built with Julia 1.14.0, not 1.13.1", all = FALSE)
+  expect_match(out, "needs Julia >= 1.13", all = FALSE)
+  expect_match(out, "built with Julia 1.14.0, not 1.12.6", all = FALSE)
   expect_match(out, "jlbind::build_library()", fixed = TRUE, all = FALSE)
 })
 

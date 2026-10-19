@@ -40,7 +40,7 @@ which keeps Julia objects in R (see [Julia objects in R](#julia-objects-in-r)).
 
 ## Set up
 
-You need [Julia](https://julialang.org/install/) 1.14 or later. From your R
+You need [Julia](https://julialang.org/install/) 1.13 or later. From your R
 package's directory, run:
 
 ```r
@@ -61,7 +61,7 @@ jlbind:
 - `R/jlbind.R`, which calls `jlbind::bind_client()` from `.onLoad()` and
   includes the roxygen tag for `useDynLib()`.
 - The `Config/jlbind`, `Imports: jlbind` and
-  `SystemRequirements: Julia (>= 1.14)` fields in `DESCRIPTION`.
+  `SystemRequirements: Julia (>= 1.13)` fields in `DESCRIPTION`.
 - A `.jlbind/` directory for development builds, added to `.Rbuildignore` and
   `.gitignore`.
 
