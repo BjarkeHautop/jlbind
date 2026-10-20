@@ -66,9 +66,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-eee0a9da4003d0ccca71c442d4342562.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-62e43e456cca98f6bfd45f0d5ac16462.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-eee0a9da4003d0ccca71c442d4342562.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-60d2d0d2feeb856325635b00ada20ed9.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-f8c19171514a1394413652f1a61164e6.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-60d2d0d2feeb856325635b00ada20ed9.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -399,17 +399,16 @@ a.quartodown-tip-ref{cursor:help;}
 <li>A <code>.jlbind/</code> directory for development builds, added to <code>.Rbuildignore</code> and <code>.gitignore</code>.</li>
 </ul>
 <p>If your package already defines <code>.onLoad()</code>, add <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../reference/bind_client.html">jlbind::bind_client(pkgname)</a></code> to the existing function yourself. Then run <code>devtools::document()</code> to update <code>NAMESPACE</code>.</p>
-<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout callout-style-default callout-important callout-titled" title="Give the Julia binding package a unique name">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Important
+<span class="screen-reader-only">Important</span>Give the Julia binding package a unique name
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>Give the Julia binding package a unique name</strong></p>
 <p>All clients are compiled into one library, so binding package names must be unique across all jlbind clients. The default, the R package name with a <code>Bindings</code> suffix, ensures this.</p>
 </div>
 </div>
@@ -432,17 +431,16 @@ Important
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>The binding package is an ordinary Julia package. Declare its dependencies in <code>Project.toml</code> and import them as usual.</p>
-<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout callout-style-default callout-important callout-titled" title="Write `@rcall` declarations literally at the top level">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Important
+<span class="screen-reader-only">Important</span>Write <code>@rcall</code> declarations literally at the top level
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>Write <code>@rcall</code> declarations literally at the top level</strong></p>
 <p>jlbind finds <code>@rcall</code> declarations by scanning the source files, not by running them, so write them literally at the top level of the module.</p>
 </div>
 </div>
@@ -472,17 +470,16 @@ Important
 </div>
 <p>By default, <code><a class="quartodown-tip-ref" data-quartodown-tip="t5" href="../reference/build_library.html">build_library()</a></code> writes the library to <code>.jlbind/</code> in your package’s source directory. When you load the package with <code>devtools::load_all()</code>, jlbind uses this development library instead of the one created by <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/install_library.html">install_library()</a></code>.</p>
 <p>Once <code>.jlbind/</code> exists, <code>devtools::load_all()</code> rebuilds it when your binding package’s files or your package’s version have changed since it was built.</p>
-<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout callout-style-default callout-note callout-titled" title="The development library is only used when your package loads first">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Note
+<span class="screen-reader-only">Note</span>The development library is only used when your package loads first
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>The development library is only used when your package loads first</strong></p>
 <p>The <code>.jlbind/</code> library is used only if your package is the first jlbind client loaded in the R session. A library that has loaded cannot be replaced, so after changing your Julia code, restart R; the next <code>load_all()</code> rebuilds it.</p>
 </div>
 </div>
@@ -493,17 +490,16 @@ Note
 <code class="sourceCode R"><span><span class="fu">jlbind</span><span class="fu">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t5" href="../reference/build_library.html">build_library</a></span><span class="op">(</span>develop <span class="op">=</span> <span class="st">"~/dev/SomePackage.jl"</span><span class="op">)</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout callout-style-default callout-tip callout-titled" title="Pin the dependency versions">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Tip
+<span class="screen-reader-only">Tip</span>Pin the dependency versions
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>Pin the dependency versions</strong></p>
 <p>Include a <code>Manifest.toml</code> next to the binding package’s <code>Project.toml</code> with the Julia dependency versions known to compile with your package. <a href="https://cran.r-project.org/web/packages/policies.html">CRAN’s policy</a> asks that downloaded libraries be a fixed version rather than the latest.</p>
 <p>The build uses the manifest of only the first client that has one (see <a href="using-clients.html#dependency-versions">Dependency versions</a>), so keep your <code>[compat]</code> bounds accurate too.</p>
 </div>
@@ -526,11 +522,12 @@ Tip
 <p>This writes <code>.github/workflows/R-CMD-check.yaml</code>, which runs <code>R CMD check</code> on Linux, Windows and macOS after compiling your package’s Julia code with <code><a class="quartodown-tip-ref" data-quartodown-tip="t5" href="../reference/build_library.html">build_library()</a></code>, and once on Linux without Julia, as CRAN does.</p>
 </section><section id="types" class="level2"><h2 class="anchored" data-anchor-id="types">Types</h2>
 <p><code>@rcall</code> converts each argument using <code>from_sexp()</code> and converts the return value using <code>to_sexp()</code>. The built-in conversions are:</p>
+<p><strong>Single values</strong></p>
 <table class="caption-top table">
 <colgroup>
 <col style="width: 32%">
-<col style="width: 37%">
-<col style="width: 30%">
+<col style="width: 32%">
+<col style="width: 34%">
 </colgroup>
 <thead><tr class="header">
 <th>Julia</th>
@@ -546,110 +543,148 @@ Tip
 <td>A character vector of length one</td>
 </tr>
 <tr class="even">
-<td>
-<code>Vector{String}</code>, <code>Vector{Symbol}</code>
-</td>
-<td>A character vector or factor</td>
-<td>A character vector</td>
-</tr>
-<tr class="odd">
 <td><code>Float64</code></td>
 <td>A single number</td>
 <td>A double</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>Int64</code></td>
 <td>A single whole number</td>
 <td>A double</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>Int32</code></td>
 <td>A single whole number</td>
 <td>An integer</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>
 <code>Int16</code>, <code>Int8</code>, <code>UInt16</code>
 </td>
 <td>A single whole number in range</td>
 <td>An integer</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>UInt32</code></td>
 <td>A single whole number in range</td>
 <td>A double</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td>
 <code>Float32</code>, <code>Float16</code>
 </td>
 <td>A single number in range</td>
 <td>A double</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>Bool</code></td>
 <td>
 <code>TRUE</code> or <code>FALSE</code>
 </td>
 <td>A logical</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>ComplexF64</code></td>
 <td>A single complex number</td>
 <td>A complex</td>
 </tr>
+<tr class="even">
+<td><code>Date</code></td>
+<td>A single <code>Date</code>
+</td>
+<td>A <code>Date</code>
+</td>
+</tr>
 <tr class="odd">
+<td><code>DateTime</code></td>
+<td>A single <code>POSIXct</code>
+</td>
+<td>A <code>POSIXct</code> in UTC</td>
+</tr>
+<tr class="even">
+<td><code>Union{Missing,T}</code></td>
+<td>A value of type <code>T</code>, or <code>NA</code>
+</td>
+<td>A value of type <code>T</code>, or <code>NA</code>
+</td>
+</tr>
+<tr class="odd">
+<td><code>Union{Nothing,T}</code></td>
+<td>
+<code>NULL</code>, or a value of type <code>T</code>
+</td>
+<td>
+<code>NULL</code>, or a value of type <code>T</code>
+</td>
+</tr>
+<tr class="even">
+<td><code>Nothing</code></td>
+<td></td>
+<td><code>NULL</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Vectors and arrays</strong></p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 38%">
+<col style="width: 28%">
+</colgroup>
+<thead><tr class="header">
+<th>Julia</th>
+<th>R argument</th>
+<th>R result</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>
+<code>Vector{String}</code>, <code>Vector{Symbol}</code>
+</td>
+<td>A character vector or factor</td>
+<td>A character vector</td>
+</tr>
+<tr class="even">
 <td>
 <code>Vector{Float64}</code>, <code>Vector{Int64}</code>
 </td>
 <td>A numeric vector</td>
 <td>A double vector</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>Vector{Int32}</code></td>
 <td>A numeric vector of whole numbers</td>
 <td>An integer vector</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td>Vectors of the smaller types above</td>
 <td>A numeric vector in range</td>
 <td>An integer or double vector</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>Vector{Bool}</code></td>
 <td>A logical vector</td>
 <td>A logical vector</td>
 </tr>
-<tr class="odd">
+<tr class="even">
 <td><code>Vector{ComplexF64}</code></td>
 <td>A complex or numeric vector</td>
 <td>A complex vector</td>
 </tr>
-<tr class="even">
+<tr class="odd">
 <td><code>Vector{UInt8}</code></td>
 <td>A raw vector</td>
 <td>A raw vector</td>
 </tr>
-<tr class="odd">
-<td>
-<code>Date</code>, <code>Vector{Date}</code>
-</td>
+<tr class="even">
+<td><code>Vector{Date}</code></td>
 <td>A <code>Date</code> vector</td>
 <td>A <code>Date</code> vector</td>
 </tr>
-<tr class="even">
-<td>
-<code>DateTime</code>, <code>Vector{DateTime}</code>
-</td>
+<tr class="odd">
+<td><code>Vector{DateTime}</code></td>
 <td>A <code>POSIXct</code> vector</td>
 <td>A <code>POSIXct</code> vector in UTC</td>
-</tr>
-<tr class="odd">
-<td><code>Union{Missing,T}</code></td>
-<td>A value of type <code>T</code>, or <code>NA</code>
-</td>
-<td>A value of type <code>T</code>, or <code>NA</code>
-</td>
 </tr>
 <tr class="even">
 <td><code>Vector{Union{Missing,T}}</code></td>
@@ -670,20 +705,21 @@ Tip
 <td>A matrix or array of type <code>T</code>
 </td>
 </tr>
-<tr class="odd">
-<td><code>Union{Nothing,T}</code></td>
-<td>
-<code>NULL</code>, or a value of type <code>T</code>
-</td>
-<td>
-<code>NULL</code>, or a value of type <code>T</code>
-</td>
-</tr>
-<tr class="even">
-<td><code>Nothing</code></td>
-<td></td>
-<td><code>NULL</code></td>
-</tr>
+</tbody>
+</table>
+<p><strong>Lists, data frames and references</strong></p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 35%">
+<col style="width: 35%">
+<col style="width: 29%">
+</colgroup>
+<thead><tr class="header">
+<th>Julia</th>
+<th>R argument</th>
+<th>R result</th>
+</tr></thead>
+<tbody>
 <tr class="odd">
 <td>Other <code>Vector</code>s, <code>Tuple</code>s</td>
 <td>A list</td>
@@ -796,7 +832,9 @@ Warning
 </div>
 <section id="abstract-types" class="level3"><h3 class="anchored" data-anchor-id="abstract-types">Abstract types</h3>
 <p>With trimming, a common source of compilation errors is a function that accepts several concrete types through an abstract <code>RRef</code>. Suppose your binding package works with shapes:</p>
-<div class="code-copy-outer-scaffold">
+<details><summary>
+Shape types and their areas
+</summary><div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">abstract type</span> Shape <span class="kw">end</span></span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Circle <span class="op">&lt;:</span><span class="dt"> Shape</span></span>
@@ -822,7 +860,7 @@ Warning
 <span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a><span class="fu">area</span>(s<span class="op">::</span><span class="dt">Triangle</span>) <span class="op">=</span> s.base <span class="op">*</span> s.height <span class="op">/</span> <span class="fl">2</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p>An entrypoint that takes an <code>RRef{Shape}</code> knows only that its argument is <em>some</em> <code>Shape</code>. If it simply calls <code>area(s)</code>, the compiler cannot tell which of the four methods that call reaches, and the build fails with an error such as:</p>
+</details><p>An entrypoint that takes an <code>RRef{Shape}</code> knows only that its argument is <em>some</em> <code>Shape</code>. If it simply calls <code>area(s)</code>, the compiler cannot tell which of the four methods that call reaches, and the build fails with an error such as:</p>
 <pre class="text"><code>Verifier error #1: unresolved call from statement area(s::Shape)::Any</code></pre>
 <p>One possible solution is to branch on the concrete types once, with <code>@nospecialize</code>, and to make the call inside each branch, where the type is known:</p>
 <div class="code-copy-outer-scaffold">
@@ -904,8 +942,7 @@ Warning
     title.appendChild(document.createTextNode(" "));
     title.appendChild(version);
   }
-  // Leave `#>` output lines out of what the copy button copies, as pkgdown
-  // does. clipboard.js copies synchronously in its click handler, so a copy
+  // Leave `#>` output lines out of what the copy button copies. clipboard.js copies synchronously in its click handler, so a copy
   // event during a copy-button click is its.
   function stripOutputOnCopy() {
     var fromButton = false;

@@ -66,9 +66,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-eee0a9da4003d0ccca71c442d4342562.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-62e43e456cca98f6bfd45f0d5ac16462.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-eee0a9da4003d0ccca71c442d4342562.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-60d2d0d2feeb856325635b00ada20ed9.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-f8c19171514a1394413652f1a61164e6.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-60d2d0d2feeb856325635b00ada20ed9.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -379,17 +379,16 @@ a.quartodown-tip-ref{cursor:help;}
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>The first build downloads and compiles the required Julia dependencies, so it may take a few minutes.</p>
-<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout callout-style-default callout-note callout-titled" title="Restart R after rebuilding a library that is already loaded">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Note
+<span class="screen-reader-only">Note</span>Restart R after rebuilding a library that is already loaded
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p><strong>Restart R after rebuilding a library that is already loaded</strong></p>
 <p>Julia cannot be restarted within an R session. If the old library has already been loaded, rebuilding it on disk does not replace the copy in memory. Restart R to use the new library.</p>
 </div>
 </div>
@@ -431,17 +430,18 @@ Note
 <code class="sourceCode R"><span><span class="fu">jlbind</span><span class="fu">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/install_library.html">install_library</a></span><span class="op">(</span>packages <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"pkgA"</span>, <span class="st">"pkgC"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<div class="callout callout-style-default callout-important callout-titled">
-<div class="callout-header d-flex align-content-center">
+<div class="callout callout-style-default callout-important callout-titled" title="Clients with incompatible dependencies cannot share a library">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-Important
+<span class="screen-reader-only">Important</span>Clients with incompatible dependencies cannot share a library
 </div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
+<div id="callout-2" class="callout-2-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p><strong>Clients with incompatible dependencies cannot share a library</strong></p>
 <p>If you need both clients but never need them in the same R session, build a separate library for each. Set <code>JLBIND_LIBRARY</code> before loading the client to select the library for that session.</p>
 <p>For example, build the two libraries:</p>
 <div class="code-copy-outer-scaffold">
@@ -457,6 +457,7 @@ Important
 <span><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html">Sys.setenv</a></span><span class="op">(</span>JLBIND_LIBRARY <span class="op">=</span> <span class="st">"~/jlbind/pkgA/jlbind.so"</span><span class="op">)</span></span>
 <span><span class="kw"><a href="https://rdrr.io/r/base/library.html">library</a></span><span class="op">(</span><span class="va">pkgA</span><span class="op">)</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
 </div>
 </div>
 </div>
@@ -496,8 +497,7 @@ Important
     title.appendChild(document.createTextNode(" "));
     title.appendChild(version);
   }
-  // Leave `#>` output lines out of what the copy button copies, as pkgdown
-  // does. clipboard.js copies synchronously in its click handler, so a copy
+  // Leave `#>` output lines out of what the copy button copies. clipboard.js copies synchronously in its click handler, so a copy
   // event during a copy-button click is its.
   function stripOutputOnCopy() {
     var fromButton = false;
