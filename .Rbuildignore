@@ -15,5 +15,5 @@
 ^vignettes/\.quarto$
 ^vignettes/.*_files$
 ^vignettes/articles$
-^altdoc$
 ^_quarto$
+^_quartodown\.yml$

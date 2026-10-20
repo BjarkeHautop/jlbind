@@ -15,14 +15,13 @@ guides (rendered with Quarto); keep them in sync with user-visible behavior.
 `vignettes/articles/performance.qmd` is a website-only article whose data comes
 from `vignettes/articles/performance/benchmark.R`.
 
-The website is built with [altdoc](https://altdoc.etiennebacher.com/), themed
-with [altdown](https://github.com/BjarkeHautop/altdown) and with hover tooltips
-from [reftip](https://github.com/BjarkeHautop/reftip). Build it with
-`altdown::build_site()` (output in `docs/`). `altdoc/altdown.yml` groups the
+The website is built with
+[quartodown](https://github.com/BjarkeHautop/quartodown). Build it with
+`quartodown::build_site()` (output in `docs/`). `_quartodown.yml` groups the
 reference index; new functions must be added there. The navbar is generated:
 `jlbind.qmd` is "Get started" and every other vignette, including
-`vignettes/articles/`, goes under "Articles". The other files in `altdoc/` are
-generated on every build and gitignored.
+`vignettes/articles/`, goes under "Articles". `_quarto/` is the Quarto project
+generated on every build and is gitignored.
 
 ## Commands
 

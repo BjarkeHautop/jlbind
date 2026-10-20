@@ -1,4 +1,4 @@
-# Configuration for altdown::build_site(). See ?altdown::build_site for
+# Configuration for quartodown::build_site(). See ?quartodown::build_site for
 # all fields, including `articles:` (navbar order) and `quarto:` (extra
 # Quarto settings).
 

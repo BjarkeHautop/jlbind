@@ -8,16 +8,16 @@ on:
     types: [published]
   workflow_dispatch:
 
-name: altdoc.yaml
+name: quartodown.yaml
 
 permissions: read-all
 
 jobs:
-  altdoc:
+  quartodown:
     runs-on: ubuntu-latest
     # Only restrict concurrency for non-PR jobs
     concurrency:
-      group: altdoc-${{ github.event_name != 'pull_request' || github.run_id }}
+      group: quartodown-${{ github.event_name != 'pull_request' || github.run_id }}
     env:
       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
     permissions:
@@ -39,7 +39,7 @@ jobs:
           needs: website
 
       - name: Build site
-        run: altdown::build_site(freeze = FALSE)
+        run: quartodown::build_site()
         shell: Rscript {0}
 
       - name: Deploy to GitHub pages 🚀
