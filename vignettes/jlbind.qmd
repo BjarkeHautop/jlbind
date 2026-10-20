@@ -69,9 +69,7 @@ If your package already defines `.onLoad()`, add `jlbind::bind_client(pkgname)`
 to the existing function yourself. Then run `devtools::document()` to update
 `NAMESPACE`.
 
-::: {.callout-important}
-**Give the Julia binding package a unique name**
-
+::: {.callout-important title="Give the Julia binding package a unique name"}
 All clients are compiled into one library, so binding package names must be
 unique across all jlbind clients. The default, the R package name with a
 `Bindings` suffix, ensures this.
@@ -103,9 +101,7 @@ end
 The binding package is an ordinary Julia package. Declare its dependencies in
 `Project.toml` and import them as usual.
 
-::: {.callout-important}
-**Write `@rcall` declarations literally at the top level**
-
+::: {.callout-important title="Write `@rcall` declarations literally at the top level"}
 jlbind finds `@rcall` declarations by scanning the source files, not by running
 them, so write them literally at the top level of the module.
 :::
@@ -151,9 +147,7 @@ uses this development library instead of the one created by `install_library()`.
 Once `.jlbind/` exists, `devtools::load_all()` rebuilds it when your binding
 package's files or your package's version have changed since it was built.
 
-::: {.callout-note}
-**The development library is only used when your package loads first**
-
+::: {.callout-note title="The development library is only used when your package loads first"}
 The `.jlbind/` library is used only if your package is the first jlbind client
 loaded in the R session. A library that has loaded cannot be replaced, so after
 changing your Julia code, restart R; the next `load_all()` rebuilds it.
@@ -169,9 +163,7 @@ providing a local checkout through `develop`:
 jlbind::build_library(develop = "~/dev/SomePackage.jl")
 ```
 
-::: {.callout-tip}
-**Pin the dependency versions**
-
+::: {.callout-tip title="Pin the dependency versions"}
 Include a `Manifest.toml` next to the binding package's `Project.toml` with the
 Julia dependency versions known to compile with your package. [CRAN's
 policy](https://cran.r-project.org/web/packages/policies.html) asks that
@@ -211,38 +203,52 @@ Linux, Windows and macOS after compiling your package's Julia code with
 `@rcall` converts each argument using `from_sexp()` and converts the return
 value using `to_sexp()`. The built-in conversions are:
 
-  | Julia                              | R argument                              | R result                         |
-  | ---------------------------------- | --------------------------------------- | -------------------------------- |
-  | `String`, `Symbol`                 | A single string                         | A character vector of length one |
-  | `Vector{String}`, `Vector{Symbol}` | A character vector or factor            | A character vector               |
-  | `Float64`                          | A single number                         | A double                         |
-  | `Int64`                            | A single whole number                   | A double                         |
-  | `Int32`                            | A single whole number                   | An integer                       |
-  | `Int16`, `Int8`, `UInt16`          | A single whole number in range          | An integer                       |
-  | `UInt32`                           | A single whole number in range          | A double                         |
-  | `Float32`, `Float16`               | A single number in range                | A double                         |
-  | `Bool`                             | `TRUE` or `FALSE`                       | A logical                        |
-  | `ComplexF64`                       | A single complex number                 | A complex                        |
-  | `Vector{Float64}`, `Vector{Int64}` | A numeric vector                        | A double vector                  |
-  | `Vector{Int32}`                    | A numeric vector of whole numbers       | An integer vector                |
-  | Vectors of the smaller types above | A numeric vector in range               | An integer or double vector      |
-  | `Vector{Bool}`                     | A logical vector                        | A logical vector                 |
-  | `Vector{ComplexF64}`               | A complex or numeric vector             | A complex vector                 |
-  | `Vector{UInt8}`                    | A raw vector                            | A raw vector                     |
-  | `Date`, `Vector{Date}`             | A `Date` vector                         | A `Date` vector                  |
-  | `DateTime`, `Vector{DateTime}`     | A `POSIXct` vector                      | A `POSIXct` vector in UTC        |
-  | `Union{Missing,T}`                 | A value of type `T`, or `NA`            | A value of type `T`, or `NA`     |
-  | `Vector{Union{Missing,T}}`         | A vector of type `T`, which can have NA | A vector of type `T` with NA     |
-  | `RVector{T}`                       | A double, integer or raw vector         | The same vector                  |
-  | `Matrix{T}`, `Array{T,N}`          | A matrix or array of type `T`           | A matrix or array of type `T`    |
-  | `Union{Nothing,T}`                 | `NULL`, or a value of type `T`          | `NULL`, or a value of type `T`   |
-  | `Nothing`                          |                                         | `NULL`                           |
-  | Other `Vector`s, `Tuple`s          | A list                                  | A list                           |
-  | `NamedTuple`                       | A named list, such as a data frame      | A named list                     |
-  | `RDataFrame`                       | A data frame                            | A data frame                     |
-  | `Dict{String,T}`, `Dict{Symbol,T}` | A named list                            | A named list, sorted by name     |
-  | `RRef{T}`                          | A reference to a Julia object           | A reference to a Julia object    |
-  | `Vector{RRef{T}}`                  | A list of references                    | A list of references             |
+**Single values**
+
+  | Julia                          | R argument                     | R result                         |
+  | ------------------------------ | ------------------------------ | -------------------------------- |
+  | `String`, `Symbol`             | A single string                | A character vector of length one |
+  | `Float64`                      | A single number                | A double                         |
+  | `Int64`                        | A single whole number          | A double                         |
+  | `Int32`                        | A single whole number          | An integer                       |
+  | `Int16`, `Int8`, `UInt16`      | A single whole number in range | An integer                       |
+  | `UInt32`                       | A single whole number in range | A double                         |
+  | `Float32`, `Float16`           | A single number in range       | A double                         |
+  | `Bool`                         | `TRUE` or `FALSE`              | A logical                        |
+  | `ComplexF64`                   | A single complex number        | A complex                        |
+  | `Date`                         | A single `Date`                | A `Date`                         |
+  | `DateTime`                     | A single `POSIXct`             | A `POSIXct` in UTC               |
+  | `Union{Missing,T}`             | A value of type `T`, or `NA`   | A value of type `T`, or `NA`     |
+  | `Union{Nothing,T}`             | `NULL`, or a value of type `T` | `NULL`, or a value of type `T`   |
+  | `Nothing`                      |                                | `NULL`                           |
+
+**Vectors and arrays**
+
+  | Julia                              | R argument                              | R result                      |
+  | ---------------------------------- | --------------------------------------- | ----------------------------- |
+  | `Vector{String}`, `Vector{Symbol}` | A character vector or factor            | A character vector            |
+  | `Vector{Float64}`, `Vector{Int64}` | A numeric vector                        | A double vector               |
+  | `Vector{Int32}`                    | A numeric vector of whole numbers       | An integer vector             |
+  | Vectors of the smaller types above | A numeric vector in range               | An integer or double vector   |
+  | `Vector{Bool}`                     | A logical vector                        | A logical vector              |
+  | `Vector{ComplexF64}`               | A complex or numeric vector             | A complex vector              |
+  | `Vector{UInt8}`                    | A raw vector                            | A raw vector                  |
+  | `Vector{Date}`                     | A `Date` vector                         | A `Date` vector               |
+  | `Vector{DateTime}`                 | A `POSIXct` vector                      | A `POSIXct` vector in UTC     |
+  | `Vector{Union{Missing,T}}`         | A vector of type `T`, which can have NA | A vector of type `T` with NA  |
+  | `RVector{T}`                       | A double, integer or raw vector         | The same vector               |
+  | `Matrix{T}`, `Array{T,N}`          | A matrix or array of type `T`           | A matrix or array of type `T` |
+
+**Lists, data frames and references**
+
+  | Julia                              | R argument                         | R result                      |
+  | ---------------------------------- | ---------------------------------- | ----------------------------- |
+  | Other `Vector`s, `Tuple`s          | A list                             | A list                        |
+  | `NamedTuple`                       | A named list, such as a data frame | A named list                  |
+  | `RDataFrame`                       | A data frame                       | A data frame                  |
+  | `Dict{String,T}`, `Dict{Symbol,T}` | A named list                       | A named list, sorted by name  |
+  | `RRef{T}`                          | A reference to a Julia object      | A reference to a Julia object |
+  | `Vector{RRef{T}}`                  | A list of references               | A list of references          |
 
 `NA` is an error unless the type is `Union{Missing,T}` or
 `Vector{Union{Missing,T}}`, which turn `NA` into `missing` and back. A number
@@ -376,6 +382,9 @@ With trimming, a common source of compilation errors is a function that accepts
 several concrete types through an abstract `RRef`. Suppose your binding package
 works with shapes:
 
+<details>
+<summary>Shape types and their areas</summary>
+
 ```julia
 abstract type Shape end
 
@@ -401,6 +410,8 @@ area(s::Square) = s.side^2
 area(s::Rectangle) = s.width * s.height
 area(s::Triangle) = s.base * s.height / 2
 ```
+
+</details>
 
 An entrypoint that takes an `RRef{Shape}` knows only that its argument is *some*
 `Shape`. If it simply calls `area(s)`, the compiler cannot tell which of the

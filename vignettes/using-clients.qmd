@@ -44,9 +44,7 @@ jlbind::install_library()
 The first build downloads and compiles the required Julia dependencies, so it
 may take a few minutes.
 
-::: {.callout-note}
-**Restart R after rebuilding a library that is already loaded**
-
+::: {.callout-note title="Restart R after rebuilding a library that is already loaded"}
 Julia cannot be restarted within an R session. If the old library has already
 been loaded, rebuilding it on disk does not replace the copy in memory. Restart
 R to use the new library.
@@ -120,9 +118,7 @@ You can control which clients are included by specifying them explicitly:
 jlbind::install_library(packages = c("pkgA", "pkgC"))
 ```
 
-::: {.callout-important}
-**Clients with incompatible dependencies cannot share a library**
-
+::: {.callout-important collapse="true" title="Clients with incompatible dependencies cannot share a library"}
 If you need both clients but never need them in the same R session, build a
 separate library for each. Set `JLBIND_LIBRARY` before loading the client to
 select the library for that session.
