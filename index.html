@@ -1,12 +1,10 @@
 <!DOCTYPE html>
-<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
-
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
 <meta charset="utf-8">
 <meta name="generator" content="quarto-1.10.19">
-
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-
-
 <title>jlbind 0.0.0.9000</title>
 <style>
 /* Default styles provided by pandoc.
@@ -62,29 +60,15 @@ div.sourceCode
 pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
 }
 </style>
-
-
-<script src="site_libs/quarto-nav/quarto-nav.js"></script>
-<script src="site_libs/quarto-nav/headroom.min.js"></script>
-<script src="site_libs/clipboard/clipboard.min.js"></script>
-<script src="site_libs/quarto-search/autocomplete.umd.js"></script>
-<script src="site_libs/quarto-search/fuse.min.js"></script>
-<script src="site_libs/quarto-search/quarto-search.js"></script>
-<meta name="quarto:offset" content="./">
-<script src="site_libs/quarto-html/quarto.js" type="module"></script>
-<script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script>
-<script src="site_libs/quarto-html/popper.min.js"></script>
-<script src="site_libs/quarto-html/tippy.umd.min.js"></script>
-<script src="site_libs/quarto-html/anchor.min.js"></script>
-<link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
+<script src="site_libs/quarto-nav/quarto-nav.js"></script><script src="site_libs/quarto-nav/headroom.min.js"></script><script src="site_libs/clipboard/clipboard.min.js"></script><script src="site_libs/quarto-search/autocomplete.umd.js"></script><script src="site_libs/quarto-search/fuse.min.js"></script><script src="site_libs/quarto-search/quarto-search.js"></script><meta name="quarto:offset" content="./">
+<script src="site_libs/quarto-html/quarto.js" type="module"></script><script src="site_libs/quarto-html/tabsets/tabsets.js" type="module"></script><script src="site_libs/quarto-html/popper.min.js"></script><script src="site_libs/quarto-html/tippy.umd.min.js"></script><script src="site_libs/quarto-html/anchor.min.js"></script><link href="site_libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
-<script src="site_libs/bootstrap/bootstrap.min.js"></script>
-<link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-cbb99149e1c34264912d7b856a3c82be.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-333bcda2ad92058c3786c51f858e072d.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-cbb99149e1c34264912d7b856a3c82be.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script src="site_libs/bootstrap/bootstrap.min.js"></script><link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="site_libs/bootstrap/bootstrap-eee0a9da4003d0ccca71c442d4342562.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-62e43e456cca98f6bfd45f0d5ac16462.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-eee0a9da4003d0ccca71c442d4342562.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -110,16 +94,10 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
     "search-submit-button-title": "Submit",
     "search-label": "Search"
   }
-}</script>
-<!--
-Quarto's own dark-mode toggle always defaults new visitors to whichever theme
-is listed first (light), ignoring the OS/browser `prefers-color-scheme`
-setting - there's no config for this, so seed its localStorage sentinel
-ourselves before its own before-body script reads it. Runs in <head>, ahead of
-any painted content, so there's no light-then-dark flash. Only acts when the
-visitor has never toggled here before - an explicit past choice always wins.
--->
-<script>
+}</script><!--
+Quarto ignores `prefers-color-scheme`, so pick dark mode for first-time
+visitors who prefer it, before Quarto reads the stored choice.
+--><script>
 (function () {
   try {
     if (
@@ -129,23 +107,20 @@ visitor has never toggled here before - an explicit past choice always wins.
       window.localStorage.setItem("quarto-color-scheme", "alternate");
     }
   } catch (e) {
-    // localStorage unavailable (e.g. file:// preview, blocked
-    // storage) - fall back to Quarto's own light default.
+    // No localStorage: keep Quarto's light default.
   }
 })();
 </script>
-
-
-<!-- altdown-tooltips -->
+<!-- quartodown-tooltips -->
 <style>
-.altdown-tip-float{display:none;position:fixed;z-index:10000;min-width:220px;max-width:420px;background:var(--bs-body-bg,#1e1e1e);color:var(--bs-body-color,#eee);border:1px solid var(--bs-border-color,#444);border-radius:6px;padding:.5em .75em;font-size:.85em;line-height:1.4;box-shadow:0 4px 14px rgba(0,0,0,.35);white-space:normal;text-align:left;font-weight:normal;font-style:normal;}
-.altdown-tip-float .altdown-tip-sig{display:block;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:600;color:var(--bs-link-color,#9cdcfe);margin-bottom:.35em;background-color:transparent;padding:0;border-radius:0;}
-.altdown-tip-float .altdown-tip-brief{margin:0;color:var(--bs-secondary-color,#ccc);}
-a.altdown-tip-ref{cursor:help;}
+.quartodown-tip-float{display:none;position:fixed;z-index:10000;min-width:220px;max-width:420px;background:var(--bs-body-bg,#1e1e1e);color:var(--bs-body-color,#eee);border:1px solid var(--bs-border-color,#444);border-radius:6px;padding:.5em .75em;font-size:.85em;line-height:1.4;box-shadow:0 4px 14px rgba(0,0,0,.35);white-space:normal;text-align:left;font-weight:normal;font-style:normal;}
+.quartodown-tip-float .quartodown-tip-sig{display:block;white-space:pre-wrap;font-family:ui-monospace,SFMono-Regular,Consolas,monospace;font-weight:600;color:var(--bs-link-color,#9cdcfe);margin-bottom:.35em;background-color:transparent;padding:0;border-radius:0;}
+.quartodown-tip-float .quartodown-tip-brief{margin:0;color:var(--bs-secondary-color,#ccc);}
+a.quartodown-tip-ref{cursor:help;}
 </style>
 </head>
-
-<body class="nav-fixed quarto-light"><script id="quarto-html-before-body" type="application/javascript">
+<body class="nav-fixed quarto-light">
+<script id="quarto-html-before-body" type="application/javascript">
     const toggleBodyColorMode = (bsSheetEl) => {
       const mode = bsSheetEl.getAttribute("data-mode");
       const bodyEl = window.document.querySelector("body");
@@ -307,12 +282,8 @@ a.altdown-tip-ref{cursor:help;}
     } else {
       toggleColorMode(false);
     }
-  </script>
-
-<div id="quarto-search-results"></div>
-  <header id="quarto-header" class="headroom fixed-top">
-    <nav class="navbar navbar-expand-lg " data-bs-theme="dark">
-      <div class="navbar-container container-fluid">
+  </script><div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark"><div class="navbar-container container-fluid">
       <div class="navbar-brand-container mx-auto">
     <a class="navbar-brand" href="./index.html">
     <span class="navbar-title">jlbind 0.0.0.9000</span>
@@ -324,20 +295,20 @@ a.altdown-tip-ref{cursor:help;}
 </button>
           <div class="collapse navbar-collapse" id="navbarCollapse">
             <ul class="navbar-nav navbar-nav-scroll me-auto">
-  <li class="nav-item">
+<li class="nav-item">
     <a class="nav-link" href="./vignettes/jlbind.html"> 
 <span class="menu-text">Get started</span></a>
   </li>  
   <li class="nav-item">
-    <a class="nav-link" href="./reference.html"> 
+    <a class="nav-link" href="./reference/index.html"> 
 <span class="menu-text">Reference</span></a>
   </li>  
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-articles" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Articles</span>
     </a>
-    <ul class="dropdown-menu" aria-labelledby="nav-menu-articles">    
-        <li>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-articles">
+<li>
     <a class="dropdown-item" href="./vignettes/using-clients.html">
  <span class="dropdown-text">Using packages built on jlbind</span></a>
   </li>  
@@ -346,138 +317,103 @@ a.altdown-tip-ref{cursor:help;}
  <span class="dropdown-text">Performance</span></a>
   </li>  
     </ul>
-  </li>
+</li>
 </ul>
-            <ul class="navbar-nav navbar-nav-scroll ms-auto">
-  <li class="nav-item compact">
+<ul class="navbar-nav navbar-nav-scroll ms-auto">
+<li class="nav-item compact">
     <a class="nav-link" href="https://github.com/BjarkeHautop/jlbind"> <i class="bi bi-github" role="img" aria-label="GitHub">
 </i> 
 <span class="menu-text"></span></a>
   </li>  
 </ul>
-          </div> <!-- /navcollapse -->
+</div> <!-- /navcollapse -->
             <div class="quarto-navbar-tools">
   <a href="" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode"><i class="bi"></i></a>
 </div>
       </div> <!-- /container-fluid -->
-    </nav>
-</header>
-<!-- content -->
-<div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+    </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
 <!-- sidebar -->
 <!-- margin-sidebar -->
     <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
-        <nav id="TOC" role="doc-toc" class="toc-active">
-    <h2 id="toc-title">On this page</h2>
+        <nav id="TOC" role="doc-toc" class="toc-active"><h2 id="toc-title">On this page</h2>
    
   <ul>
-  <li><a href="#jlbind" id="toc-jlbind" class="nav-link active" data-scroll-target="#jlbind">jlbind <img src="man/figures/logo-light.png" align="right" height="139" alt="jlbind logo" class="light-content"><img src="man/figures/logo.png" align="right" height="139" alt="jlbind logo" class="dark-content"></a>
+<li>
+<a href="#jlbind" id="toc-jlbind" class="nav-link active" data-scroll-target="#jlbind">jlbind <img src="man/figures/logo-light.png" align="right" height="139" alt="jlbind logo" class="light-content"><img src="man/figures/logo.png" align="right" height="139" alt="jlbind logo" class="dark-content"></a>
   <ul class="collapse">
-  <li><a href="#installation" id="toc-installation" class="nav-link" data-scroll-target="#installation">Installation</a></li>
+<li><a href="#installation" id="toc-installation" class="nav-link" data-scroll-target="#installation">Installation</a></li>
   <li><a href="#using-a-package-built-on-jlbind" id="toc-using-a-package-built-on-jlbind" class="nav-link" data-scroll-target="#using-a-package-built-on-jlbind">Using a package built on jlbind</a></li>
   <li><a href="#writing-a-package-that-uses-jlbind" id="toc-writing-a-package-that-uses-jlbind" class="nav-link" data-scroll-target="#writing-a-package-that-uses-jlbind">Writing a package that uses jlbind</a></li>
   <li><a href="#contributing" id="toc-contributing" class="nav-link" data-scroll-target="#contributing">Contributing</a></li>
-  </ul></li>
   </ul>
-</nav>
-    </div>
+</li>
+  </ul></nav>
+</div>
 <!-- main -->
-<main class="content page-columns page-full" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header>
-
-
-
-
-
-<section id="jlbind" class="level1 altdown-home">
-<h1>jlbind <img src="man/figures/logo-light.png" align="right" height="139" alt="jlbind logo" class="light-content"><img src="man/figures/logo.png" align="right" height="139" alt="jlbind logo" class="dark-content"></h1>
+<main class="content page-columns page-full" id="quarto-document-content"><header id="title-block-header" class="quarto-title-block"></header><section id="jlbind" class="level1 quartodown-home"><h1>jlbind <img src="man/figures/logo-light.png" align="right" height="139" alt="jlbind logo" class="light-content"><img src="man/figures/logo.png" align="right" height="139" alt="jlbind logo" class="dark-content">
+</h1>
 <p>Call Julia code from R without starting a Julia session.</p>
 <p>jlbind compiles Julia code into a shared library with <a href="https://github.com/JuliaLang/JuliaC.jl">JuliaC.jl</a> (by default with <code>--trim=safe</code>), and R calls it through R’s official C API. Thus, there is almost no overhead (see <a href="https://bjarkehautop.github.io/jlbind/vignettes/articles/performance.html">Performance</a>).</p>
 <p>Several R packages using jlbind can be installed side by side: their Julia code is compiled into one shared library.</p>
-<section id="installation" class="level2">
-<h2 class="anchored" data-anchor-id="installation">Installation</h2>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("pak")</span></span>
-<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>pak<span class="sc">::</span><span class="fu">pak</span>(<span class="st">"BjarkeHautop/jlbind"</span>)</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<section id="installation" class="level2"><h2 class="anchored" data-anchor-id="installation">Installation</h2>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="co"># install.packages("pak")</span></span>
+<span><span class="fu">pak</span><span class="fu">::</span><span class="fu"><a href="https://pak.r-lib.org/reference/pak.html">pak</a></span><span class="op">(</span><span class="st">"BjarkeHautop/jlbind"</span><span class="op">)</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
 <p>Building the shared library requires <a href="https://julialang.org">Julia</a> &gt;= 1.13. Installing jlbind does not itself build the library.</p>
 <p>Julia 1.14 or later is recommended: Julia 1.13 can compile a library that crashes as it loads when a function has a type parameter bounded by a <code>Union</code> (<code>where {T&lt;:Union{...}}</code>), fixed in <a href="https://github.com/JuliaLang/julia/pull/63664">JuliaLang/julia#63664</a>.</p>
-</section>
-<section id="using-a-package-built-on-jlbind" class="level2">
-<h2 class="anchored" data-anchor-id="using-a-package-built-on-jlbind">Using a package built on jlbind</h2>
+</section><section id="using-a-package-built-on-jlbind" class="level2"><h2 class="anchored" data-anchor-id="using-a-package-built-on-jlbind">Using a package built on jlbind</h2>
 <p>After installing or updating an R package that uses jlbind, build the shared library:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="altdown-tip-ref" data-altdown-tip="t1" href="man/install_library.html">install_library</a></span>()</span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
+<code class="sourceCode R"><span><span class="fu">jlbind</span><span class="fu">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="reference/install_library.html">install_library</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
 <p>This compiles the Julia code of every installed package that uses jlbind and may take a few minutes. Run it again whenever you install or update one of them.</p>
 <p>See <a href="https://bjarkehautop.github.io/jlbind/vignettes/using-clients.html">Using packages built on jlbind</a> for threads, troubleshooting and Julia dependency versions.</p>
-</section>
-<section id="writing-a-package-that-uses-jlbind" class="level2">
-<h2 class="anchored" data-anchor-id="writing-a-package-that-uses-jlbind">Writing a package that uses jlbind</h2>
-<p>Set up a package with <code><a class="altdown-tip-ref" data-altdown-tip="t2" href="man/use_jlbind.html">jlbind::use_jlbind()</a></code>, then declare the Julia functions R can call in the generated binding package under <code>inst/julia/</code>:</p>
-<div class="code-copy-outer-scaffold"><div class="sourceCode" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> MyPkgBindings</span>
+</section><section id="writing-a-package-that-uses-jlbind" class="level2"><h2 class="anchored" data-anchor-id="writing-a-package-that-uses-jlbind">Writing a package that uses jlbind</h2>
+<p>Set up a package with <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="reference/use_jlbind.html">jlbind::use_jlbind()</a></code>, then declare the Julia functions R can call in the generated binding package under <code>inst/julia/</code>:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> MyPkgBindings</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">JLBind</span></span>
 <span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a><span class="fu">greet</span>(name<span class="op">::</span><span class="dt">String</span>) <span class="op">=</span> <span class="st">"Hello, "</span> <span class="op">*</span> name <span class="op">*</span> <span class="st">"!"</span></span>
 <span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">greet</span>(name<span class="op">::</span><span class="dt">String</span>)<span class="op">::</span><span class="dt">String</span></span>
 <span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></div>
-<p>Run <code><a class="altdown-tip-ref" data-altdown-tip="t3" href="man/update_entrypoints.html">jlbind::update_entrypoints()</a></code>, which generates the R function <code>greet(name)</code> that calls it.</p>
+<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>Run <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="reference/update_entrypoints.html">jlbind::update_entrypoints()</a></code>, which generates the R function <code>greet(name)</code> that calls it.</p>
 <p>See <a href="https://bjarkehautop.github.io/jlbind/vignettes/jlbind.html">Get started with jlbind</a> for a full walkthrough.</p>
-</section>
-<section id="contributing" class="level2">
-<h2 class="anchored" data-anchor-id="contributing">Contributing</h2>
+</section><section id="contributing" class="level2"><h2 class="anchored" data-anchor-id="contributing">Contributing</h2>
 <p>Contributions of all kinds are very welcome! You may use LLMs, but please write issue and PR descriptions in your own words. If you submit a PR, you should understand the code you’re contributing.</p>
-</section>
-</section>
-
-
-
-
-<div class="no-row-height column-margin column-container"><div class="">
-<section id="links" class="level4">
-<h4 class="anchored" data-anchor-id="links">Links</h4>
+</section></section><div class="no-row-height column-margin column-container"><div class="">
+<section id="links" class="level4"><h4 class="anchored" data-anchor-id="links">Links</h4>
 <p><a href="https://github.com/BjarkeHautop/jlbind">Browse source code</a></p>
 <p><a href="https://github.com/BjarkeHautop/jlbind/issues">Report a bug</a></p>
-</section>
-<section id="license" class="level4">
-<h4 class="anchored" data-anchor-id="license">License</h4>
-<p><a href="https://opensource.org/licenses/mit-license.php">MIT</a> + file <a href="LICENSE.html">LICENSE</a></p>
-</section>
-<section id="citation" class="level4">
-<h4 class="anchored" data-anchor-id="citation">Citation</h4>
+</section><section id="license" class="level4"><h4 class="anchored" data-anchor-id="license">License</h4>
+<p><a href="https://opensource.org/licenses/mit-license.php">MIT</a> + file <a href="LICENSE-text.html">LICENSE</a></p>
+</section><section id="citation" class="level4"><h4 class="anchored" data-anchor-id="citation">Citation</h4>
 <p><a href="authors.html#citation">Citing jlbind</a></p>
-</section>
-<section id="developers" class="level4">
-<h4 class="anchored" data-anchor-id="developers">Developers</h4>
-<p>Bjarke Hautop Kristensen<br>
-<small>Author, maintainer</small></p>
-</section>
-<section id="dev-status" class="level4">
-<h4 class="anchored" data-anchor-id="dev-status">Dev status</h4>
+</section><section id="developers" class="level4"><h4 class="anchored" data-anchor-id="developers">Developers</h4>
+<p>Bjarke Hautop Kristensen<br><small>Author, maintainer</small></p>
+</section><section id="dev-status" class="level4"><h4 class="anchored" data-anchor-id="dev-status">Dev status</h4>
 <p><a href="https://github.com/BjarkeHautop/jlbind/actions/workflows/R-CMD-check.yaml"><img src="https://github.com/BjarkeHautop/jlbind/actions/workflows/R-CMD-check.yaml/badge.svg" class="img-fluid" alt="R-CMD-check"></a> <a href="https://app.codecov.io/gh/BjarkeHautop/jlbind"><img src="https://codecov.io/gh/BjarkeHautop/jlbind/graph/badge.svg" class="img-fluid" alt="Codecov test coverage"></a></p>
 </section>
-</div></div></main> <!-- /main -->
-<!--
-A fixed CSS padding can't align the navbar title with the body text on every
-page: Quarto lays pages out differently depending on whether they have margin
-content (like the home page's Links/License column) or not, so the body's left
-edge lands at a different pixel offset per page type. Measure it for real
-instead, on every page, after layout settles.
--->
-<script>
+</div></div></main><!-- /main --><script>
 (function () {
   function contentLeft(main) {
-    // On pages with margin content (e.g. the home page's
-    // Links/License column), <main> itself becomes a "page-full"
-    // grid spanning the whole viewport, so its own box tells us
-    // nothing about where the visible text starts — look at the
-    // title/first heading instead. On every other page, main's own
-    // edge already sits flush with the text and is the more
-    // reliable target (man pages have no <h1>, only unnumbered
-    // <h2> titles, so this avoids depending on heading level).
+    // With margin content, <main> is a full-width grid; use the title.
     if (main.classList.contains("page-full")) {
-      var heading = main.querySelector("h1, h2.unnumbered");
+      var heading = main.querySelector("h1");
       if (heading) return heading.getBoundingClientRect().left;
     }
     return main.getBoundingClientRect().left;
   }
+  // Where the body text starts depends on the page layout, so measure it.
   function alignNavbarToContent() {
     var main = document.querySelector("#quarto-document-content");
     var navContainer = document.querySelector(".navbar-container");
@@ -487,11 +423,7 @@ instead, on every page, after layout settles.
       navContainer.getBoundingClientRect().left;
     navContainer.style.paddingLeft = Math.max(diff, 0) + "px";
   }
-  // The navbar title is emitted as one plain-text node, "<pkg name>
-  // <version>" (see `website.title` in quarto_config()) -
-  // Quarto gives us no way to style just the version at the YAML
-  // level. Split it out into its own `<small>` here so
-  // altdown.scss can shrink it, pkgdown style.
+  // Wrap the version in the "<pkg> <version>" title so it can be styled.
   function shrinkNavbarVersion() {
     var title = document.querySelector(".navbar-title");
     if (!title || title.querySelector(".navbar-version")) return;
@@ -505,20 +437,37 @@ instead, on every page, after layout settles.
     title.appendChild(document.createTextNode(" "));
     title.appendChild(version);
   }
-  // This script is injected right before </body>, so everything it
-  // reads is already in the DOM — no need to wait for "load" (which
-  // fires only once every image/font/subresource finishes, causing
-  // a visible flash where the navbar sits unaligned for a moment).
-  // Run once immediately, then keep "load"/"resize" as safety nets
-  // in case something later shifts the layout (e.g. a web font
-  // swap, though this theme doesn't use one).
+  // Leave `#>` output lines out of what the copy button copies, as pkgdown
+  // does. clipboard.js copies synchronously in its click handler, so a copy
+  // event during a copy-button click is its.
+  function stripOutputOnCopy() {
+    var fromButton = false;
+    window.addEventListener("click", function (e) {
+      if (!e.target.closest || !e.target.closest(".code-copy-button")) return;
+      fromButton = true;
+      setTimeout(function () { fromButton = false; }, 0);
+    }, true);
+    document.addEventListener("copy", function (e) {
+      if (!fromButton || !e.clipboardData) return;
+      // clipboard.js copies from a hidden <textarea>, whose selection
+      // window.getSelection() doesn't report in every browser.
+      var text = e.target instanceof HTMLTextAreaElement ?
+        e.target.value : String(window.getSelection());
+      var code = text.split("\n").filter(function (line) {
+        return !/^#>/.test(line);
+      }).join("\n");
+      if (code === text) return;
+      e.clipboardData.setData("text/plain", code);
+      e.preventDefault();
+    }, true);
+  }
+  stripOutputOnCopy();
   shrinkNavbarVersion();
   alignNavbarToContent();
   window.addEventListener("load", alignNavbarToContent);
   window.addEventListener("resize", alignNavbarToContent);
 })();
-</script>
-<script id="quarto-html-after-body" type="application/javascript">
+</script><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
     // Ensure there is a toggle, if there isn't float one in the top right
     if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
@@ -932,36 +881,31 @@ instead, on every page, after layout settles.
   });
   </script>
 </div> <!-- /content -->
-<footer class="footer">
-  <div class="nav-footer">
+<footer class="footer"><div class="nav-footer">
     <div class="nav-footer-left">
 <p>Developed by Bjarke Hautop Kristensen.</p>
 </div>   
     <div class="nav-footer-center">
-      &nbsp;
+       
     </div>
     <div class="nav-footer-right">
-<p>Site built with <a href="https://altdoc.etiennebacher.com/">altdoc</a> and <a href="https://quarto.org/">Quarto</a>, using the <a href="https://github.com/BjarkeHautop/altdown">altdown</a> theme.</p>
+<p>Site built with <a href="https://github.com/BjarkeHautop/quartodown">quartodown</a> and <a href="https://quarto.org/">Quarto</a>.</p>
 </div>
   </div>
 </footer>
-
-
-
-
-<div class="altdown-tip-payload" hidden><div data-for="t1"><code class="altdown-tip-sig">install_library(
+<div class="quartodown-tip-payload" hidden><div data-for="t1"><code class="quartodown-tip-sig">install_library(
   packages = NULL,
   julia = NULL,
   ask = interactive(),
   force = FALSE,
   versions = c(&quot;manifest&quot;, &quot;compat&quot;),
   develop = NULL
-)</code><span class="altdown-tip-brief">Compiles the Julia code of every installed package that uses jlbind into one shared library, stored in <code>tools::R_user_dir(&quot;jlbind&quot;, &quot;data&quot;)</code>.</span></div><div data-for="t2"><code class="altdown-tip-sig">use_jlbind(path = &quot;.&quot;, module = NULL, dir = &quot;julia&quot;)</code><span class="altdown-tip-brief">Adds what a package needs to call Julia code through jlbind.</span></div><div data-for="t3"><code class="altdown-tip-sig">update_entrypoints(path = &quot;.&quot;)</code><span class="altdown-tip-brief">Finds the <code>@rcall</code> declarations in the package's Julia binding package and generates the code that lets R call them.</span></div></div>
+)</code><span class="quartodown-tip-brief">Compiles the Julia code of every installed package that uses jlbind into one shared library, stored in <code>tools::R_user_dir(&quot;jlbind&quot;, &quot;data&quot;)</code>.</span></div><div data-for="t2"><code class="quartodown-tip-sig">use_jlbind(path = &quot;.&quot;, module = NULL, dir = &quot;julia&quot;)</code><span class="quartodown-tip-brief">Adds what a package needs to call Julia code through jlbind.</span></div><div data-for="t3"><code class="quartodown-tip-sig">update_entrypoints(path = &quot;.&quot;)</code><span class="quartodown-tip-brief">Finds the <code>@rcall</code> declarations in the package's Julia binding package and generates the code that lets R call them.</span></div></div>
 <script>
 (function(){
   var payload = document.currentScript.previousElementSibling;
   var float = document.createElement('div');
-  float.className = 'altdown-tip-float';
+  float.className = 'quartodown-tip-float';
   float.setAttribute('role', 'tooltip');
   document.body.appendChild(float);
   var hideTimer;
@@ -977,7 +921,7 @@ instead, on every page, after layout settles.
     float.style.left = left + 'px';
   }
   function show(el){
-    var key = el.getAttribute('data-altdown-tip');
+    var key = el.getAttribute('data-quartodown-tip');
     var tip = payload.querySelector('[data-for="' + key + '"]');
     if (!tip) return;
     float.innerHTML = tip.innerHTML;
@@ -987,7 +931,7 @@ instead, on every page, after layout settles.
   function hide(){ float.style.display = 'none'; }
   function cancelHide(){ clearTimeout(hideTimer); }
   function scheduleHide(){ hideTimer = setTimeout(hide, 150); }
-  var links = document.querySelectorAll('a.altdown-tip-ref');
+  var links = document.querySelectorAll('a.quartodown-tip-ref');
   for (var i = 0; i < links.length; i++) {
     (function(el){
       el.addEventListener('mouseenter', function(){ cancelHide(); show(el); });
@@ -1000,4 +944,5 @@ instead, on every page, after layout settles.
   float.addEventListener('mouseleave', scheduleHide);
 })();
 </script>
-</body></html>
+</body>
+</html>

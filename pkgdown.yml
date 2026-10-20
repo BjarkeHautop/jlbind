@@ -1,8 +1,7 @@
-altdoc: 0.7.3
-pandoc: 3.8.3
-pkgdown: 2.1.3
-pkgdown_sha: ~
-last_built: 2026-10-19T21:40:20+0000
 urls:
-  reference: https://bjarkehautop.github.io/jlbind/man
+  reference: https://bjarkehautop.github.io/jlbind/reference
   article: https://bjarkehautop.github.io/jlbind/vignettes
+articles:
+  jlbind: jlbind.html
+  using-clients: using-clients.html
+  performance: articles/performance.html
