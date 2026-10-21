@@ -61,14 +61,15 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 }
 </style>
 <script src="../../site_libs/quarto-nav/quarto-nav.js"></script><script src="../../site_libs/quarto-nav/headroom.min.js"></script><script src="../../site_libs/clipboard/clipboard.min.js"></script><script src="../../site_libs/quarto-search/autocomplete.umd.js"></script><script src="../../site_libs/quarto-search/fuse.min.js"></script><script src="../../site_libs/quarto-search/quarto-search.js"></script><meta name="quarto:offset" content="../../">
+<link href="../../man/figures/logo.png" rel="icon" type="image/png">
 <script src="../../site_libs/quarto-html/quarto.js" type="module"></script><script src="../../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script><script src="../../site_libs/quarto-html/popper.min.js"></script><script src="../../site_libs/quarto-html/tippy.umd.min.js"></script><script src="../../site_libs/quarto-html/anchor.min.js"></script><link href="../../site_libs/quarto-html/tippy.css" rel="stylesheet">
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-b626d73c4c936ccc3cb08be7d45d1df6.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-bf27225e3a48a9273f3daa8f8e829971.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script><link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-60d2d0d2feeb856325635b00ada20ed9.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../site_libs/bootstrap/bootstrap-dark-f8c19171514a1394413652f1a61164e6.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../site_libs/bootstrap/bootstrap-60d2d0d2feeb856325635b00ada20ed9.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-eb65bd2df348a18f6e61dc3e7adab417.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-a8b8a5b64f5ac945ea32ecedfbba154a.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-eb65bd2df348a18f6e61dc3e7adab417.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -110,7 +111,20 @@ visitors who prefer it, before Quarto reads the stored choice.
     // No localStorage: keep Quarto's light default.
   }
 })();
-</script>
+</script><meta property="og:title" content="Performance – jlbind 0.0.0.9000">
+<meta property="og:description" content="Bind R Packages to Compiled Julia Code">
+<meta property="og:image" content="https://bjarkehautop.github.io/jlbind/vignettes/articles/performance_files/figure-html/transfer-plot-1.png">
+<meta property="og:site_name" content="jlbind 0.0.0.9000">
+<meta property="og:image:alt" content="Median time of shift(x, 1) against the length of x, on log scales, for jlbind, JuliaCall and JuliaConnectoR. jlbind is fastest at every length.">
+<meta property="og:image:height" content="806">
+<meta property="og:image:width" content="1344">
+<meta name="twitter:title" content="Performance – jlbind 0.0.0.9000">
+<meta name="twitter:description" content="Bind R Packages to Compiled Julia Code">
+<meta name="twitter:image" content="https://bjarkehautop.github.io/jlbind/vignettes/articles/performance_files/figure-html/transfer-plot-1.png">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:image:alt" content="Median time of shift(x, 1) against the length of x, on log scales, for jlbind, JuliaCall and JuliaConnectoR. jlbind is fastest at every length.">
+<meta name="twitter:image-height" content="806">
+<meta name="twitter:image-width" content="1344">
 </head>
 <body class="nav-fixed quarto-light">
 <script id="quarto-html-before-body" type="application/javascript">
@@ -353,7 +367,10 @@ visitors who prefer it, before Quarto reads the stored choice.
   
 
 
-</header><p>jlbind calls Julia code that was compiled ahead of time, through one <code><a href="https://rdrr.io/r/base/CallExternal.html">.Call()</a></code> per function. The alternatives, <a href="https://github.com/JuliaInterop/JuliaCall">JuliaCall</a> and <a href="https://github.com/stefan-m-lenz/JuliaConnectoR">JuliaConnectoR</a>, run Julia itself: JuliaCall embeds a Julia session in the R process, and JuliaConnectoR starts one in a separate process and talks to it over a socket. This article compares the three on the same Julia functions.</p>
+</header><p class="source-note">
+<small class="dont-index">Source: <a href="https://github.com/BjarkeHautop/jlbind/blob/HEAD/vignettes/articles/performance.qmd"><code>vignettes/articles/performance.qmd</code></a></small>
+</p>
+<p>jlbind calls Julia code that was compiled ahead of time, through one <code><a href="https://rdrr.io/r/base/CallExternal.html">.Call()</a></code> per function. The alternatives, <a href="https://github.com/JuliaInterop/JuliaCall">JuliaCall</a> and <a href="https://github.com/stefan-m-lenz/JuliaConnectoR">JuliaConnectoR</a>, run Julia itself: JuliaCall embeds a Julia session in the R process, and JuliaConnectoR starts one in a separate process and talks to it over a socket. This article compares the three on the same Julia functions.</p>
 <p>In short, on this machine, jlbind is ready to use 84 to 109 times sooner, and a call costs 0.702 µs rather than 8.76 µs (JuliaCall) or 207 µs (JuliaConnectoR).</p>
 <section id="the-benchmarks" class="level2"><h2 class="anchored" data-anchor-id="the-benchmarks">The benchmarks</h2>
 <p>The functions are those of <code>benchjl</code>, a minimal jlbind client kept next to the benchmark script:</p>
@@ -552,10 +569,14 @@ visitors who prefer it, before Quarto reads the stored choice.
     return main.getBoundingClientRect().left;
   }
   // Where the body text starts depends on the page layout, so measure it.
+  // With a docked sidebar (`navbar: style: sidebar`), the title stays above
+  // the sidebar instead.
   function alignNavbarToContent() {
     var main = document.querySelector("#quarto-document-content");
     var navContainer = document.querySelector(".navbar-container");
-    if (!main || !navContainer) return;
+    if (!main || !navContainer || document.body.classList.contains("docked")) {
+      return;
+    }
     navContainer.style.paddingLeft = "";
     var diff = contentLeft(main) -
       navContainer.getBoundingClientRect().left;
@@ -598,7 +619,52 @@ visitors who prefer it, before Quarto reads the stored choice.
       e.preventDefault();
     }, true);
   }
+  // Shows the tip of a reference to the package's own topics, from the
+  // page's hidden `.quartodown-tip-payload` (see add_tooltips_html()), in
+  // one `position: fixed` element, so code blocks' `overflow: auto` can't
+  // clip it.
+  function initTooltips() {
+    var payload = document.querySelector(".quartodown-tip-payload");
+    if (!payload) return;
+    var float = document.createElement("div");
+    float.className = "quartodown-tip-float";
+    float.setAttribute("role", "tooltip");
+    document.body.appendChild(float);
+    var hideTimer;
+    function place(el) {
+      var r = el.getBoundingClientRect();
+      var top = r.bottom + 6;
+      var left = r.left;
+      var maxLeft = window.innerWidth - float.offsetWidth - 8;
+      if (left > maxLeft) left = Math.max(8, maxLeft);
+      var maxTop = window.innerHeight - float.offsetHeight - 8;
+      if (top > maxTop) top = Math.max(8, r.top - float.offsetHeight - 6);
+      float.style.top = top + "px";
+      float.style.left = left + "px";
+    }
+    function show(el) {
+      var key = el.getAttribute("data-quartodown-tip");
+      var tip = payload.querySelector('[data-for="' + key + '"]');
+      if (!tip) return;
+      float.innerHTML = tip.innerHTML;
+      float.style.display = "block";
+      place(el);
+    }
+    function hide() { float.style.display = "none"; }
+    function cancelHide() { clearTimeout(hideTimer); }
+    function scheduleHide() { hideTimer = setTimeout(hide, 150); }
+    document.querySelectorAll("a.quartodown-tip-ref").forEach(function (el) {
+      el.addEventListener("mouseenter", function () { cancelHide(); show(el); });
+      el.addEventListener("mouseleave", scheduleHide);
+      el.addEventListener("focus", function () { show(el); });
+      el.addEventListener("blur", hide);
+    });
+    float.addEventListener("mouseenter", cancelHide);
+    float.addEventListener("mouseleave", scheduleHide);
+  }
   stripOutputOnCopy();
+  // The payload comes after this script, at the end of the body.
+  document.addEventListener("DOMContentLoaded", initTooltips);
   shrinkNavbarVersion();
   alignNavbarToContent();
   window.addEventListener("load", alignNavbarToContent);
@@ -690,7 +756,7 @@ visitors who prefer it, before Quarto reads the stored choice.
     }
       var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
       var mailtoRegex = new RegExp(/^mailto:/);
-        var filterRegex = new RegExp('/' + window.location.host + '/');
+        var filterRegex = new RegExp("https:\/\/bjarkehautop\.github\.io\/jlbind");
       var isInternal = (href) => {
           return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
       }

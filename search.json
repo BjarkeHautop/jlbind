@@ -35,305 +35,298 @@
     "text": "Contributions of all kinds are very welcome! You may use LLMs, but please write issue and PR descriptions in your own words. If you submit a PR, you should understand the code you’re contributing."
   },
   {
-    "objectID": "reference/jlbind_sitrep.html",
-    "href": "reference/jlbind_sitrep.html",
-    "title": "Report on the jlbind setup",
+    "objectID": "reference/bind_client.html",
+    "href": "reference/bind_client.html",
+    "title": "Bind a package to the Julia library",
     "section": "",
-    "text": "Prints a report to run when a package that uses jlbind doesn’t work. It shows the Julia that builds the library, the library that is loaded (or would be) and what it was built from, the installed packages that use jlbind and whether the library is current for each, and the Julia thread count. It also works before a library has loaded."
+    "text": "Source: R/runtime.R"
   },
   {
-    "objectID": "reference/jlbind_sitrep.html#description",
-    "href": "reference/jlbind_sitrep.html#description",
-    "title": "Report on the jlbind setup",
-    "section": "",
-    "text": "Prints a report to run when a package that uses jlbind doesn’t work. It shows the Julia that builds the library, the library that is loaded (or would be) and what it was built from, the installed packages that use jlbind and whether the library is current for each, and the Julia thread count. It also works before a library has loaded."
+    "objectID": "reference/bind_client.html#description",
+    "href": "reference/bind_client.html#description",
+    "title": "Bind a package to the Julia library",
+    "section": "Description",
+    "text": "Description\nCall this from the .onLoad() of a package that uses jlbind; use_jlbind() sets that up. The first call loads the compiled library, and each call binds one package’s routines to it. If the library is missing or was built from another version of the package, the package isn’t bound and its functions give an error; check_bound() says why."
   },
   {
-    "objectID": "reference/jlbind_sitrep.html#usage",
-    "href": "reference/jlbind_sitrep.html#usage",
-    "title": "Report on the jlbind setup",
+    "objectID": "reference/bind_client.html#usage",
+    "href": "reference/bind_client.html#usage",
+    "title": "Bind a package to the Julia library",
     "section": "Usage",
-    "text": "Usage\njlbind_sitrep(julia = NULL)"
+    "text": "Usage\nbind_client(pkg)"
   },
   {
-    "objectID": "reference/jlbind_sitrep.html#arguments",
-    "href": "reference/jlbind_sitrep.html#arguments",
-    "title": "Report on the jlbind setup",
+    "objectID": "reference/bind_client.html#arguments",
+    "href": "reference/bind_client.html#arguments",
+    "title": "Bind a package to the Julia library",
     "section": "Arguments",
-    "text": "Arguments\n\n\n\njulia\n\n\nPath to the julia executable. By default, the JULIA environment variable, or julia on the PATH."
+    "text": "Arguments\n\n\n\npkg\n\n\nThe package name."
   },
   {
-    "objectID": "reference/jlbind_sitrep.html#value",
-    "href": "reference/jlbind_sitrep.html#value",
-    "title": "Report on the jlbind setup",
-    "section": "Value",
-    "text": "Value\nInvisibly, a list with:\n\n\njulia: a list with path (NA if Julia was not found), source (\"argument\", \"JULIA\" or \"PATH\"), version (NA if it could not be run) and ok (whether it is Julia 1.13 or later).\n\n\nlibrary: a list with path, how (\"loaded\", \"failed to load\", \"JLBIND_LIBRARY\" or \"default\"), exists, build (how it was built: the jlbind and Julia versions, when, and whether it is trimmed, or NULL), problems (why it should be rebuilt or cannot load; empty if none) and objects (how many Julia objects R holds references to, or NULL if no library is loaded).\n\n\nclients: a data frame with one row per package that uses jlbind or that the library was built for, with the columns package, version (installed), built (the version in the library), status (\"ok\", \"left out\", \"not in the library\", \"built for version &lt;v&gt;\", \"Julia code changed\" or \"not installed\") and bound.\n\n\nthreads: a list with count (from JULIA_NUM_THREADS) and fixed (TRUE once a library is loaded, after which the count cannot change)."
-  },
-  {
-    "objectID": "reference/jlbind_sitrep.html#examples",
-    "href": "reference/jlbind_sitrep.html#examples",
-    "title": "Report on the jlbind setup",
-    "section": "Examples",
-    "text": "Examples\n\njlbind_sitrep()\n#&gt; ── Julia (for building the library)\n#&gt; ✔ Julia 1.13.2 at /usr/bin/julia (from PATH)\n#&gt; ── Library\n#&gt; ✖ /home/runner/.local/share/R/jlbind/library/jlbind.so (default)\n#&gt; ✖ it has not been built\n#&gt; ── Packages that use jlbind\n#&gt;   none installed\n#&gt; ── Threads\n#&gt;   1 Julia thread (JULIA_NUM_THREADS unset)"
-  },
-  {
-    "objectID": "reference/use_jlbind_ci.html",
-    "href": "reference/use_jlbind_ci.html",
-    "title": "Check a package with its Julia code on GitHub Actions",
-    "section": "",
-    "text": "Writes a GitHub Actions workflow that checks the package with and without Julia. With Julia, it runs R CMD check on Linux, Windows and macOS after compiling the package’s Julia code with build_library(), so tests and examples that need the library run. Without Julia, it checks the package once on Linux, as CRAN does, where those tests and examples must be skipped. The workflow is written to .github/workflows/R-CMD-check.yaml."
-  },
-  {
-    "objectID": "reference/use_jlbind_ci.html#description",
-    "href": "reference/use_jlbind_ci.html#description",
-    "title": "Check a package with its Julia code on GitHub Actions",
-    "section": "",
-    "text": "Writes a GitHub Actions workflow that checks the package with and without Julia. With Julia, it runs R CMD check on Linux, Windows and macOS after compiling the package’s Julia code with build_library(), so tests and examples that need the library run. Without Julia, it checks the package once on Linux, as CRAN does, where those tests and examples must be skipped. The workflow is written to .github/workflows/R-CMD-check.yaml."
-  },
-  {
-    "objectID": "reference/use_jlbind_ci.html#usage",
-    "href": "reference/use_jlbind_ci.html#usage",
-    "title": "Check a package with its Julia code on GitHub Actions",
-    "section": "Usage",
-    "text": "Usage\nuse_jlbind_ci(path = \".\", overwrite = FALSE)"
-  },
-  {
-    "objectID": "reference/use_jlbind_ci.html#arguments",
-    "href": "reference/use_jlbind_ci.html#arguments",
-    "title": "Check a package with its Julia code on GitHub Actions",
-    "section": "Arguments",
-    "text": "Arguments\n\n\n\npath\n\n\nPath to the package sources.\n\n\n\n\noverwrite\n\n\nIf TRUE, replace an existing .github/workflows/R-CMD-check.yaml."
-  },
-  {
-    "objectID": "reference/use_jlbind_ci.html#details",
-    "href": "reference/use_jlbind_ci.html#details",
-    "title": "Check a package with its Julia code on GitHub Actions",
+    "objectID": "reference/bind_client.html#details",
+    "href": "reference/bind_client.html#details",
+    "title": "Bind a package to the Julia library",
     "section": "Details",
-    "text": "Details\nThe workflow replaces the standard one written by usethis::use_github_action(\"check-standard\"), which has the same name."
+    "text": "Details\nThe library is the one from install_library(), unless JLBIND_LIBRARY names another, or the first package bound was loaded with pkgload::load_all() and has one from build_library(). That library is rebuilt as the package loads if it is out of date with the package’s sources, as when its Julia code has changed. A library that has already loaded cannot be replaced, so after a change, restart R.\nTo run Julia with more threads, set JULIA_NUM_THREADS (a number or \"auto\") before loading the first package that uses jlbind."
   },
   {
-    "objectID": "reference/use_jlbind_ci.html#value",
-    "href": "reference/use_jlbind_ci.html#value",
-    "title": "Check a package with its Julia code on GitHub Actions",
+    "objectID": "reference/bind_client.html#value",
+    "href": "reference/bind_client.html#value",
+    "title": "Bind a package to the Julia library",
     "section": "Value",
-    "text": "Value\nThe path to the workflow, invisibly."
+    "text": "Value\nInvisibly, TRUE if the package is bound and FALSE if not."
   },
   {
-    "objectID": "reference/use_jlbind_ci.html#examples",
-    "href": "reference/use_jlbind_ci.html#examples",
-    "title": "Check a package with its Julia code on GitHub Actions",
+    "objectID": "reference/bind_client.html#examples",
+    "href": "reference/bind_client.html#examples",
+    "title": "Bind a package to the Julia library",
     "section": "Examples",
-    "text": "Examples\n\n# A package in a temporary directory\npkg &lt;- tempfile(\"mypkg\")\ndir.create(pkg)\nwriteLines(c(\"Package: mypkg\", \"Version: 0.1.0\"), file.path(pkg, \"DESCRIPTION\"))\n\nfile &lt;- use_jlbind_ci(pkg)\n#&gt; Wrote /tmp/RtmpydWeAI/mypkg19c572ef221b/.github/workflows/R-CMD-check.yaml.\nwriteLines(readLines(file))\n#&gt; # Generated by jlbind::use_jlbind_ci(), from r-lib/actions' check-standard\n#&gt; # workflow: https://github.com/r-lib/actions/tree/v2/examples\n#&gt; #\n#&gt; # Runs R CMD check with Julia on Linux, Windows and macOS, after compiling the\n#&gt; # package's Julia code into a library its tests and examples can call, and once\n#&gt; # on Linux without Julia, which is what CRAN sees: the package must install and\n#&gt; # pass its checks without the library.\n#&gt; on:\n#&gt;   push:\n#&gt;     branches: [main, master]\n#&gt;   pull_request:\n#&gt; \n#&gt; name: R-CMD-check.yaml\n#&gt; \n#&gt; permissions: read-all\n#&gt; \n#&gt; jobs:\n#&gt;   R-CMD-check:\n#&gt;     runs-on: ${{ matrix.config.os }}\n#&gt; \n#&gt;     name: ${{ matrix.config.os }} (${{ matrix.config.r }})${{ matrix.config.julia == '' && ' without Julia' || format(' Julia {0}', matrix.config.julia) }}\n#&gt; \n#&gt;     strategy:\n#&gt;       fail-fast: false\n#&gt;       matrix:\n#&gt;         config:\n#&gt;           - {os: ubuntu-latest,   r: 'release', julia: 'nightly'}\n#&gt;           - {os: windows-latest,  r: 'release', julia: 'nightly'}\n#&gt;           - {os: macos-latest,    r: 'release', julia: 'nightly'}\n#&gt;           - {os: ubuntu-latest,   r: 'release', julia: ''}\n#&gt; \n#&gt;     env:\n#&gt;       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}\n#&gt;       R_KEEP_PKG_SOURCE: yes\n#&gt; \n#&gt;     steps:\n#&gt;       - uses: actions/checkout@v7\n#&gt; \n#&gt;       - uses: julia-actions/setup-julia@v3\n#&gt;         if: matrix.config.julia != ''\n#&gt;         with:\n#&gt;           version: ${{ matrix.config.julia }}\n#&gt; \n#&gt;       - uses: julia-actions/cache@v3\n#&gt;         if: matrix.config.julia != ''\n#&gt; \n#&gt;       - uses: r-lib/actions/setup-pandoc@v2\n#&gt; \n#&gt;       - uses: r-lib/actions/setup-r@v2\n#&gt;         with:\n#&gt;           r-version: ${{ matrix.config.r }}\n#&gt;           http-user-agent: ${{ matrix.config.http-user-agent }}\n#&gt;           use-public-rspm: true\n#&gt; \n#&gt;       - uses: r-lib/actions/setup-r-dependencies@v2\n#&gt;         with:\n#&gt;           extra-packages: any::rcmdcheck, BjarkeHautop/jlbind\n#&gt;           needs: check\n#&gt; \n#&gt;       # Compiles the package's Julia code into .jlbind/ and points\n#&gt;       # JLBIND_LIBRARY at the library, so R CMD check binds the package to it.\n#&gt;       - name: Compile the Julia library\n#&gt;         if: matrix.config.julia != ''\n#&gt;         shell: Rscript {0}\n#&gt;         run: |\n#&gt;           lib &lt;- jlbind::build_library()\n#&gt;           cat(\n#&gt;             \"JLBIND_LIBRARY=\", lib, \"\\n\",\n#&gt;             sep = \"\", file = Sys.getenv(\"GITHUB_ENV\"), append = TRUE\n#&gt;           )\n#&gt; \n#&gt;       - uses: r-lib/actions/check-r-package@v2\n#&gt;         with:\n#&gt;           upload-snapshots: true\n#&gt;           build_args: 'c(\"--no-manual\",\"--compact-vignettes=gs+qpdf\")'"
+    "text": "Examples\n# In a package's R/jlbind.R, as use_jlbind() writes it\n.onLoad &lt;- function(libname, pkgname) {\n  jlbind::bind_client(pkgname)\n}"
   },
   {
-    "objectID": "reference/is_bound.html",
-    "href": "reference/is_bound.html",
-    "title": "Check whether a package is bound to the Julia library",
+    "objectID": "reference/index.html",
+    "href": "reference/index.html",
+    "title": "Function reference",
     "section": "",
-    "text": "is_bound() returns TRUE or FALSE. check_bound() gives an error that explains why the package isn’t bound."
+    "text": "Compile the Julia code of the installed packages that use jlbind.\n\n\ninstall_library()\n\n\nBuild the Julia library\n\n\nbuild_library()\n\n\nBuild a Julia library from specific packages\n\n\nremove_library()\n\n\nRemove the Julia library\n\n\njlbind_clients()\n\n\nList the packages that use jlbind"
   },
   {
-    "objectID": "reference/is_bound.html#description",
-    "href": "reference/is_bound.html#description",
-    "title": "Check whether a package is bound to the Julia library",
+    "objectID": "reference/index.html#building-the-library",
+    "href": "reference/index.html#building-the-library",
+    "title": "Function reference",
     "section": "",
-    "text": "is_bound() returns TRUE or FALSE. check_bound() gives an error that explains why the package isn’t bound."
+    "text": "Compile the Julia code of the installed packages that use jlbind.\n\n\ninstall_library()\n\n\nBuild the Julia library\n\n\nbuild_library()\n\n\nBuild a Julia library from specific packages\n\n\nremove_library()\n\n\nRemove the Julia library\n\n\njlbind_clients()\n\n\nList the packages that use jlbind"
   },
   {
-    "objectID": "reference/is_bound.html#usage",
-    "href": "reference/is_bound.html#usage",
-    "title": "Check whether a package is bound to the Julia library",
+    "objectID": "reference/index.html#at-run-time",
+    "href": "reference/index.html#at-run-time",
+    "title": "Function reference",
+    "section": "At run time",
+    "text": "At run time\nBind a package to the compiled library, and check on it.\n\n\nbind_client()\n\n\nBind a package to the Julia library\n\n\nis_bound() check_bound()\n\n\nCheck whether a package is bound to the Julia library\n\n\njlbind_sitrep()\n\n\nReport on the jlbind setup"
+  },
+  {
+    "objectID": "reference/index.html#package-development",
+    "href": "reference/index.html#package-development",
+    "title": "Function reference",
+    "section": "Package development",
+    "text": "Package development\nSet up a package to use jlbind.\n\n\nuse_jlbind()\n\n\nSet up a package to use jlbind\n\n\nupdate_entrypoints()\n\n\nUpdate the list of Julia functions R can call\n\n\nuse_jlbind_ci()\n\n\nCheck a package with its Julia code on GitHub Actions"
+  },
+  {
+    "objectID": "reference/update_entrypoints.html",
+    "href": "reference/update_entrypoints.html",
+    "title": "Update the list of Julia functions R can call",
+    "section": "",
+    "text": "Source: R/scaffold.R"
+  },
+  {
+    "objectID": "reference/update_entrypoints.html#description",
+    "href": "reference/update_entrypoints.html#description",
+    "title": "Update the list of Julia functions R can call",
+    "section": "Description",
+    "text": "Description\nFinds the @rcall declarations in the package’s Julia binding package and generates the code that lets R call them. Run this whenever you add or remove an @rcall, or change its arguments. It writes two files:"
+  },
+  {
+    "objectID": "reference/update_entrypoints.html#usage",
+    "href": "reference/update_entrypoints.html#usage",
+    "title": "Update the list of Julia functions R can call",
     "section": "Usage",
-    "text": "Usage\nis_bound(pkg)\n\ncheck_bound(pkg)"
+    "text": "Usage\nupdate_entrypoints(path = \".\")"
   },
   {
-    "objectID": "reference/is_bound.html#arguments",
-    "href": "reference/is_bound.html#arguments",
-    "title": "Check whether a package is bound to the Julia library",
+    "objectID": "reference/update_entrypoints.html#arguments",
+    "href": "reference/update_entrypoints.html#arguments",
+    "title": "Update the list of Julia functions R can call",
     "section": "Arguments",
-    "text": "Arguments\n\n\n\npkg\n\n\nName of a package that uses jlbind."
+    "text": "Arguments\n\n\n\npath\n\n\nPath to the package sources."
   },
   {
-    "objectID": "reference/is_bound.html#value",
-    "href": "reference/is_bound.html#value",
-    "title": "Check whether a package is bound to the Julia library",
-    "section": "Value",
-    "text": "Value\nis_bound(): TRUE or FALSE. check_bound(): TRUE (invisibly) if the package is bound, otherwise an error."
-  },
-  {
-    "objectID": "reference/is_bound.html#examples",
-    "href": "reference/is_bound.html#examples",
-    "title": "Check whether a package is bound to the Julia library",
-    "section": "Examples",
-    "text": "Examples\n\n# Not bound, as no package named mypkg has been loaded\nis_bound(\"mypkg\")\n#&gt; [1] FALSE\ntry(check_bound(\"mypkg\"))\n#&gt; Error : Package mypkg has not asked to be bound; is it loaded, and does it call jlbind::bind_client() from its .onLoad()?"
-  },
-  {
-    "objectID": "reference/install_library.html",
-    "href": "reference/install_library.html",
-    "title": "Build the Julia library",
-    "section": "",
-    "text": "Compiles the Julia code of every installed package that uses jlbind into one shared library, stored in tools::R_user_dir(\"jlbind\", \"data\"). Run this after you install or update one of those packages. You need Julia 1.13 or later. The first build downloads and compiles the Julia dependencies, which can take a few minutes."
-  },
-  {
-    "objectID": "reference/install_library.html#description",
-    "href": "reference/install_library.html#description",
-    "title": "Build the Julia library",
-    "section": "",
-    "text": "Compiles the Julia code of every installed package that uses jlbind into one shared library, stored in tools::R_user_dir(\"jlbind\", \"data\"). Run this after you install or update one of those packages. You need Julia 1.13 or later. The first build downloads and compiles the Julia dependencies, which can take a few minutes."
-  },
-  {
-    "objectID": "reference/install_library.html#usage",
-    "href": "reference/install_library.html#usage",
-    "title": "Build the Julia library",
-    "section": "Usage",
-    "text": "Usage\ninstall_library(\n  packages = NULL,\n  julia = NULL,\n  ask = interactive(),\n  force = FALSE,\n  versions = c(\"manifest\", \"compat\"),\n  develop = NULL\n)"
-  },
-  {
-    "objectID": "reference/install_library.html#arguments",
-    "href": "reference/install_library.html#arguments",
-    "title": "Build the Julia library",
-    "section": "Arguments",
-    "text": "Arguments\n\n\n\npackages\n\n\nNames of the installed packages to build. By default, every package listed by jlbind_clients(). The others aren’t bound.\n\n\n\n\njulia\n\n\nPath to the julia executable. By default, the JULIA environment variable, or julia on the PATH.\n\n\n\n\nask\n\n\nIf TRUE, ask before building. Defaults to interactive().\n\n\n\n\nforce\n\n\nIf TRUE, rebuild even if the library is up to date. Always on with versions = \"compat\" or develop.\n\n\n\n\nversions\n\n\nWhere the Julia dependency versions come from. \"manifest\" keeps the versions in the first package’s Manifest.toml where the other packages’ [compat] bounds allow. \"compat\" ignores the manifests and lets Julia’s resolver choose versions from the [compat] bounds alone.\n\n\n\n\ndevelop\n\n\nPaths to local Julia packages to use instead of their released versions."
-  },
-  {
-    "objectID": "reference/install_library.html#details",
-    "href": "reference/install_library.html#details",
-    "title": "Build the Julia library",
+    "objectID": "reference/update_entrypoints.html#details",
+    "href": "reference/update_entrypoints.html#details",
+    "title": "Update the list of Julia functions R can call",
     "section": "Details",
-    "text": "Details\nAll packages share one Julia environment. By default, the dependencies get the versions in the first package’s Manifest.toml. If two packages conflict, the one listed later by jlbind_clients() is left out, and check_bound() says why. See vignette(\"using-clients\", \"jlbind\") for details.\nThe library is rebuilt only if it is out of date: built from other versions of the packages or other Julia code in them, by another version of jlbind or Julia, or with develop. If a library is already loaded, restart R to use the new one."
+    "text": "Details\n\n\nsrc/entrypoints.h, from which src/jlbind.c registers a routine C_&lt;name&gt; for each declaration.\n\n\nR/jlbind-wrappers.R, with an R function for each declaration that calls its routine. @rcall shift(x::Vector{Float64}, by::Float64 = 0.0)::Float64 becomes shift &lt;- function(x, by = 0.0) .Call(C_shift, x, by).\n\n\nDefaults must be literal numbers, strings, true, false or nothing (NULL). A function returning Nothing returns invisibly. To export or document a function, use a roxygen block on NULL with @name in another file. To add R code around a call, declare the Julia function with a jl_ prefix and write the R function yourself."
   },
   {
-    "objectID": "reference/install_library.html#value",
-    "href": "reference/install_library.html#value",
-    "title": "Build the Julia library",
+    "objectID": "reference/update_entrypoints.html#value",
+    "href": "reference/update_entrypoints.html#value",
+    "title": "Update the list of Julia functions R can call",
     "section": "Value",
-    "text": "Value\nThe path to the library (invisibly), or NULL if there was nothing to build."
+    "text": "Value\nInvisibly, a data frame of the entrypoints with the columns name, nargs, and the formals, args and invisible (whether it returns invisibly) of their R wrappers."
   },
   {
-    "objectID": "reference/install_library.html#examples",
-    "href": "reference/install_library.html#examples",
-    "title": "Build the Julia library",
+    "objectID": "reference/update_entrypoints.html#examples",
+    "href": "reference/update_entrypoints.html#examples",
+    "title": "Update the list of Julia functions R can call",
     "section": "Examples",
-    "text": "Examples\ninstall_library()\n\n# With a local checkout of a Julia dependency\ninstall_library(develop = \"~/dev/SomePackage.jl\")\n\n# Only two of the installed packages\ninstall_library(packages = c(\"pkgA\", \"pkgB\"))"
+    "text": "Examples\n\n# A package set up with use_jlbind() in a temporary directory\npkg &lt;- file.path(tempdir(), \"addpkg\")\ndir.create(pkg)\nwriteLines(\n  c(\n    \"Package: addpkg\",\n    \"Title: Demo\",\n    \"Version: 0.1.0\",\n    \"Description: Demo.\",\n    \"License: MIT\"\n  ),\n  file.path(pkg, \"DESCRIPTION\")\n)\nuse_jlbind(pkg)\n#&gt; Created the binding package addpkgBindings in /tmp/RtmpmTF1pS/addpkg/inst/julia.\n#&gt; Wrote /tmp/RtmpmTF1pS/addpkg/src/entrypoints.h (1 entrypoints).\n#&gt; Wrote /tmp/RtmpmTF1pS/addpkg/R/jlbind-wrappers.R.\n\n# Add an entrypoint to the binding package, before its closing `end`\nfile &lt;- file.path(pkg, \"inst/julia/src/addpkgBindings.jl\")\ncode &lt;- readLines(file)\nlast &lt;- max(which(code == \"end\"))\ncode &lt;- append(\n  code,\n  c(\n    \"add(x::Float64, y::Float64) = x + y\",\n    \"@rcall add(x::Float64, y::Float64)::Float64\",\n    \"\"\n  ),\n  after = last - 1L\n)\nwriteLines(code, file)\n\nupdate_entrypoints(pkg)\n#&gt; Wrote /tmp/RtmpmTF1pS/addpkg/src/entrypoints.h (2 entrypoints).\n#&gt; Wrote /tmp/RtmpmTF1pS/addpkg/R/jlbind-wrappers.R.\nwriteLines(readLines(file.path(pkg, \"R\", \"jlbind-wrappers.R\")))\n#&gt; # Generated by jlbind::update_entrypoints(): do not edit by hand\n#&gt; \n#&gt; hello &lt;- function(name) .Call(C_hello, name)\n#&gt; add &lt;- function(x, y) .Call(C_add, x, y)"
   },
   {
-    "objectID": "reference/jlbind_clients.html",
-    "href": "reference/jlbind_clients.html",
-    "title": "List the packages that use jlbind",
+    "objectID": "reference/use_jlbind.html",
+    "href": "reference/use_jlbind.html",
+    "title": "Set up a package to use jlbind",
     "section": "",
-    "text": "Lists the installed packages that install_library() will compile. A package uses jlbind if its DESCRIPTION has a Config/jlbind field. If a package is installed in more than one library, the copy that library() would load is the one listed."
+    "text": "Source: R/scaffold.R"
   },
   {
-    "objectID": "reference/jlbind_clients.html#description",
-    "href": "reference/jlbind_clients.html#description",
-    "title": "List the packages that use jlbind",
-    "section": "",
-    "text": "Lists the installed packages that install_library() will compile. A package uses jlbind if its DESCRIPTION has a Config/jlbind field. If a package is installed in more than one library, the copy that library() would load is the one listed."
+    "objectID": "reference/use_jlbind.html#description",
+    "href": "reference/use_jlbind.html#description",
+    "title": "Set up a package to use jlbind",
+    "section": "Description",
+    "text": "Description\nAdds what a package needs to call Julia code through jlbind."
   },
   {
-    "objectID": "reference/jlbind_clients.html#usage",
-    "href": "reference/jlbind_clients.html#usage",
-    "title": "List the packages that use jlbind",
+    "objectID": "reference/use_jlbind.html#usage",
+    "href": "reference/use_jlbind.html#usage",
+    "title": "Set up a package to use jlbind",
     "section": "Usage",
-    "text": "Usage\njlbind_clients(lib.loc = NULL)"
+    "text": "Usage\nuse_jlbind(path = \".\", module = NULL, dir = \"julia\")"
   },
   {
-    "objectID": "reference/jlbind_clients.html#arguments",
-    "href": "reference/jlbind_clients.html#arguments",
-    "title": "List the packages that use jlbind",
+    "objectID": "reference/use_jlbind.html#arguments",
+    "href": "reference/use_jlbind.html#arguments",
+    "title": "Set up a package to use jlbind",
     "section": "Arguments",
-    "text": "Arguments\n\n\n\nlib.loc\n\n\nLibrary paths to search. Defaults to .libPaths()."
+    "text": "Arguments\n\n\n\npath\n\n\nPath to the package sources.\n\n\n\n\nmodule\n\n\nName of the Julia binding package. Defaults to the package name followed by Bindings. It must be unique across all packages that use jlbind, since they’re all compiled into one library.\n\n\n\n\ndir\n\n\nDirectory under inst/ for the binding package."
   },
   {
-    "objectID": "reference/jlbind_clients.html#value",
-    "href": "reference/jlbind_clients.html#value",
-    "title": "List the packages that use jlbind",
+    "objectID": "reference/use_jlbind.html#details",
+    "href": "reference/use_jlbind.html#details",
+    "title": "Set up a package to use jlbind",
+    "section": "Details",
+    "text": "Details\n\n\nA Julia binding package in inst/&lt;dir&gt;, with one example function, hello(). An existing binding package is left alone.\n\n\nThe C code that registers the package’s routines: src/jlbind.c and src/entrypoints.h (written by update_entrypoints()), and a rule in src/Makevars (created if needed) that recompiles jlbind.c when entrypoints.h changes.\n\n\nR/jlbind.R, with an .onLoad() that calls bind_client(), and the roxygen tag for useDynLib(). If the package already has an .onLoad(), add jlbind::bind_client(pkgname) to it yourself.\n\n\nThe Config/jlbind and Imports: jlbind fields in DESCRIPTION.\n\n\n.jlbind/, where build_library() writes a library for development, in .Rbuildignore and .gitignore.\n\n\nR/jlbind-wrappers.R (written by update_entrypoints()), with an R function for each Julia function declared with @rcall."
+  },
+  {
+    "objectID": "reference/use_jlbind.html#value",
+    "href": "reference/use_jlbind.html#value",
+    "title": "Set up a package to use jlbind",
     "section": "Value",
-    "text": "Value\nA data frame with one row per package and the columns package, version, module (the name of its Julia binding package), path (where the binding package is), trim (FALSE if it sets Config/jlbind/trim: false) and hash (a hash of the binding package’s files, which the library records to tell when it is out of date)."
+    "text": "Value\npath, invisibly."
   },
   {
-    "objectID": "reference/jlbind_clients.html#examples",
-    "href": "reference/jlbind_clients.html#examples",
-    "title": "List the packages that use jlbind",
+    "objectID": "reference/use_jlbind.html#examples",
+    "href": "reference/use_jlbind.html#examples",
+    "title": "Set up a package to use jlbind",
     "section": "Examples",
-    "text": "Examples\n\njlbind_clients()\n#&gt; [1] package version module  path    trim    hash   \n#&gt; &lt;0 rows&gt; (or 0-length row.names)"
+    "text": "Examples\n\n# A new package in a temporary directory\npkg &lt;- file.path(tempdir(), \"mypkg\")\ndir.create(pkg)\nwriteLines(\n  c(\n    \"Package: mypkg\",\n    \"Title: Demo\",\n    \"Version: 0.1.0\",\n    \"Description: Demo.\",\n    \"License: MIT\"\n  ),\n  file.path(pkg, \"DESCRIPTION\")\n)\n\nuse_jlbind(pkg)\n#&gt; Created the binding package mypkgBindings in /tmp/Rtmpfz1Kby/mypkg/inst/julia.\n#&gt; Wrote /tmp/Rtmpfz1Kby/mypkg/src/entrypoints.h (1 entrypoints).\n#&gt; Wrote /tmp/Rtmpfz1Kby/mypkg/R/jlbind-wrappers.R.\nlist.files(pkg, recursive = TRUE)\n#&gt; [1] \"DESCRIPTION\"                     \"inst/julia/Project.toml\"        \n#&gt; [3] \"inst/julia/src/mypkgBindings.jl\" \"NAMESPACE\"                      \n#&gt; [5] \"R/jlbind-wrappers.R\"             \"R/jlbind.R\"                     \n#&gt; [7] \"src/entrypoints.h\"               \"src/jlbind.c\"                   \n#&gt; [9] \"src/Makevars\"\n\n# The Julia binding package, with its example entrypoint\nwriteLines(readLines(file.path(pkg, \"inst/julia/src/mypkgBindings.jl\")))\n#&gt; \"\"\"\n#&gt;     mypkgBindings\n#&gt; \n#&gt; The R entrypoints of the R package mypkg. Each `@rcall` declaration\n#&gt; exports a Julia function to R; after changing them, run\n#&gt; `jlbind::update_entrypoints()` to regenerate the R functions that call them, in\n#&gt; `R/jlbind-wrappers.R`.\n#&gt; \"\"\"\n#&gt; module mypkgBindings\n#&gt; \n#&gt; using JLBind\n#&gt; \n#&gt; hello(name::String) = \"Hello, \" * name * \", from Julia!\"\n#&gt; \n#&gt; @rcall hello(name::String)::String\n#&gt; \n#&gt; end"
   },
   {
-    "objectID": "LICENSE-text.html",
-    "href": "LICENSE-text.html",
-    "title": "License",
+    "objectID": "reference/remove_library.html",
+    "href": "reference/remove_library.html",
+    "title": "Remove the Julia library",
     "section": "",
-    "text": "YEAR: 2026\nCOPYRIGHT HOLDER: jlbind authors"
+    "text": "Source: R/library.R"
   },
   {
-    "objectID": "vignettes/articles/performance.html",
-    "href": "vignettes/articles/performance.html",
-    "title": "Performance",
+    "objectID": "reference/remove_library.html#description",
+    "href": "reference/remove_library.html#description",
+    "title": "Remove the Julia library",
+    "section": "Description",
+    "text": "Description\nDeletes the library built by install_library(), with everything else jlbind stores in tools::R_user_dir(\"jlbind\", \"data\"). Packages that use jlbind can’t call their Julia code until you run install_library() again."
+  },
+  {
+    "objectID": "reference/remove_library.html#usage",
+    "href": "reference/remove_library.html#usage",
+    "title": "Remove the Julia library",
+    "section": "Usage",
+    "text": "Usage\nremove_library(ask = interactive())"
+  },
+  {
+    "objectID": "reference/remove_library.html#arguments",
+    "href": "reference/remove_library.html#arguments",
+    "title": "Remove the Julia library",
+    "section": "Arguments",
+    "text": "Arguments\n\n\n\nask\n\n\nIf TRUE, ask before removing. Defaults to interactive()."
+  },
+  {
+    "objectID": "reference/remove_library.html#details",
+    "href": "reference/remove_library.html#details",
+    "title": "Remove the Julia library",
+    "section": "Details",
+    "text": "Details\nLibraries that build_library() wrote elsewhere are left alone, as are the Julia packages that builds downloaded into Julia’s package depot; run Pkg.gc() in Julia to remove the ones nothing uses."
+  },
+  {
+    "objectID": "reference/remove_library.html#value",
+    "href": "reference/remove_library.html#value",
+    "title": "Remove the Julia library",
+    "section": "Value",
+    "text": "Value\nTRUE if there was a library to remove, otherwise FALSE, invisibly."
+  },
+  {
+    "objectID": "reference/remove_library.html#examples",
+    "href": "reference/remove_library.html#examples",
+    "title": "Remove the Julia library",
+    "section": "Examples",
+    "text": "Examples\nremove_library()"
+  },
+  {
+    "objectID": "reference/build_library.html",
+    "href": "reference/build_library.html",
+    "title": "Build a Julia library from specific packages",
     "section": "",
-    "text": "jlbind calls Julia code that was compiled ahead of time, through one .Call() per function. The alternatives, JuliaCall and JuliaConnectoR, run Julia itself: JuliaCall embeds a Julia session in the R process, and JuliaConnectoR starts one in a separate process and talks to it over a socket. This article compares the three on the same Julia functions.\nIn short, on this machine, jlbind is ready to use 84 to 109 times sooner, and a call costs 0.702 µs rather than 8.76 µs (JuliaCall) or 207 µs (JuliaConnectoR)."
+    "text": "Source: R/library.R"
   },
   {
-    "objectID": "vignettes/articles/performance.html#the-benchmarks",
-    "href": "vignettes/articles/performance.html#the-benchmarks",
-    "title": "Performance",
-    "section": "The benchmarks",
-    "text": "The benchmarks\nThe functions are those of benchjl, a minimal jlbind client kept next to the benchmark script:\ngreet(name::String) = \"Hello, \" * name * \"!\"\nshift(x::Vector{Float64}, by::Float64) = x .+ by\njlbind calls them through benchjl, compiled into a jlbind library. JuliaCall and JuliaConnectoR evaluate the same definitions and call them with julia_call() and juliaFun(). Each interface runs in fresh R processes, since jlbind and JuliaCall can’t share one.\n\nStartup: the time from loading the package to the result of the first call, greet(\"world\"), in a new R process (R’s own startup excluded), repeated 10 times.\nCall overhead: the median time of greet(\"world\"), a string in and a string out, after the first call.\nData transfer: the median time of shift(x, 1) for numeric vectors x of length 10 to 107, which copies x to Julia and the result back.\n\nThe benchmark script is vignettes/articles/performance/benchmark.R. The results below were run on1:\n\n\n\n\n\nR\n4.6.1\n\n\nJulia\n1.13.2\n\n\nCPU\nAMD Ryzen 7 8845HS w/ Radeon 780M Graphics\n\n\njlbind\n0.0.0.9000\n\n\nJuliaCall\n0.17.6\n\n\nJuliaConnectoR\n1.1.6\n\n\nJuliaCall commit\n947d1f3"
+    "objectID": "reference/build_library.html#description",
+    "href": "reference/build_library.html#description",
+    "title": "Build a Julia library from specific packages",
+    "section": "Description",
+    "text": "Description\nLike install_library(), but compiles only packages and writes the library to out, for package development. By default, it builds the package in the working directory into its .jlbind/ directory, which devtools::load_all() then uses instead of the library from install_library(). To use a library written elsewhere, set JLBIND_LIBRARY to its path before loading the package."
   },
   {
-    "objectID": "vignettes/articles/performance.html#startup",
-    "href": "vignettes/articles/performance.html#startup",
-    "title": "Performance",
-    "section": "Startup",
-    "text": "Startup\n\n\n\n\n\nInterface\nMedian\nMin\nMax\n\n\n\n\njlbind\n36.2 ms\n32.6 ms\n40.1 ms\n\n\nJuliaCall\n3.94 s\n3.88 s\n4.28 s\n\n\nJuliaConnectoR\n3.02 s\n2.99 s\n3.16 s\n\n\n\n\n\nFor jlbind, startup is loading the compiled library and binding the package’s routines. JuliaCall and JuliaConnectoR start Julia, and compile each function the first time it is called. With a real Julia package instead of two one-line functions, compiling and loading the package typically take much longer than here."
+    "objectID": "reference/build_library.html#usage",
+    "href": "reference/build_library.html#usage",
+    "title": "Build a Julia library from specific packages",
+    "section": "Usage",
+    "text": "Usage\nbuild_library(\n  packages = \".\",\n  out = NULL,\n  julia = NULL,\n  versions = c(\"manifest\", \"compat\"),\n  develop = NULL\n)"
   },
   {
-    "objectID": "vignettes/articles/performance.html#call-overhead",
-    "href": "vignettes/articles/performance.html#call-overhead",
-    "title": "Performance",
-    "section": "Call overhead",
-    "text": "Call overhead\n\n\n\n\n\nInterface\nTime per call\nRelative to jlbind\n\n\n\n\njlbind\n0.702 µs\n1×\n\n\nJuliaCall\n8.76 µs\n12×\n\n\nJuliaConnectoR\n207 µs\n295×\n\n\n\n\n\nA jlbind call is a .Call() into the compiled library, where the arguments are converted with R’s C API and the function is called directly. JuliaCall converts arguments and looks up the function at run time in the embedded session. JuliaConnectoR serializes the call to a separate Julia process and the result back, so each call costs a round trip."
+    "objectID": "reference/build_library.html#arguments",
+    "href": "reference/build_library.html#arguments",
+    "title": "Build a Julia library from specific packages",
+    "section": "Arguments",
+    "text": "Arguments\n\n\n\npackages\n\n\nPaths to package sources or installed packages, or names of installed packages. An entry containing a / (or \\ on Windows), or that is \".\" or \"..\", is a path; any other is a package name, so write \"./mypkg\" for the sources in the mypkg directory.\n\n\n\n\nout\n\n\nDirectory to write the library to. Defaults to .jlbind/ in the sources of packages, which must then be a single path.\n\n\n\n\njulia\n\n\nPath to the julia executable. By default, the JULIA environment variable, or julia on the PATH.\n\n\n\n\nversions\n\n\nWhere the Julia dependency versions come from. \"manifest\" keeps the versions in the first package’s Manifest.toml where the other packages’ [compat] bounds allow. \"compat\" ignores the manifests and lets Julia’s resolver choose versions from the [compat] bounds alone.\n\n\n\n\ndevelop\n\n\nPaths to local Julia packages to use instead of their released versions."
   },
   {
-    "objectID": "vignettes/articles/performance.html#data-transfer",
-    "href": "vignettes/articles/performance.html#data-transfer",
-    "title": "Performance",
-    "section": "Data transfer",
-    "text": "Data transfer\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nLength\njlbind\nJuliaCall\nJuliaConnectoR\n\n\n\n\n10\n1.14 µs\n11.1 µs\n237 µs\n\n\n100\n1.33 µs\n14.5 µs\n261 µs\n\n\n1,000\n11.6 µs\n43.6 µs\n262 µs\n\n\n10,000\n72.8 µs\n292 µs\n389 µs\n\n\n100,000\n175 µs\n2.95 ms\n2.16 ms\n\n\n1,000,000\n4.88 ms\n33.8 ms\n18.9 ms\n\n\n10,000,000\n118 ms\n471 ms\n291 ms"
+    "objectID": "reference/build_library.html#value",
+    "href": "reference/build_library.html#value",
+    "title": "Build a Julia library from specific packages",
+    "section": "Value",
+    "text": "Value\nThe path to the library, invisibly."
   },
   {
-    "objectID": "vignettes/articles/performance.html#footnotes",
-    "href": "vignettes/articles/performance.html#footnotes",
-    "title": "Performance",
-    "section": "Footnotes",
-    "text": "Footnotes\n\n\nUsing the development version of JuliaCall, which fixes several issues, including failing on Ubuntu 24 (JuliaCall#265).↩︎"
+    "objectID": "reference/build_library.html#examples",
+    "href": "reference/build_library.html#examples",
+    "title": "Build a Julia library from specific packages",
+    "section": "Examples",
+    "text": "Examples\n# In the sources of a package that uses jlbind\nbuild_library()\ndevtools::load_all()\n\n# Several packages, used through JLBIND_LIBRARY\nlib &lt;- build_library(c(\"pkg1\", \"pkg2\"), \"jlbind-lib\")\nSys.setenv(JLBIND_LIBRARY = lib)"
   },
   {
-    "objectID": "authors.html",
-    "href": "authors.html",
-    "title": "Authors and Citation",
+    "objectID": "vignettes/using-clients.html",
+    "href": "vignettes/using-clients.html",
+    "title": "Using packages built on jlbind",
     "section": "",
-    "text": "Bjarke Hautop Kristensen. Author, maintainer."
+    "text": "Source: vignettes/using-clients.qmd\njlbind lets R packages call Julia code compiled ahead of time into a shared library, without a Julia session. This vignette explains how that library works and how to use an R package built with jlbind. To add Julia functions to your own R package, see Get started with jlbind. For how jlbind compares with other ways of calling Julia from R, see Performance."
   },
   {
-    "objectID": "authors.html#authors",
-    "href": "authors.html#authors",
-    "title": "Authors and Citation",
-    "section": "",
-    "text": "Bjarke Hautop Kristensen. Author, maintainer."
+    "objectID": "vignettes/using-clients.html#how-it-works",
+    "href": "vignettes/using-clients.html#how-it-works",
+    "title": "Using packages built on jlbind",
+    "section": "How it works",
+    "text": "How it works\nAn R process can load only one compiled Julia library. Julia has one runtime per process, and that runtime uses a single compiled image. If two R packages loaded separate copies of the library, they could conflict and crash the R session.\nTo avoid this, jlbind builds one shared library for each user, combining the Julia code of all installed R packages that use jlbind (clients). When you run install_library(), jlbind finds the installed clients, compiles their binding packages into one library, and saves it under tools::R_user_dir(\"jlbind\", \"data\"). Loading a client loads that library and connects the client to it.\nA client can only be bound to a library built from the version of that client currently installed. If you update a package without rebuilding the library, its functions will report that the library needs to be rebuilt."
   },
   {
-    "objectID": "authors.html#citation",
-    "href": "authors.html#citation",
-    "title": "Authors and Citation",
-    "section": "Citation",
-    "text": "Citation\n\nSource: DESCRIPTION\n\n\nKristensen B (2026). jlbind: Bind R Packages to Compiled Julia Code. R package version 0.0.0.9000, https://github.com/BjarkeHautop/jlbind.\n\n@Manual{,\n  title = {jlbind: Bind R Packages to Compiled Julia Code},\n  author = {Bjarke Hautop Kristensen},\n  year = {2026},\n  note = {R package version 0.0.0.9000},\n  url = {https://github.com/BjarkeHautop/jlbind},\n}"
+    "objectID": "vignettes/using-clients.html#using-a-package-built-on-jlbind",
+    "href": "vignettes/using-clients.html#using-a-package-built-on-jlbind",
+    "title": "Using packages built on jlbind",
+    "section": "Using a package built on jlbind",
+    "text": "Using a package built on jlbind\nYou need Julia 1.13 or later to build the shared library.\nAfter installing or updating an R package that uses jlbind, run:\njlbind::install_library()\nThe first build downloads and compiles the required Julia dependencies, so it may take a few minutes.\n\n\n\n\n\n\nNoteRestart R after rebuilding a library that is already loaded\n\n\n\nJulia cannot be restarted within an R session. If the old library has already been loaded, rebuilding it on disk does not replace the copy in memory. Restart R to use the new library.\n\n\n\nIf something doesn’t work correctly\nIf a package that uses jlbind doesn’t work, first check its status:\njlbind::check_bound(\"somepkg\")\nThe most common causes are that the shared library hasn’t been built yet, or that the package was updated after the last build. For a full report, run:\njlbind::jlbind_sitrep()\nIt shows the Julia that install_library() would use (with its version, and whether it came from JULIA or the PATH), the library and what it was built from, each installed package that uses jlbind and whether the library is current for it, and the thread count. It works whether or not a library has loaded, and returns the same information invisibly as a list.\nIf the Julia installation used for the build has been removed or replaced, for example by a juliaup update, rebuild the library. install_library() rebuilds it when the Julia version differs from the one it was built with. If the version is the same, use force = TRUE:\njlbind::install_library(force = TRUE)\nYou can select the Julia installation to use by setting the JULIA environment variable or by passing julia = to install_library().\nThe library is compiled for the building machine’s CPU. To use it on other machines (e.g. cluster nodes), set JULIA_CPU_TARGET=generic and rebuild with force = TRUE.\n\n\nThreads\nJulia runs with one thread by default. To use multiple threads, set JULIA_NUM_THREADS before loading the first package that uses jlbind, for example in your .Renviron file:\nJULIA_NUM_THREADS=auto # or a number, such as 4\nThe thread count is fixed when the library is loaded, so restart R after changing it.\n\n\nDependency versions\nAll clients share a single set of Julia dependencies. By default, the build starts from the versions in the Manifest.toml of the first client that has one, and keeps them for the other clients where their [compat] bounds allow. Pass versions = \"compat\" to ignore the manifests and let Julia’s resolver choose versions from the clients’ [compat] bounds alone.\nIf a client’s [compat] bounds conflict with those of the clients listed before it by jlbind_clients(), it is left out of the build; check_bound() says which clients it conflicts with.\nYou can control which clients are included by specifying them explicitly:\njlbind::install_library(packages = c(\"pkgA\", \"pkgC\"))\n\n\n\n\n\n\nImportantClients with incompatible dependencies cannot share a library\n\n\n\n\n\nIf you need both clients but never need them in the same R session, build a separate library for each. Set JLBIND_LIBRARY before loading the client to select the library for that session.\nFor example, build the two libraries:\njlbind::build_library(\"pkgA\", \"~/jlbind/pkgA\")\njlbind::build_library(\"pkgB\", \"~/jlbind/pkgB\")\nThen select one in an R session:\n# jlbind.dll on Windows, jlbind.dylib on macOS\nSys.setenv(JLBIND_LIBRARY = \"~/jlbind/pkgA/jlbind.so\")\nlibrary(pkgA)"
   },
   {
     "objectID": "vignettes/jlbind.html",
     "href": "vignettes/jlbind.html",
     "title": "Get started with jlbind",
     "section": "",
-    "text": "jlbind lets an R package call Julia code without starting a separate Julia session. It compiles Julia code into a shared library using JuliaC.jl, then exposes Julia functions to R through native .Call() routines.\nThis vignette explains how to add Julia functions to your own R package with jlbind. An R package that uses jlbind is called a client. For how jlbind compares with other ways of calling Julia from R, see Performance.\nAn R process can load only one compiled Julia library1, so jlbind compiles the Julia code of all installed clients into one shared library, which each user builds with jlbind::install_library(). Your client therefore shares Julia dependency versions with every other client the user has installed. Using packages built on jlbind describes how this works and what your users need to do; your README should tell them to run jlbind::install_library() after installing your package.\nFor complete, working examples, see the two small clients that jlbind’s tests build: hellojl, which passes plain values, and counterjl, which keeps Julia objects in R (see Julia objects in R)."
+    "text": "Source: vignettes/jlbind.qmd\njlbind lets an R package call Julia code without starting a separate Julia session. It compiles Julia code into a shared library using JuliaC.jl, then exposes Julia functions to R through native .Call() routines.\nThis vignette explains how to add Julia functions to your own R package with jlbind. An R package that uses jlbind is called a client. For how jlbind compares with other ways of calling Julia from R, see Performance.\nAn R process can load only one compiled Julia library1, so jlbind compiles the Julia code of all installed clients into one shared library, which each user builds with jlbind::install_library(). Your client therefore shares Julia dependency versions with every other client the user has installed. Using packages built on jlbind describes how this works and what your users need to do; your README should tell them to run jlbind::install_library() after installing your package.\nFor complete, working examples, see the two small clients that jlbind’s tests build: hellojl, which passes plain values, and counterjl, which keeps Julia objects in R (see Julia objects in R)."
   },
   {
     "objectID": "vignettes/jlbind.html#set-up",
@@ -399,290 +392,297 @@
     "text": "Footnotes\n\n\nJuliaC can privatize a library, giving it its own copy of the Julia runtime, but jlbind doesn’t use this. Each client would then ship a bundle with its own runtime and compiled copy of Base: about 60 MB per client on Linux and 100 MB on Windows, even for a tiny client, where a shared library adds only each client’s own code. Each runtime would also have its own garbage-collected heap and threads in memory, and Julia objects couldn’t be passed between clients. Privatization also doesn’t work on Windows yet (JuliaC.jl#151).↩︎"
   },
   {
-    "objectID": "vignettes/using-clients.html",
-    "href": "vignettes/using-clients.html",
-    "title": "Using packages built on jlbind",
+    "objectID": "authors.html",
+    "href": "authors.html",
+    "title": "Authors and Citation",
     "section": "",
-    "text": "jlbind lets R packages call Julia code compiled ahead of time into a shared library, without a Julia session. This vignette explains how that library works and how to use an R package built with jlbind. To add Julia functions to your own R package, see Get started with jlbind. For how jlbind compares with other ways of calling Julia from R, see Performance."
+    "text": "Bjarke Hautop Kristensen. Author, maintainer."
   },
   {
-    "objectID": "vignettes/using-clients.html#how-it-works",
-    "href": "vignettes/using-clients.html#how-it-works",
-    "title": "Using packages built on jlbind",
-    "section": "How it works",
-    "text": "How it works\nAn R process can load only one compiled Julia library. Julia has one runtime per process, and that runtime uses a single compiled image. If two R packages loaded separate copies of the library, they could conflict and crash the R session.\nTo avoid this, jlbind builds one shared library for each user, combining the Julia code of all installed R packages that use jlbind (clients). When you run install_library(), jlbind finds the installed clients, compiles their binding packages into one library, and saves it under tools::R_user_dir(\"jlbind\", \"data\"). Loading a client loads that library and connects the client to it.\nA client can only be bound to a library built from the version of that client currently installed. If you update a package without rebuilding the library, its functions will report that the library needs to be rebuilt."
-  },
-  {
-    "objectID": "vignettes/using-clients.html#using-a-package-built-on-jlbind",
-    "href": "vignettes/using-clients.html#using-a-package-built-on-jlbind",
-    "title": "Using packages built on jlbind",
-    "section": "Using a package built on jlbind",
-    "text": "Using a package built on jlbind\nYou need Julia 1.13 or later to build the shared library.\nAfter installing or updating an R package that uses jlbind, run:\njlbind::install_library()\nThe first build downloads and compiles the required Julia dependencies, so it may take a few minutes.\n\n\n\n\n\n\nNoteRestart R after rebuilding a library that is already loaded\n\n\n\nJulia cannot be restarted within an R session. If the old library has already been loaded, rebuilding it on disk does not replace the copy in memory. Restart R to use the new library.\n\n\n\nIf something doesn’t work correctly\nIf a package that uses jlbind doesn’t work, first check its status:\njlbind::check_bound(\"somepkg\")\nThe most common causes are that the shared library hasn’t been built yet, or that the package was updated after the last build. For a full report, run:\njlbind::jlbind_sitrep()\nIt shows the Julia that install_library() would use (with its version, and whether it came from JULIA or the PATH), the library and what it was built from, each installed package that uses jlbind and whether the library is current for it, and the thread count. It works whether or not a library has loaded, and returns the same information invisibly as a list.\nIf the Julia installation used for the build has been removed or replaced, for example by a juliaup update, rebuild the library. install_library() rebuilds it when the Julia version differs from the one it was built with. If the version is the same, use force = TRUE:\njlbind::install_library(force = TRUE)\nYou can select the Julia installation to use by setting the JULIA environment variable or by passing julia = to install_library().\nThe library is compiled for the building machine’s CPU. To use it on other machines (e.g. cluster nodes), set JULIA_CPU_TARGET=generic and rebuild with force = TRUE.\n\n\nThreads\nJulia runs with one thread by default. To use multiple threads, set JULIA_NUM_THREADS before loading the first package that uses jlbind, for example in your .Renviron file:\nJULIA_NUM_THREADS=auto # or a number, such as 4\nThe thread count is fixed when the library is loaded, so restart R after changing it.\n\n\nDependency versions\nAll clients share a single set of Julia dependencies. By default, the build starts from the versions in the Manifest.toml of the first client that has one, and keeps them for the other clients where their [compat] bounds allow. Pass versions = \"compat\" to ignore the manifests and let Julia’s resolver choose versions from the clients’ [compat] bounds alone.\nIf a client’s [compat] bounds conflict with those of the clients listed before it by jlbind_clients(), it is left out of the build; check_bound() says which clients it conflicts with.\nYou can control which clients are included by specifying them explicitly:\njlbind::install_library(packages = c(\"pkgA\", \"pkgC\"))\n\n\n\n\n\n\nImportantClients with incompatible dependencies cannot share a library\n\n\n\n\n\nIf you need both clients but never need them in the same R session, build a separate library for each. Set JLBIND_LIBRARY before loading the client to select the library for that session.\nFor example, build the two libraries:\njlbind::build_library(\"pkgA\", \"~/jlbind/pkgA\")\njlbind::build_library(\"pkgB\", \"~/jlbind/pkgB\")\nThen select one in an R session:\n# jlbind.dll on Windows, jlbind.dylib on macOS\nSys.setenv(JLBIND_LIBRARY = \"~/jlbind/pkgA/jlbind.so\")\nlibrary(pkgA)"
-  },
-  {
-    "objectID": "reference/build_library.html",
-    "href": "reference/build_library.html",
-    "title": "Build a Julia library from specific packages",
+    "objectID": "authors.html#authors",
+    "href": "authors.html#authors",
+    "title": "Authors and Citation",
     "section": "",
-    "text": "Like install_library(), but compiles only packages and writes the library to out, for package development. By default, it builds the package in the working directory into its .jlbind/ directory, which devtools::load_all() then uses instead of the library from install_library(). To use a library written elsewhere, set JLBIND_LIBRARY to its path before loading the package."
+    "text": "Bjarke Hautop Kristensen. Author, maintainer."
   },
   {
-    "objectID": "reference/build_library.html#description",
-    "href": "reference/build_library.html#description",
-    "title": "Build a Julia library from specific packages",
+    "objectID": "authors.html#citation",
+    "href": "authors.html#citation",
+    "title": "Authors and Citation",
+    "section": "Citation",
+    "text": "Citation\n\nSource: DESCRIPTION\n\n\nKristensen B (2026). jlbind: Bind R Packages to Compiled Julia Code. R package version 0.0.0.9000, https://github.com/BjarkeHautop/jlbind.\n\n@Manual{,\n  title = {jlbind: Bind R Packages to Compiled Julia Code},\n  author = {Bjarke Hautop Kristensen},\n  year = {2026},\n  note = {R package version 0.0.0.9000},\n  url = {https://github.com/BjarkeHautop/jlbind},\n}"
+  },
+  {
+    "objectID": "vignettes/articles/performance.html",
+    "href": "vignettes/articles/performance.html",
+    "title": "Performance",
     "section": "",
-    "text": "Like install_library(), but compiles only packages and writes the library to out, for package development. By default, it builds the package in the working directory into its .jlbind/ directory, which devtools::load_all() then uses instead of the library from install_library(). To use a library written elsewhere, set JLBIND_LIBRARY to its path before loading the package."
+    "text": "Source: vignettes/articles/performance.qmd\njlbind calls Julia code that was compiled ahead of time, through one .Call() per function. The alternatives, JuliaCall and JuliaConnectoR, run Julia itself: JuliaCall embeds a Julia session in the R process, and JuliaConnectoR starts one in a separate process and talks to it over a socket. This article compares the three on the same Julia functions.\nIn short, on this machine, jlbind is ready to use 84 to 109 times sooner, and a call costs 0.702 µs rather than 8.76 µs (JuliaCall) or 207 µs (JuliaConnectoR)."
   },
   {
-    "objectID": "reference/build_library.html#usage",
-    "href": "reference/build_library.html#usage",
-    "title": "Build a Julia library from specific packages",
+    "objectID": "vignettes/articles/performance.html#the-benchmarks",
+    "href": "vignettes/articles/performance.html#the-benchmarks",
+    "title": "Performance",
+    "section": "The benchmarks",
+    "text": "The benchmarks\nThe functions are those of benchjl, a minimal jlbind client kept next to the benchmark script:\ngreet(name::String) = \"Hello, \" * name * \"!\"\nshift(x::Vector{Float64}, by::Float64) = x .+ by\njlbind calls them through benchjl, compiled into a jlbind library. JuliaCall and JuliaConnectoR evaluate the same definitions and call them with julia_call() and juliaFun(). Each interface runs in fresh R processes, since jlbind and JuliaCall can’t share one.\n\nStartup: the time from loading the package to the result of the first call, greet(\"world\"), in a new R process (R’s own startup excluded), repeated 10 times.\nCall overhead: the median time of greet(\"world\"), a string in and a string out, after the first call.\nData transfer: the median time of shift(x, 1) for numeric vectors x of length 10 to 107, which copies x to Julia and the result back.\n\nThe benchmark script is vignettes/articles/performance/benchmark.R. The results below were run on1:\n\n\n\n\n\nR\n4.6.1\n\n\nJulia\n1.13.2\n\n\nCPU\nAMD Ryzen 7 8845HS w/ Radeon 780M Graphics\n\n\njlbind\n0.0.0.9000\n\n\nJuliaCall\n0.17.6\n\n\nJuliaConnectoR\n1.1.6\n\n\nJuliaCall commit\n947d1f3"
+  },
+  {
+    "objectID": "vignettes/articles/performance.html#startup",
+    "href": "vignettes/articles/performance.html#startup",
+    "title": "Performance",
+    "section": "Startup",
+    "text": "Startup\n\n\n\n\n\nInterface\nMedian\nMin\nMax\n\n\n\n\njlbind\n36.2 ms\n32.6 ms\n40.1 ms\n\n\nJuliaCall\n3.94 s\n3.88 s\n4.28 s\n\n\nJuliaConnectoR\n3.02 s\n2.99 s\n3.16 s\n\n\n\n\n\nFor jlbind, startup is loading the compiled library and binding the package’s routines. JuliaCall and JuliaConnectoR start Julia, and compile each function the first time it is called. With a real Julia package instead of two one-line functions, compiling and loading the package typically take much longer than here."
+  },
+  {
+    "objectID": "vignettes/articles/performance.html#call-overhead",
+    "href": "vignettes/articles/performance.html#call-overhead",
+    "title": "Performance",
+    "section": "Call overhead",
+    "text": "Call overhead\n\n\n\n\n\nInterface\nTime per call\nRelative to jlbind\n\n\n\n\njlbind\n0.702 µs\n1×\n\n\nJuliaCall\n8.76 µs\n12×\n\n\nJuliaConnectoR\n207 µs\n295×\n\n\n\n\n\nA jlbind call is a .Call() into the compiled library, where the arguments are converted with R’s C API and the function is called directly. JuliaCall converts arguments and looks up the function at run time in the embedded session. JuliaConnectoR serializes the call to a separate Julia process and the result back, so each call costs a round trip."
+  },
+  {
+    "objectID": "vignettes/articles/performance.html#data-transfer",
+    "href": "vignettes/articles/performance.html#data-transfer",
+    "title": "Performance",
+    "section": "Data transfer",
+    "text": "Data transfer\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nLength\njlbind\nJuliaCall\nJuliaConnectoR\n\n\n\n\n10\n1.14 µs\n11.1 µs\n237 µs\n\n\n100\n1.33 µs\n14.5 µs\n261 µs\n\n\n1,000\n11.6 µs\n43.6 µs\n262 µs\n\n\n10,000\n72.8 µs\n292 µs\n389 µs\n\n\n100,000\n175 µs\n2.95 ms\n2.16 ms\n\n\n1,000,000\n4.88 ms\n33.8 ms\n18.9 ms\n\n\n10,000,000\n118 ms\n471 ms\n291 ms"
+  },
+  {
+    "objectID": "vignettes/articles/performance.html#footnotes",
+    "href": "vignettes/articles/performance.html#footnotes",
+    "title": "Performance",
+    "section": "Footnotes",
+    "text": "Footnotes\n\n\nUsing the development version of JuliaCall, which fixes several issues, including failing on Ubuntu 24 (JuliaCall#265).↩︎"
+  },
+  {
+    "objectID": "LICENSE-text.html",
+    "href": "LICENSE-text.html",
+    "title": "License",
+    "section": "",
+    "text": "YEAR: 2026\nCOPYRIGHT HOLDER: jlbind authors"
+  },
+  {
+    "objectID": "reference/jlbind_clients.html",
+    "href": "reference/jlbind_clients.html",
+    "title": "List the packages that use jlbind",
+    "section": "",
+    "text": "Source: R/clients.R"
+  },
+  {
+    "objectID": "reference/jlbind_clients.html#description",
+    "href": "reference/jlbind_clients.html#description",
+    "title": "List the packages that use jlbind",
+    "section": "Description",
+    "text": "Description\nLists the installed packages that install_library() will compile. A package uses jlbind if its DESCRIPTION has a Config/jlbind field. If a package is installed in more than one library, the copy that library() would load is the one listed."
+  },
+  {
+    "objectID": "reference/jlbind_clients.html#usage",
+    "href": "reference/jlbind_clients.html#usage",
+    "title": "List the packages that use jlbind",
     "section": "Usage",
-    "text": "Usage\nbuild_library(\n  packages = \".\",\n  out = NULL,\n  julia = NULL,\n  versions = c(\"manifest\", \"compat\"),\n  develop = NULL\n)"
+    "text": "Usage\njlbind_clients(lib.loc = NULL)"
   },
   {
-    "objectID": "reference/build_library.html#arguments",
-    "href": "reference/build_library.html#arguments",
-    "title": "Build a Julia library from specific packages",
+    "objectID": "reference/jlbind_clients.html#arguments",
+    "href": "reference/jlbind_clients.html#arguments",
+    "title": "List the packages that use jlbind",
     "section": "Arguments",
-    "text": "Arguments\n\n\n\npackages\n\n\nPaths to package sources or installed packages, or names of installed packages. An entry containing a / (or \\ on Windows), or that is \".\" or \"..\", is a path; any other is a package name, so write \"./mypkg\" for the sources in the mypkg directory.\n\n\n\n\nout\n\n\nDirectory to write the library to. Defaults to .jlbind/ in the sources of packages, which must then be a single path.\n\n\n\n\njulia\n\n\nPath to the julia executable. By default, the JULIA environment variable, or julia on the PATH.\n\n\n\n\nversions\n\n\nWhere the Julia dependency versions come from. \"manifest\" keeps the versions in the first package’s Manifest.toml where the other packages’ [compat] bounds allow. \"compat\" ignores the manifests and lets Julia’s resolver choose versions from the [compat] bounds alone.\n\n\n\n\ndevelop\n\n\nPaths to local Julia packages to use instead of their released versions."
+    "text": "Arguments\n\n\n\nlib.loc\n\n\nLibrary paths to search. Defaults to .libPaths()."
   },
   {
-    "objectID": "reference/build_library.html#value",
-    "href": "reference/build_library.html#value",
-    "title": "Build a Julia library from specific packages",
+    "objectID": "reference/jlbind_clients.html#value",
+    "href": "reference/jlbind_clients.html#value",
+    "title": "List the packages that use jlbind",
     "section": "Value",
-    "text": "Value\nThe path to the library, invisibly."
+    "text": "Value\nA data frame with one row per package and the columns package, version, module (the name of its Julia binding package), path (where the binding package is), trim (FALSE if it sets Config/jlbind/trim: false) and hash (a hash of the binding package’s files, which the library records to tell when it is out of date)."
   },
   {
-    "objectID": "reference/build_library.html#examples",
-    "href": "reference/build_library.html#examples",
-    "title": "Build a Julia library from specific packages",
+    "objectID": "reference/jlbind_clients.html#examples",
+    "href": "reference/jlbind_clients.html#examples",
+    "title": "List the packages that use jlbind",
     "section": "Examples",
-    "text": "Examples\n# In the sources of a package that uses jlbind\nbuild_library()\ndevtools::load_all()\n\n# Several packages, used through JLBIND_LIBRARY\nlib &lt;- build_library(c(\"pkg1\", \"pkg2\"), \"jlbind-lib\")\nSys.setenv(JLBIND_LIBRARY = lib)"
+    "text": "Examples\n\njlbind_clients()\n#&gt; [1] package version module  path    trim    hash   \n#&gt; &lt;0 rows&gt; (or 0-length row.names)"
   },
   {
-    "objectID": "reference/remove_library.html",
-    "href": "reference/remove_library.html",
-    "title": "Remove the Julia library",
+    "objectID": "reference/install_library.html",
+    "href": "reference/install_library.html",
+    "title": "Build the Julia library",
     "section": "",
-    "text": "Deletes the library built by install_library(), with everything else jlbind stores in tools::R_user_dir(\"jlbind\", \"data\"). Packages that use jlbind can’t call their Julia code until you run install_library() again."
+    "text": "Source: R/library.R"
   },
   {
-    "objectID": "reference/remove_library.html#description",
-    "href": "reference/remove_library.html#description",
-    "title": "Remove the Julia library",
-    "section": "",
-    "text": "Deletes the library built by install_library(), with everything else jlbind stores in tools::R_user_dir(\"jlbind\", \"data\"). Packages that use jlbind can’t call their Julia code until you run install_library() again."
+    "objectID": "reference/install_library.html#description",
+    "href": "reference/install_library.html#description",
+    "title": "Build the Julia library",
+    "section": "Description",
+    "text": "Description\nCompiles the Julia code of every installed package that uses jlbind into one shared library, stored in tools::R_user_dir(\"jlbind\", \"data\"). Run this after you install or update one of those packages. You need Julia 1.13 or later. The first build downloads and compiles the Julia dependencies, which can take a few minutes."
   },
   {
-    "objectID": "reference/remove_library.html#usage",
-    "href": "reference/remove_library.html#usage",
-    "title": "Remove the Julia library",
+    "objectID": "reference/install_library.html#usage",
+    "href": "reference/install_library.html#usage",
+    "title": "Build the Julia library",
     "section": "Usage",
-    "text": "Usage\nremove_library(ask = interactive())"
+    "text": "Usage\ninstall_library(\n  packages = NULL,\n  julia = NULL,\n  ask = interactive(),\n  force = FALSE,\n  versions = c(\"manifest\", \"compat\"),\n  develop = NULL\n)"
   },
   {
-    "objectID": "reference/remove_library.html#arguments",
-    "href": "reference/remove_library.html#arguments",
-    "title": "Remove the Julia library",
+    "objectID": "reference/install_library.html#arguments",
+    "href": "reference/install_library.html#arguments",
+    "title": "Build the Julia library",
     "section": "Arguments",
-    "text": "Arguments\n\n\n\nask\n\n\nIf TRUE, ask before removing. Defaults to interactive()."
+    "text": "Arguments\n\n\n\npackages\n\n\nNames of the installed packages to build. By default, every package listed by jlbind_clients(). The others aren’t bound.\n\n\n\n\njulia\n\n\nPath to the julia executable. By default, the JULIA environment variable, or julia on the PATH.\n\n\n\n\nask\n\n\nIf TRUE, ask before building. Defaults to interactive().\n\n\n\n\nforce\n\n\nIf TRUE, rebuild even if the library is up to date. Always on with versions = \"compat\" or develop.\n\n\n\n\nversions\n\n\nWhere the Julia dependency versions come from. \"manifest\" keeps the versions in the first package’s Manifest.toml where the other packages’ [compat] bounds allow. \"compat\" ignores the manifests and lets Julia’s resolver choose versions from the [compat] bounds alone.\n\n\n\n\ndevelop\n\n\nPaths to local Julia packages to use instead of their released versions."
   },
   {
-    "objectID": "reference/remove_library.html#details",
-    "href": "reference/remove_library.html#details",
-    "title": "Remove the Julia library",
+    "objectID": "reference/install_library.html#details",
+    "href": "reference/install_library.html#details",
+    "title": "Build the Julia library",
     "section": "Details",
-    "text": "Details\nLibraries that build_library() wrote elsewhere are left alone, as are the Julia packages that builds downloaded into Julia’s package depot; run Pkg.gc() in Julia to remove the ones nothing uses."
+    "text": "Details\nAll packages share one Julia environment. By default, the dependencies get the versions in the first package’s Manifest.toml. If two packages conflict, the one listed later by jlbind_clients() is left out, and check_bound() says why. See vignette(\"using-clients\", \"jlbind\") for details.\nThe library is rebuilt only if it is out of date: built from other versions of the packages or other Julia code in them, by another version of jlbind or Julia, or with develop. If a library is already loaded, restart R to use the new one."
   },
   {
-    "objectID": "reference/remove_library.html#value",
-    "href": "reference/remove_library.html#value",
-    "title": "Remove the Julia library",
+    "objectID": "reference/install_library.html#value",
+    "href": "reference/install_library.html#value",
+    "title": "Build the Julia library",
     "section": "Value",
-    "text": "Value\nTRUE if there was a library to remove, otherwise FALSE, invisibly."
+    "text": "Value\nThe path to the library (invisibly), or NULL if there was nothing to build."
   },
   {
-    "objectID": "reference/remove_library.html#examples",
-    "href": "reference/remove_library.html#examples",
-    "title": "Remove the Julia library",
+    "objectID": "reference/install_library.html#examples",
+    "href": "reference/install_library.html#examples",
+    "title": "Build the Julia library",
     "section": "Examples",
-    "text": "Examples\nremove_library()"
+    "text": "Examples\ninstall_library()\n\n# With a local checkout of a Julia dependency\ninstall_library(develop = \"~/dev/SomePackage.jl\")\n\n# Only two of the installed packages\ninstall_library(packages = c(\"pkgA\", \"pkgB\"))"
   },
   {
-    "objectID": "reference/use_jlbind.html",
-    "href": "reference/use_jlbind.html",
-    "title": "Set up a package to use jlbind",
+    "objectID": "reference/is_bound.html",
+    "href": "reference/is_bound.html",
+    "title": "Check whether a package is bound to the Julia library",
     "section": "",
-    "text": "Adds what a package needs to call Julia code through jlbind."
+    "text": "Source: R/runtime.R"
   },
   {
-    "objectID": "reference/use_jlbind.html#description",
-    "href": "reference/use_jlbind.html#description",
-    "title": "Set up a package to use jlbind",
-    "section": "",
-    "text": "Adds what a package needs to call Julia code through jlbind."
+    "objectID": "reference/is_bound.html#description",
+    "href": "reference/is_bound.html#description",
+    "title": "Check whether a package is bound to the Julia library",
+    "section": "Description",
+    "text": "Description\nis_bound() returns TRUE or FALSE. check_bound() gives an error that explains why the package isn’t bound."
   },
   {
-    "objectID": "reference/use_jlbind.html#usage",
-    "href": "reference/use_jlbind.html#usage",
-    "title": "Set up a package to use jlbind",
+    "objectID": "reference/is_bound.html#usage",
+    "href": "reference/is_bound.html#usage",
+    "title": "Check whether a package is bound to the Julia library",
     "section": "Usage",
-    "text": "Usage\nuse_jlbind(path = \".\", module = NULL, dir = \"julia\")"
+    "text": "Usage\nis_bound(pkg)\n\ncheck_bound(pkg)"
   },
   {
-    "objectID": "reference/use_jlbind.html#arguments",
-    "href": "reference/use_jlbind.html#arguments",
-    "title": "Set up a package to use jlbind",
+    "objectID": "reference/is_bound.html#arguments",
+    "href": "reference/is_bound.html#arguments",
+    "title": "Check whether a package is bound to the Julia library",
     "section": "Arguments",
-    "text": "Arguments\n\n\n\npath\n\n\nPath to the package sources.\n\n\n\n\nmodule\n\n\nName of the Julia binding package. Defaults to the package name followed by Bindings. It must be unique across all packages that use jlbind, since they’re all compiled into one library.\n\n\n\n\ndir\n\n\nDirectory under inst/ for the binding package."
+    "text": "Arguments\n\n\n\npkg\n\n\nName of a package that uses jlbind."
   },
   {
-    "objectID": "reference/use_jlbind.html#details",
-    "href": "reference/use_jlbind.html#details",
-    "title": "Set up a package to use jlbind",
-    "section": "Details",
-    "text": "Details\n\n\nA Julia binding package in inst/&lt;dir&gt;, with one example function, hello(). An existing binding package is left alone.\n\n\nThe C code that registers the package’s routines: src/jlbind.c and src/entrypoints.h (written by update_entrypoints()), and a rule in src/Makevars (created if needed) that recompiles jlbind.c when entrypoints.h changes.\n\n\nR/jlbind.R, with an .onLoad() that calls bind_client(), and the roxygen tag for useDynLib(). If the package already has an .onLoad(), add jlbind::bind_client(pkgname) to it yourself.\n\n\nThe Config/jlbind and Imports: jlbind fields in DESCRIPTION.\n\n\n.jlbind/, where build_library() writes a library for development, in .Rbuildignore and .gitignore.\n\n\nR/jlbind-wrappers.R (written by update_entrypoints()), with an R function for each Julia function declared with @rcall."
-  },
-  {
-    "objectID": "reference/use_jlbind.html#value",
-    "href": "reference/use_jlbind.html#value",
-    "title": "Set up a package to use jlbind",
+    "objectID": "reference/is_bound.html#value",
+    "href": "reference/is_bound.html#value",
+    "title": "Check whether a package is bound to the Julia library",
     "section": "Value",
-    "text": "Value\npath, invisibly."
+    "text": "Value\nis_bound(): TRUE or FALSE. check_bound(): TRUE (invisibly) if the package is bound, otherwise an error."
   },
   {
-    "objectID": "reference/use_jlbind.html#examples",
-    "href": "reference/use_jlbind.html#examples",
-    "title": "Set up a package to use jlbind",
+    "objectID": "reference/is_bound.html#examples",
+    "href": "reference/is_bound.html#examples",
+    "title": "Check whether a package is bound to the Julia library",
     "section": "Examples",
-    "text": "Examples\n\n# A new package in a temporary directory\npkg &lt;- file.path(tempdir(), \"mypkg\")\ndir.create(pkg)\nwriteLines(\n  c(\n    \"Package: mypkg\",\n    \"Title: Demo\",\n    \"Version: 0.1.0\",\n    \"Description: Demo.\",\n    \"License: MIT\"\n  ),\n  file.path(pkg, \"DESCRIPTION\")\n)\n\nuse_jlbind(pkg)\n#&gt; Created the binding package mypkgBindings in /tmp/RtmpeBYbum/mypkg/inst/julia.\n#&gt; Wrote /tmp/RtmpeBYbum/mypkg/src/entrypoints.h (1 entrypoints).\n#&gt; Wrote /tmp/RtmpeBYbum/mypkg/R/jlbind-wrappers.R.\nlist.files(pkg, recursive = TRUE)\n#&gt; [1] \"DESCRIPTION\"                     \"inst/julia/Project.toml\"        \n#&gt; [3] \"inst/julia/src/mypkgBindings.jl\" \"NAMESPACE\"                      \n#&gt; [5] \"R/jlbind-wrappers.R\"             \"R/jlbind.R\"                     \n#&gt; [7] \"src/entrypoints.h\"               \"src/jlbind.c\"                   \n#&gt; [9] \"src/Makevars\"\n\n# The Julia binding package, with its example entrypoint\nwriteLines(readLines(file.path(pkg, \"inst/julia/src/mypkgBindings.jl\")))\n#&gt; \"\"\"\n#&gt;     mypkgBindings\n#&gt; \n#&gt; The R entrypoints of the R package mypkg. Each `@rcall` declaration\n#&gt; exports a Julia function to R; after changing them, run\n#&gt; `jlbind::update_entrypoints()` to regenerate the R functions that call them, in\n#&gt; `R/jlbind-wrappers.R`.\n#&gt; \"\"\"\n#&gt; module mypkgBindings\n#&gt; \n#&gt; using JLBind\n#&gt; \n#&gt; hello(name::String) = \"Hello, \" * name * \", from Julia!\"\n#&gt; \n#&gt; @rcall hello(name::String)::String\n#&gt; \n#&gt; end"
+    "text": "Examples\n\n# Not bound, as no package named mypkg has been loaded\nis_bound(\"mypkg\")\n#&gt; [1] FALSE\ntry(check_bound(\"mypkg\"))\n#&gt; Error : Package mypkg has not asked to be bound; is it loaded, and does it call jlbind::bind_client() from its .onLoad()?"
   },
   {
-    "objectID": "reference/update_entrypoints.html",
-    "href": "reference/update_entrypoints.html",
-    "title": "Update the list of Julia functions R can call",
+    "objectID": "reference/use_jlbind_ci.html",
+    "href": "reference/use_jlbind_ci.html",
+    "title": "Check a package with its Julia code on GitHub Actions",
     "section": "",
-    "text": "Finds the @rcall declarations in the package’s Julia binding package and generates the code that lets R call them. Run this whenever you add or remove an @rcall, or change its arguments. It writes two files:"
+    "text": "Source: R/scaffold.R"
   },
   {
-    "objectID": "reference/update_entrypoints.html#description",
-    "href": "reference/update_entrypoints.html#description",
-    "title": "Update the list of Julia functions R can call",
-    "section": "",
-    "text": "Finds the @rcall declarations in the package’s Julia binding package and generates the code that lets R call them. Run this whenever you add or remove an @rcall, or change its arguments. It writes two files:"
+    "objectID": "reference/use_jlbind_ci.html#description",
+    "href": "reference/use_jlbind_ci.html#description",
+    "title": "Check a package with its Julia code on GitHub Actions",
+    "section": "Description",
+    "text": "Description\nWrites a GitHub Actions workflow that checks the package with and without Julia. With Julia, it runs R CMD check on Linux, Windows and macOS after compiling the package’s Julia code with build_library(), so tests and examples that need the library run. Without Julia, it checks the package once on Linux, as CRAN does, where those tests and examples must be skipped. The workflow is written to .github/workflows/R-CMD-check.yaml."
   },
   {
-    "objectID": "reference/update_entrypoints.html#usage",
-    "href": "reference/update_entrypoints.html#usage",
-    "title": "Update the list of Julia functions R can call",
+    "objectID": "reference/use_jlbind_ci.html#usage",
+    "href": "reference/use_jlbind_ci.html#usage",
+    "title": "Check a package with its Julia code on GitHub Actions",
     "section": "Usage",
-    "text": "Usage\nupdate_entrypoints(path = \".\")"
+    "text": "Usage\nuse_jlbind_ci(path = \".\", overwrite = FALSE)"
   },
   {
-    "objectID": "reference/update_entrypoints.html#arguments",
-    "href": "reference/update_entrypoints.html#arguments",
-    "title": "Update the list of Julia functions R can call",
+    "objectID": "reference/use_jlbind_ci.html#arguments",
+    "href": "reference/use_jlbind_ci.html#arguments",
+    "title": "Check a package with its Julia code on GitHub Actions",
     "section": "Arguments",
-    "text": "Arguments\n\n\n\npath\n\n\nPath to the package sources."
+    "text": "Arguments\n\n\n\npath\n\n\nPath to the package sources.\n\n\n\n\noverwrite\n\n\nIf TRUE, replace an existing .github/workflows/R-CMD-check.yaml."
   },
   {
-    "objectID": "reference/update_entrypoints.html#details",
-    "href": "reference/update_entrypoints.html#details",
-    "title": "Update the list of Julia functions R can call",
+    "objectID": "reference/use_jlbind_ci.html#details",
+    "href": "reference/use_jlbind_ci.html#details",
+    "title": "Check a package with its Julia code on GitHub Actions",
     "section": "Details",
-    "text": "Details\n\n\nsrc/entrypoints.h, from which src/jlbind.c registers a routine C_&lt;name&gt; for each declaration.\n\n\nR/jlbind-wrappers.R, with an R function for each declaration that calls its routine. @rcall shift(x::Vector{Float64}, by::Float64 = 0.0)::Float64 becomes shift &lt;- function(x, by = 0.0) .Call(C_shift, x, by).\n\n\nDefaults must be literal numbers, strings, true, false or nothing (NULL). A function returning Nothing returns invisibly. To export or document a function, use a roxygen block on NULL with @name in another file. To add R code around a call, declare the Julia function with a jl_ prefix and write the R function yourself."
+    "text": "Details\nThe workflow replaces the standard one written by usethis::use_github_action(\"check-standard\"), which has the same name."
   },
   {
-    "objectID": "reference/update_entrypoints.html#value",
-    "href": "reference/update_entrypoints.html#value",
-    "title": "Update the list of Julia functions R can call",
+    "objectID": "reference/use_jlbind_ci.html#value",
+    "href": "reference/use_jlbind_ci.html#value",
+    "title": "Check a package with its Julia code on GitHub Actions",
     "section": "Value",
-    "text": "Value\nInvisibly, a data frame of the entrypoints with the columns name, nargs, and the formals, args and invisible (whether it returns invisibly) of their R wrappers."
+    "text": "Value\nThe path to the workflow, invisibly."
   },
   {
-    "objectID": "reference/update_entrypoints.html#examples",
-    "href": "reference/update_entrypoints.html#examples",
-    "title": "Update the list of Julia functions R can call",
+    "objectID": "reference/use_jlbind_ci.html#examples",
+    "href": "reference/use_jlbind_ci.html#examples",
+    "title": "Check a package with its Julia code on GitHub Actions",
     "section": "Examples",
-    "text": "Examples\n\n# A package set up with use_jlbind() in a temporary directory\npkg &lt;- file.path(tempdir(), \"addpkg\")\ndir.create(pkg)\nwriteLines(\n  c(\n    \"Package: addpkg\",\n    \"Title: Demo\",\n    \"Version: 0.1.0\",\n    \"Description: Demo.\",\n    \"License: MIT\"\n  ),\n  file.path(pkg, \"DESCRIPTION\")\n)\nuse_jlbind(pkg)\n#&gt; Created the binding package addpkgBindings in /tmp/RtmpkRXok0/addpkg/inst/julia.\n#&gt; Wrote /tmp/RtmpkRXok0/addpkg/src/entrypoints.h (1 entrypoints).\n#&gt; Wrote /tmp/RtmpkRXok0/addpkg/R/jlbind-wrappers.R.\n\n# Add an entrypoint to the binding package, before its closing `end`\nfile &lt;- file.path(pkg, \"inst/julia/src/addpkgBindings.jl\")\ncode &lt;- readLines(file)\nlast &lt;- max(which(code == \"end\"))\ncode &lt;- append(\n  code,\n  c(\n    \"add(x::Float64, y::Float64) = x + y\",\n    \"@rcall add(x::Float64, y::Float64)::Float64\",\n    \"\"\n  ),\n  after = last - 1L\n)\nwriteLines(code, file)\n\nupdate_entrypoints(pkg)\n#&gt; Wrote /tmp/RtmpkRXok0/addpkg/src/entrypoints.h (2 entrypoints).\n#&gt; Wrote /tmp/RtmpkRXok0/addpkg/R/jlbind-wrappers.R.\nwriteLines(readLines(file.path(pkg, \"R\", \"jlbind-wrappers.R\")))\n#&gt; # Generated by jlbind::update_entrypoints(): do not edit by hand\n#&gt; \n#&gt; hello &lt;- function(name) .Call(C_hello, name)\n#&gt; add &lt;- function(x, y) .Call(C_add, x, y)"
+    "text": "Examples\n\n# A package in a temporary directory\npkg &lt;- tempfile(\"mypkg\")\ndir.create(pkg)\nwriteLines(c(\"Package: mypkg\", \"Version: 0.1.0\"), file.path(pkg, \"DESCRIPTION\"))\n\nfile &lt;- use_jlbind_ci(pkg)\n#&gt; Wrote /tmp/RtmpnYyQQV/mypkg1adb338d70c/.github/workflows/R-CMD-check.yaml.\nwriteLines(readLines(file))\n#&gt; # Generated by jlbind::use_jlbind_ci(), from r-lib/actions' check-standard\n#&gt; # workflow: https://github.com/r-lib/actions/tree/v2/examples\n#&gt; #\n#&gt; # Runs R CMD check with Julia on Linux, Windows and macOS, after compiling the\n#&gt; # package's Julia code into a library its tests and examples can call, and once\n#&gt; # on Linux without Julia, which is what CRAN sees: the package must install and\n#&gt; # pass its checks without the library.\n#&gt; on:\n#&gt;   push:\n#&gt;     branches: [main, master]\n#&gt;   pull_request:\n#&gt; \n#&gt; name: R-CMD-check.yaml\n#&gt; \n#&gt; permissions: read-all\n#&gt; \n#&gt; jobs:\n#&gt;   R-CMD-check:\n#&gt;     runs-on: ${{ matrix.config.os }}\n#&gt; \n#&gt;     name: ${{ matrix.config.os }} (${{ matrix.config.r }})${{ matrix.config.julia == '' && ' without Julia' || format(' Julia {0}', matrix.config.julia) }}\n#&gt; \n#&gt;     strategy:\n#&gt;       fail-fast: false\n#&gt;       matrix:\n#&gt;         config:\n#&gt;           - {os: ubuntu-latest,   r: 'release', julia: 'nightly'}\n#&gt;           - {os: windows-latest,  r: 'release', julia: 'nightly'}\n#&gt;           - {os: macos-latest,    r: 'release', julia: 'nightly'}\n#&gt;           - {os: ubuntu-latest,   r: 'release', julia: ''}\n#&gt; \n#&gt;     env:\n#&gt;       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}\n#&gt;       R_KEEP_PKG_SOURCE: yes\n#&gt; \n#&gt;     steps:\n#&gt;       - uses: actions/checkout@v7\n#&gt; \n#&gt;       - uses: julia-actions/setup-julia@v3\n#&gt;         if: matrix.config.julia != ''\n#&gt;         with:\n#&gt;           version: ${{ matrix.config.julia }}\n#&gt; \n#&gt;       - uses: julia-actions/cache@v3\n#&gt;         if: matrix.config.julia != ''\n#&gt; \n#&gt;       - uses: r-lib/actions/setup-pandoc@v2\n#&gt; \n#&gt;       - uses: r-lib/actions/setup-r@v2\n#&gt;         with:\n#&gt;           r-version: ${{ matrix.config.r }}\n#&gt;           http-user-agent: ${{ matrix.config.http-user-agent }}\n#&gt;           use-public-rspm: true\n#&gt; \n#&gt;       - uses: r-lib/actions/setup-r-dependencies@v2\n#&gt;         with:\n#&gt;           extra-packages: any::rcmdcheck, BjarkeHautop/jlbind\n#&gt;           needs: check\n#&gt; \n#&gt;       # Compiles the package's Julia code into .jlbind/ and points\n#&gt;       # JLBIND_LIBRARY at the library, so R CMD check binds the package to it.\n#&gt;       - name: Compile the Julia library\n#&gt;         if: matrix.config.julia != ''\n#&gt;         shell: Rscript {0}\n#&gt;         run: |\n#&gt;           lib &lt;- jlbind::build_library()\n#&gt;           cat(\n#&gt;             \"JLBIND_LIBRARY=\", lib, \"\\n\",\n#&gt;             sep = \"\", file = Sys.getenv(\"GITHUB_ENV\"), append = TRUE\n#&gt;           )\n#&gt; \n#&gt;       - uses: r-lib/actions/check-r-package@v2\n#&gt;         with:\n#&gt;           upload-snapshots: true\n#&gt;           build_args: 'c(\"--no-manual\",\"--compact-vignettes=gs+qpdf\")'"
   },
   {
-    "objectID": "reference/index.html",
-    "href": "reference/index.html",
-    "title": "Function reference",
+    "objectID": "reference/jlbind_sitrep.html",
+    "href": "reference/jlbind_sitrep.html",
+    "title": "Report on the jlbind setup",
     "section": "",
-    "text": "Compile the Julia code of the installed packages that use jlbind.\n\n\ninstall_library()\n\n\nBuild the Julia library\n\n\nbuild_library()\n\n\nBuild a Julia library from specific packages\n\n\nremove_library()\n\n\nRemove the Julia library\n\n\njlbind_clients()\n\n\nList the packages that use jlbind"
+    "text": "Source: R/sitrep.R"
   },
   {
-    "objectID": "reference/index.html#building-the-library",
-    "href": "reference/index.html#building-the-library",
-    "title": "Function reference",
-    "section": "",
-    "text": "Compile the Julia code of the installed packages that use jlbind.\n\n\ninstall_library()\n\n\nBuild the Julia library\n\n\nbuild_library()\n\n\nBuild a Julia library from specific packages\n\n\nremove_library()\n\n\nRemove the Julia library\n\n\njlbind_clients()\n\n\nList the packages that use jlbind"
+    "objectID": "reference/jlbind_sitrep.html#description",
+    "href": "reference/jlbind_sitrep.html#description",
+    "title": "Report on the jlbind setup",
+    "section": "Description",
+    "text": "Description\nPrints a report to run when a package that uses jlbind doesn’t work. It shows the Julia that builds the library, the library that is loaded (or would be) and what it was built from, the installed packages that use jlbind and whether the library is current for each, and the Julia thread count. It also works before a library has loaded."
   },
   {
-    "objectID": "reference/index.html#at-run-time",
-    "href": "reference/index.html#at-run-time",
-    "title": "Function reference",
-    "section": "At run time",
-    "text": "At run time\nBind a package to the compiled library, and check on it.\n\n\nbind_client()\n\n\nBind a package to the Julia library\n\n\nis_bound() check_bound()\n\n\nCheck whether a package is bound to the Julia library\n\n\njlbind_sitrep()\n\n\nReport on the jlbind setup"
-  },
-  {
-    "objectID": "reference/index.html#package-development",
-    "href": "reference/index.html#package-development",
-    "title": "Function reference",
-    "section": "Package development",
-    "text": "Package development\nSet up a package to use jlbind.\n\n\nuse_jlbind()\n\n\nSet up a package to use jlbind\n\n\nupdate_entrypoints()\n\n\nUpdate the list of Julia functions R can call\n\n\nuse_jlbind_ci()\n\n\nCheck a package with its Julia code on GitHub Actions"
-  },
-  {
-    "objectID": "reference/bind_client.html",
-    "href": "reference/bind_client.html",
-    "title": "Bind a package to the Julia library",
-    "section": "",
-    "text": "Call this from the .onLoad() of a package that uses jlbind; use_jlbind() sets that up. The first call loads the compiled library, and each call binds one package’s routines to it. If the library is missing or was built from another version of the package, the package isn’t bound and its functions give an error; check_bound() says why."
-  },
-  {
-    "objectID": "reference/bind_client.html#description",
-    "href": "reference/bind_client.html#description",
-    "title": "Bind a package to the Julia library",
-    "section": "",
-    "text": "Call this from the .onLoad() of a package that uses jlbind; use_jlbind() sets that up. The first call loads the compiled library, and each call binds one package’s routines to it. If the library is missing or was built from another version of the package, the package isn’t bound and its functions give an error; check_bound() says why."
-  },
-  {
-    "objectID": "reference/bind_client.html#usage",
-    "href": "reference/bind_client.html#usage",
-    "title": "Bind a package to the Julia library",
+    "objectID": "reference/jlbind_sitrep.html#usage",
+    "href": "reference/jlbind_sitrep.html#usage",
+    "title": "Report on the jlbind setup",
     "section": "Usage",
-    "text": "Usage\nbind_client(pkg)"
+    "text": "Usage\njlbind_sitrep(julia = NULL)"
   },
   {
-    "objectID": "reference/bind_client.html#arguments",
-    "href": "reference/bind_client.html#arguments",
-    "title": "Bind a package to the Julia library",
+    "objectID": "reference/jlbind_sitrep.html#arguments",
+    "href": "reference/jlbind_sitrep.html#arguments",
+    "title": "Report on the jlbind setup",
     "section": "Arguments",
-    "text": "Arguments\n\n\n\npkg\n\n\nThe package name."
+    "text": "Arguments\n\n\n\njulia\n\n\nPath to the julia executable. By default, the JULIA environment variable, or julia on the PATH."
   },
   {
-    "objectID": "reference/bind_client.html#details",
-    "href": "reference/bind_client.html#details",
-    "title": "Bind a package to the Julia library",
-    "section": "Details",
-    "text": "Details\nThe library is the one from install_library(), unless JLBIND_LIBRARY names another, or the first package bound was loaded with pkgload::load_all() and has one from build_library(). That library is rebuilt as the package loads if it is out of date with the package’s sources, as when its Julia code has changed. A library that has already loaded cannot be replaced, so after a change, restart R.\nTo run Julia with more threads, set JULIA_NUM_THREADS (a number or \"auto\") before loading the first package that uses jlbind."
-  },
-  {
-    "objectID": "reference/bind_client.html#value",
-    "href": "reference/bind_client.html#value",
-    "title": "Bind a package to the Julia library",
+    "objectID": "reference/jlbind_sitrep.html#value",
+    "href": "reference/jlbind_sitrep.html#value",
+    "title": "Report on the jlbind setup",
     "section": "Value",
-    "text": "Value\nInvisibly, TRUE if the package is bound and FALSE if not."
+    "text": "Value\nInvisibly, a list with:\n\n\njulia: a list with path (NA if Julia was not found), source (\"argument\", \"JULIA\" or \"PATH\"), version (NA if it could not be run) and ok (whether it is Julia 1.13 or later).\n\n\nlibrary: a list with path, how (\"loaded\", \"failed to load\", \"JLBIND_LIBRARY\" or \"default\"), exists, build (how it was built: the jlbind and Julia versions, when, and whether it is trimmed, or NULL), problems (why it should be rebuilt or cannot load; empty if none) and objects (how many Julia objects R holds references to, or NULL if no library is loaded).\n\n\nclients: a data frame with one row per package that uses jlbind or that the library was built for, with the columns package, version (installed), built (the version in the library), status (\"ok\", \"left out\", \"not in the library\", \"built for version &lt;v&gt;\", \"Julia code changed\" or \"not installed\") and bound.\n\n\nthreads: a list with count (from JULIA_NUM_THREADS) and fixed (TRUE once a library is loaded, after which the count cannot change)."
   },
   {
-    "objectID": "reference/bind_client.html#examples",
-    "href": "reference/bind_client.html#examples",
-    "title": "Bind a package to the Julia library",
+    "objectID": "reference/jlbind_sitrep.html#examples",
+    "href": "reference/jlbind_sitrep.html#examples",
+    "title": "Report on the jlbind setup",
     "section": "Examples",
-    "text": "Examples\n# In a package's R/jlbind.R, as use_jlbind() writes it\n.onLoad &lt;- function(libname, pkgname) {\n  jlbind::bind_client(pkgname)\n}"
+    "text": "Examples\n\njlbind_sitrep()\n#&gt; ── Julia (for building the library)\n#&gt; ✔ Julia 1.13.2 at /usr/bin/julia (from PATH)\n#&gt; ── Library\n#&gt; ✖ /home/runner/.local/share/R/jlbind/library/jlbind.so (default)\n#&gt; ✖ it has not been built\n#&gt; ── Packages that use jlbind\n#&gt;   none installed\n#&gt; ── Threads\n#&gt;   1 Julia thread (JULIA_NUM_THREADS unset)"
   }
 ]
