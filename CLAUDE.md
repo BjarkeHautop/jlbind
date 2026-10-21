@@ -17,9 +17,9 @@ from `vignettes/articles/performance/benchmark.R`.
 
 The website is built with
 [quartodown](https://github.com/BjarkeHautop/quartodown). Build it with
-`quartodown::build_site()` (output in `docs/`). `_quartodown.yml` groups the
-reference index; new functions must be added there. The navbar is generated:
-`jlbind.qmd` is "Get started" and every other vignette, including
+`quartodown::build_site()` (output in `docs/`). `_quartodown/_quartodown.yml`
+groups the reference index; new functions must be added there. The navbar is
+generated: `jlbind.qmd` is "Get started" and every other vignette, including
 `vignettes/articles/`, goes under "Articles". `_quarto/` is the Quarto project
 generated on every build and is gitignored.
 

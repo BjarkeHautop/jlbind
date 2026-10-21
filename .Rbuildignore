@@ -16,4 +16,4 @@
 ^vignettes/.*_files$
 ^vignettes/articles$
 ^_quarto$
-^_quartodown\.yml$
+^_quartodown$
