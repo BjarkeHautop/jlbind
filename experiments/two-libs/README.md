@@ -21,3 +21,7 @@ One combined library works: `combined` is a package whose module only does
 (`nm -D out/combined.so` lists `liba_r_*` and `libb_r_*`), and calling both
 packages alternately, with Julia and R GCs forced in between, works and keeps
 each package's state separate.
+
+Separate libraries that each bundle their own privatized Julia runtime (JuliaC
+`--bundle --privatize`, Julia 1.14, Linux) can share a process; see
+`../library-size/`.
