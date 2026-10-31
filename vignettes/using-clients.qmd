@@ -83,9 +83,14 @@ jlbind::install_library(force = TRUE)
 You can select the Julia installation to use by setting the `JULIA` environment
 variable or by passing `julia =` to `install_library()`.
 
-The library is compiled for the building machine's CPU. To use it on other
-machines (e.g. cluster nodes), set `JULIA_CPU_TARGET=generic` and rebuild with
-`force = TRUE`.
+The library is compiled for the building machine's CPU, and jlbind won't load it
+on another. If one R library is used from computers with different CPUs (e.g.
+cluster nodes sharing a home directory), build one that runs on any CPU, which
+can make numeric code slower:
+
+```r
+jlbind::install_library(cpu_target = "generic")
+```
 
 ### Threads
 

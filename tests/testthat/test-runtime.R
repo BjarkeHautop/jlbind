@@ -144,6 +144,32 @@ test_that("a missing or unloadable library is reported", {
   expect_true(.load_library())
 })
 
+test_that("a library compiled for another CPU is not loaded", {
+  local_state()
+  .state$dll <- NULL
+  dir <- withr::local_tempdir()
+  path <- file.path(dir, .library_file())
+  writeLines("not a library", path)
+  write.dcf(
+    data.frame(CpuTarget = "native", CPU = "Other CPU"),
+    file.path(dir, "build")
+  )
+  withr::local_envvar(JLBIND_LIBRARY = path)
+  local_mocked_bindings(.cpu_model = function(...) "This CPU")
+  expect_false(.load_library())
+  expect_match(
+    .state$problem,
+    "built for another CPU (Other CPU, not This CPU)",
+    fixed = TRUE
+  )
+  expect_match(.state$problem, "cpu_target = \"generic\"", fixed = TRUE)
+
+  # On the CPU it was built for, it is loaded (and fails as no library).
+  local_mocked_bindings(.cpu_model = function(...) "Other CPU")
+  expect_false(.load_library())
+  expect_match(.state$problem, "could not be loaded", fixed = TRUE)
+})
+
 test_that("a client is bound only to a library built from its version", {
   local_state()
   .state$clients <- NULL
@@ -215,7 +241,9 @@ fake_dev_library <- function(src, dir, version = NULL, hash = NULL) {
     data.frame(
       jlbind = as.character(utils::packageVersion("jlbind")),
       Julia = "1.14.0",
-      Develop = "/some/checkout"
+      Develop = "/some/checkout",
+      CpuTarget = "generic",
+      JuliaArgs = "-O1 -g1"
     ),
     file.path(dir, "build")
   )
@@ -251,15 +279,26 @@ test_that("an out-of-date development library is rebuilt before loading", {
   path <- file.path(dir, .library_file())
   local_mocked_bindings(.dev_library = function(pkg) path)
   built <- NULL
-  local_mocked_bindings(build_library = function(packages, out, develop) {
-    built <<- list(packages = packages, out = out, develop = develop)
-  })
+  local_mocked_bindings(
+    build_library = function(packages, out, develop, cpu_target, julia_args) {
+      built <<- list(
+        packages = packages,
+        out = out,
+        develop = develop,
+        cpu_target = cpu_target,
+        julia_args = julia_args
+      )
+    }
+  )
 
   .state$dll <- NULL
   expect_message(.refresh_dev_library("demo"), "Julia code changed")
   expect_equal(normalizePath(built$packages), normalizePath(src))
   expect_equal(normalizePath(built$out), normalizePath(dir))
+  # Rebuilt the way it was built.
   expect_equal(built$develop, "/some/checkout")
+  expect_equal(built$cpu_target, "generic")
+  expect_equal(built$julia_args, c("-O1", "-g1"))
 
   built <- NULL
 

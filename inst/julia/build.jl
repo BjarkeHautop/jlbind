@@ -18,7 +18,11 @@
 # (build_library(versions = "compat")). `--develop=<dir>` (repeatable)
 # uses the Julia package in <dir>, e.g. a local checkout of a dependency,
 # instead of its registered release. `--no-trim` compiles without `--trim`,
-# for clients whose code relies on dynamic dispatch.
+# for clients whose code relies on dynamic dispatch. `--cpu-target=<target>`
+# sets the CPUs to compile for (Julia's `--cpu-target`); without it, JuliaC's
+# default, the targets of Julia's system image, which multiplies the code by
+# compiling it once for each. `--julia-arg=<option>` (repeatable) passes
+# <option> to the Julia that compiles the library, after jlbind's own.
 
 import Pkg
 import TOML
@@ -27,8 +31,12 @@ const HERE = @__DIR__
 const OUT = abspath(ARGS[1])
 const UPDATE = "--update" in ARGS
 const TRIM = !("--no-trim" in ARGS)
+const CPU_TARGET = let a = findlast(startswith("--cpu-target="), ARGS)
+    a === nothing ? nothing : String(chopprefix(ARGS[a], "--cpu-target="))
+end
 const SOURCES = [abspath(a) for a in ARGS[2:end] if !startswith(a, "--")]
 const DEVELOP = [abspath(chopprefix(a, "--develop=")) for a in ARGS if startswith(a, "--develop=")]
+const JULIA_ARGS = [String(chopprefix(a, "--julia-arg=")) for a in ARGS if startswith(a, "--julia-arg=")]
 isempty(SOURCES) && error("No binding packages to build.")
 mkpath(OUT)
 
@@ -220,7 +228,11 @@ Pkg.add(Pkg.PackageSpec(name = "JuliaC", version = "0.3"))
 using JuliaC
 
 # The CLI's `--output-lib --trim=safe --compile-ccallable` (without `--trim`
-# for `--no-trim`), plus `set_threads.c`, which the CLI cannot add.
+# for `--no-trim`), plus `set_threads.c`, which the CLI cannot add. `-g0`
+# leaves out debug info, most of the library's size (31 of 52 MB for one
+# client on Julia 1.13); errors are returned as messages without backtraces,
+# so nothing uses it. Julia takes the last of repeated options, so
+# `--julia-arg`s override it.
 image = JuliaC.ImageRecipe(;
     output_type = "--output-lib",
     file = joinpath(IMAGE, "src", "JLBindImage.jl"),
@@ -228,6 +240,8 @@ image = JuliaC.ImageRecipe(;
     trim_mode = TRIM ? "safe" : nothing,
     add_ccallables = true,
     c_sources = [joinpath(JLBIND, "src", "set_threads.c")],
+    julia_args = ["-g0"; JULIA_ARGS],
+    cpu_target = CPU_TARGET,
 )
 JuliaC.compile_products(image)
 JuliaC.link_products(JuliaC.LinkRecipe(; image_recipe = image, outname = joinpath(OUT, "jlbind")))

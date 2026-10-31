@@ -109,12 +109,23 @@
     return(invisible(NULL))
   }
   message(why, " Rebuilding it.")
-  develop <- .read_build(dir)$Develop
-  develop <- if (!is.na(develop) && nzchar(develop)) {
-    strsplit(develop, "\n", fixed = TRUE)[[1L]]
+  # Rebuilt the way it was built.
+  build <- .read_build(dir)
+  develop <- if (!is.na(build$Develop) && nzchar(build$Develop)) {
+    strsplit(build$Develop, "\n", fixed = TRUE)[[1L]]
+  }
+  cpu_target <- if (!is.na(build$CpuTarget)) build$CpuTarget
+  julia_args <- if (!is.na(build$JuliaArgs)) {
+    strsplit(build$JuliaArgs, " ", fixed = TRUE)[[1L]]
   }
   res <- tryCatch(
-    build_library(src, out = dir, develop = develop),
+    build_library(
+      src,
+      out = dir,
+      develop = develop,
+      cpu_target = cpu_target,
+      julia_args = julia_args
+    ),
     error = identity
   )
   if (inherits(res, "error")) {
@@ -162,6 +173,22 @@
       "The compiled Julia library has not been built (it was looked for at ",
       path,
       "). Run jlbind::install_library() to build it; this needs Julia >= 1.13."
+    )
+    return(FALSE)
+  }
+  # A library compiled for another computer's CPU can crash R with an illegal
+  # instruction, so it is not loaded.
+  mismatch <- .cpu_mismatch(.read_build(dirname(path)))
+  if (!is.null(mismatch)) {
+    .state$problem <- paste0(
+      "The compiled Julia library (",
+      path,
+      ") was ",
+      mismatch,
+      ", so it is not loaded: it may crash R on this one. ",
+      .rebuild_hint(pkg),
+      " For a library that runs on any CPU, build it with ",
+      "`cpu_target = \"generic\"`."
     )
     return(FALSE)
   }
@@ -377,6 +404,7 @@ bind_client <- function(pkg) {
   # .refresh_dev_library() rebuilds a package's own library as it loads.
   if (
     !is.null(path) &&
+      !is.null(pkg) &&
       identical(path, .dev_library(pkg)) &&
       identical(.state$clients$Package, pkg)
   ) {

@@ -18,8 +18,10 @@ Invisibly, a list with:
 be run) and \code{ok} (whether it is Julia 1.13 or later).
 \item \code{library}: a list with \code{path}, \code{how} (\code{"loaded"}, \code{"failed to load"},
 \code{"JLBIND_LIBRARY"} or \code{"default"}), \code{exists}, \code{build} (how it was
-built: the jlbind and Julia versions, when, and whether it is trimmed,
-or \code{NULL}), \code{problems} (why it should be rebuilt or cannot load; empty
+built: the jlbind and Julia versions, when, whether it is trimmed, the
+CPU target and the CPU it was built on, and any extra Julia arguments,
+or \code{NULL}), \code{problems} (why it
+should be rebuilt or cannot load; empty
 if none) and \code{objects} (how many Julia objects R holds references to,
 or \code{NULL} if no library is loaded).
 \item \code{clients}: a data frame with one row per package that uses jlbind or

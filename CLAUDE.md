@@ -67,7 +67,9 @@ the default channel.
 Environment variables: `JULIA` (Julia binary to use), `JLBIND_LIBRARY` (load
 this library instead of the one `install_library()` builds, or the one
 `build_library()` writes to a `load_all()`ed client's `.jlbind/`),
-`JULIA_NUM_THREADS`.
+`JULIA_NUM_THREADS`, `JULIA_CPU_TARGET` (the default `cpu_target` of builds,
+else `"native"`), `JLBIND_JULIA_ARGS` (the default `julia_args` of builds, split
+at spaces).
 
 CI (`.github/workflows/R-CMD-check.yaml`) runs R CMD check with Julia nightly on
 Linux/Windows/macOS, all with the integration test enabled (the Linux job also

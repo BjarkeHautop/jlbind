@@ -75,6 +75,69 @@ test_that("a stale library says why", {
   )
 })
 
+test_that("a library for another CPU target, or another CPU, is stale", {
+  clients <- fake_clients()
+  dir <- fake_library(clients)
+  # As recorded by jlbind before it chose a CPU target.
+  expect_equal(
+    .stale_reasons(dir, clients, NA, "native"),
+    "built for Julia's default CPU targets, not \"native\""
+  )
+  build <- read.dcf(file.path(dir, "build"))
+  write.dcf(
+    cbind(build, CpuTarget = "native", CPU = "Old CPU"),
+    file.path(dir, "build")
+  )
+  local_mocked_bindings(.cpu_model = function(...) "Old CPU")
+  expect_equal(.stale_reasons(dir, clients, NA, "native"), character())
+  expect_equal(
+    .stale_reasons(dir, clients, NA, "generic"),
+    "built for CPU target \"native\", not \"generic\""
+  )
+  local_mocked_bindings(.cpu_model = function(...) "New CPU")
+  expect_equal(
+    .stale_reasons(dir, clients, NA),
+    "built for another CPU (Old CPU, not New CPU)"
+  )
+})
+
+test_that("a library built with other Julia arguments is stale", {
+  clients <- fake_clients()
+  dir <- fake_library(clients)
+  # Libraries from before `julia_args` were built with none.
+  expect_equal(.stale_reasons(dir, clients, NA, NA, character()), character())
+  expect_equal(
+    .stale_reasons(dir, clients, NA, NA, c("-O3", "-g1")),
+    "built with Julia arguments \"\", not \"-O3 -g1\""
+  )
+  build <- read.dcf(file.path(dir, "build"))
+  write.dcf(cbind(build, JuliaArgs = "-O3 -g1"), file.path(dir, "build"))
+  expect_equal(
+    .stale_reasons(dir, clients, NA, NA, c("-O3", "-g1")),
+    character()
+  )
+  expect_equal(
+    .stale_reasons(dir, clients, NA, NA, character()),
+    "built with Julia arguments \"-O3 -g1\", not \"\""
+  )
+  # Not compared unless asked for.
+  expect_equal(.stale_reasons(dir, clients, NA), character())
+})
+
+test_that("only a native library on a known other CPU is a mismatch", {
+  native <- list(CpuTarget = "native", CPU = "A")
+  expect_match(
+    .cpu_mismatch(native, "B"),
+    "built for another CPU (A, not B)",
+    fixed = TRUE
+  )
+  expect_null(.cpu_mismatch(native, "A"))
+  expect_null(.cpu_mismatch(native, NA))
+  expect_null(.cpu_mismatch(list(CpuTarget = "generic", CPU = "A"), "B"))
+  expect_null(.cpu_mismatch(list(CpuTarget = "native", CPU = ""), "B"))
+  expect_null(.cpu_mismatch(list(CpuTarget = NA, CPU = NA), "B"))
+})
+
 test_that("jlbind_sitrep() reports on Julia, the library and its clients", {
   local_state()
   .state$dll <- NULL

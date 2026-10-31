@@ -28,4 +28,4 @@ VignetteBuilder: quarto
 Config/Needs/website: BjarkeHautop/quartodown, ggplot2, scales
 Config/testthat/edition: 3
 SystemRequirements: Julia (>= 1.13)
-Config/roxygen2/version: 8.1.0
+Config/roxygen2/version: 8.1.1

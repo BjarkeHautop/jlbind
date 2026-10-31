@@ -10,7 +10,9 @@ install_library(
   ask = interactive(),
   force = FALSE,
   versions = c("manifest", "compat"),
-  develop = NULL
+  develop = NULL,
+  cpu_target = NULL,
+  julia_args = NULL
 )
 }
 \arguments{
@@ -32,6 +34,16 @@ lets Julia's resolver choose versions from the \verb{[compat]} bounds alone.}
 
 \item{develop}{Paths to local Julia packages to use instead of their released
 versions.}
+
+\item{cpu_target}{The CPUs to compile for, as Julia's \code{--cpu-target}.
+By default, \code{JULIA_CPU_TARGET}, or \code{"native"}. \code{"generic"} runs on any CPU,
+but numeric code can be slower.}
+
+\item{julia_args}{For advanced use: extra Julia command-line options for
+compiling the library, such as \code{"-O3"}. jlbind passes \code{-g0} (no debug
+info), which these can override (e.g. \code{"-g1"}), but not the options it
+relies on: \code{--trim}, \verb{--output-*} and \code{--compile-ccallable}. By default,
+\code{JLBIND_JULIA_ARGS} split at spaces.}
 }
 \value{
 The path to the library (invisibly), or \code{NULL} if there was nothing
@@ -52,9 +64,13 @@ conflict, the one listed later by \code{\link[=jlbind_clients]{jlbind_clients()}
 details.
 
 The library is rebuilt only if it is out of date: built from other versions
-of the packages or other Julia code in them, by another version of jlbind or
-Julia, or with \code{develop}.
-If a library is already loaded, restart R to use the new one.
+of the packages or their Julia code, by another version of jlbind or Julia,
+or with other options. If a library is already loaded, restart R to use the
+new one.
+
+The library is compiled for this computer's CPU, and jlbind won't load it on
+another. If one R library is used from computers with different CPUs, as on
+a cluster, use \code{cpu_target = "generic"}.
 }
 \examples{
 \dontrun{
@@ -65,5 +81,8 @@ install_library(develop = "~/dev/SomePackage.jl")
 
 # Only two of the installed packages
 install_library(packages = c("pkgA", "pkgB"))
+
+# For an R library shared by computers with different CPUs
+install_library(cpu_target = "generic")
 }
 }

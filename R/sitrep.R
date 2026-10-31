@@ -14,8 +14,10 @@
 #'     be run) and `ok` (whether it is Julia 1.13 or later).
 #'   * `library`: a list with `path`, `how` (`"loaded"`, `"failed to load"`,
 #'     `"JLBIND_LIBRARY"` or `"default"`), `exists`, `build` (how it was
-#'     built: the jlbind and Julia versions, when, and whether it is trimmed,
-#'     or `NULL`), `problems` (why it should be rebuilt or cannot load; empty
+#'     built: the jlbind and Julia versions, when, whether it is trimmed, the
+#'     CPU target and the CPU it was built on, and any extra Julia arguments,
+#'     or `NULL`), `problems` (why it
+#'     should be rebuilt or cannot load; empty
 #'     if none) and `objects` (how many Julia objects R holds references to,
 #'     or `NULL` if no library is loaded).
 #'   * `clients`: a data frame with one row per package that uses jlbind or
@@ -96,7 +98,15 @@ jlbind_sitrep <- function(julia = NULL) {
     path = path,
     how = how,
     exists = exists,
-    build = build[c("jlbind", "Julia", "Built", "Trim")],
+    build = build[c(
+      "jlbind",
+      "Julia",
+      "Built",
+      "Trim",
+      "CpuTarget",
+      "CPU",
+      "JuliaArgs"
+    )],
     problems = problems,
     objects = .object_count()
   )
@@ -163,7 +173,24 @@ jlbind_sitrep <- function(julia = NULL) {
       build$jlbind,
       " with Julia ",
       build$Julia,
-      if (identical(build$Trim, "FALSE")) ", untrimmed"
+      if (identical(build$Trim, "FALSE")) ", untrimmed",
+      if (!is.null(build$CpuTarget) && !is.na(build$CpuTarget)) {
+        paste0(", for CPU target \"", build$CpuTarget, "\"")
+      },
+      if (
+        identical(build$CpuTarget, "native") &&
+          !is.na(build$CPU) &&
+          nzchar(build$CPU)
+      ) {
+        paste0(" (", build$CPU, ")")
+      },
+      if (
+        !is.null(build$JuliaArgs) &&
+          !is.na(build$JuliaArgs) &&
+          nzchar(build$JuliaArgs)
+      ) {
+        paste0(", with Julia arguments \"", build$JuliaArgs, "\"")
+      }
     )
   }
   if (!is.null(lib$objects)) {

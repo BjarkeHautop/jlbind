@@ -15,10 +15,14 @@ test_that("install_library() builds only installed clients", {
 test_that("install_library() leaves an up-to-date library alone", {
   dir <- withr::local_tempdir()
   bound <- FALSE
+  options <- NULL
   local_mocked_bindings(
     jlbind_clients = function(...) fake_clients(),
     .library_dir = function() dir,
-    .up_to_date = function(dir, clients, julia) TRUE,
+    .up_to_date = function(dir, clients, julia, cpu_target, julia_args) {
+      options <<- list(cpu_target = cpu_target, julia_args = julia_args)
+      TRUE
+    },
     .find_julia = function(julia) "julia",
     .julia_version = function(julia) package_version("1.13.1"),
     .bind_requested = function() {
@@ -27,11 +31,52 @@ test_that("install_library() leaves an up-to-date library alone", {
     .build = function(...) stop("should not build")
   )
   expect_message(
-    path <- install_library(packages = "a"),
+    path <- install_library(
+      packages = "a",
+      cpu_target = "generic",
+      julia_args = "-O1"
+    ),
     "up to date"
   )
   expect_equal(path, file.path(dir, .library_file()))
   expect_true(bound)
+  expect_equal(options, list(cpu_target = "generic", julia_args = "-O1"))
+})
+
+test_that("extra Julia arguments come from the argument or JLBIND_JULIA_ARGS", {
+  withr::local_envvar(JLBIND_JULIA_ARGS = NA)
+  expect_equal(.julia_args(), character())
+  expect_equal(.julia_args(c("-O3", "-g1")), c("-O3", "-g1"))
+  withr::local_envvar(JLBIND_JULIA_ARGS = "  -O3   --check-bounds=no ")
+  expect_equal(.julia_args(), c("-O3", "--check-bounds=no"))
+  expect_equal(.julia_args(character()), character())
+  expect_error(.julia_args(1), "character vector")
+  expect_error(.julia_args("O3"), "Cannot build with `julia_args` O3")
+  for (fixed in c(
+    "--trim=no",
+    "--output-exe",
+    "--cpu-target=native",
+    "-Cnative"
+  )) {
+    expect_error(.julia_args(c("-O3", fixed)), fixed, fixed = TRUE)
+  }
+})
+
+test_that("the CPU target comes from the argument, JULIA_CPU_TARGET or native", {
+  withr::local_envvar(JULIA_CPU_TARGET = NA)
+  expect_equal(.cpu_target(), "native")
+  expect_equal(.cpu_target("generic"), "generic")
+  withr::local_envvar(JULIA_CPU_TARGET = "generic;haswell")
+  expect_equal(.cpu_target(), "generic;haswell")
+  expect_equal(.cpu_target("native"), "native")
+  expect_error(.cpu_target(c("a", "b")), "single string")
+  expect_error(.cpu_target(""), "single string")
+})
+
+test_that("the CPU model is read without Julia, or is NA", {
+  expect_true(is.na(.cpu_model("Plan 9")))
+  model <- .cpu_model()
+  expect_true(is.na(model) || (is.character(model) && nzchar(model)))
 })
 
 test_that("install_library() can be cancelled", {
@@ -39,7 +84,7 @@ test_that("install_library() can be cancelled", {
   local_mocked_bindings(
     jlbind_clients = function(...) fake_clients(),
     .library_dir = function() dir,
-    .up_to_date = function(dir, clients, julia) FALSE,
+    .up_to_date = function(dir, clients, julia, cpu_target, julia_args) FALSE,
     .find_julia = function(julia) "julia",
     .julia_version = function(julia) package_version("1.13.1"),
     .build = function(...) stop("should not build")
@@ -63,11 +108,19 @@ test_that("install_library() replaces the old library and prunes stale ones", {
   local_mocked_bindings(
     jlbind_clients = function(...) fake_clients(),
     .library_dir = function() dir,
-    .up_to_date = function(dir, clients, julia) FALSE,
+    .up_to_date = function(dir, clients, julia, cpu_target, julia_args) FALSE,
     .find_julia = function(julia) "julia",
     .julia_version = function(julia) package_version("1.13.1"),
     .bind_requested = function() NULL,
-    .build = function(clients, out, julia, versions, develop) {
+    .build = function(
+      clients,
+      out,
+      julia,
+      versions,
+      develop,
+      cpu_target,
+      julia_args
+    ) {
       built <<- list(clients = clients$package, versions = versions)
       dir.create(out)
       writeLines("new", file.path(out, .library_file()))
@@ -96,11 +149,21 @@ test_that("install_library() keeps the old library if the new one fails", {
   local_mocked_bindings(
     jlbind_clients = function(...) fake_clients(),
     .library_dir = function() dir,
-    .up_to_date = function(dir, clients, julia) FALSE,
+    .up_to_date = function(dir, clients, julia, cpu_target, julia_args) FALSE,
     .find_julia = function(julia) "julia",
     .julia_version = function(julia) package_version("1.13.1"),
     # Builds nothing, so there is nothing to move into place.
-    .build = function(clients, out, julia, versions, develop) NULL
+    .build = function(
+      clients,
+      out,
+      julia,
+      versions,
+      develop,
+      cpu_target,
+      julia_args
+    ) {
+      NULL
+    }
   )
   expect_error(
     expect_warning(install_library(ask = FALSE), "cannot rename"),
@@ -169,7 +232,15 @@ test_that("build_library() builds a source package into its .jlbind/", {
   args <- NULL
   local_mocked_bindings(
     .find_julia = function(julia) "julia",
-    .build = function(clients, out, julia, versions, develop) {
+    .build = function(
+      clients,
+      out,
+      julia,
+      versions,
+      develop,
+      cpu_target,
+      julia_args
+    ) {
       args <<- list(package = clients$package, out = out)
       dir.create(out)
     }
@@ -207,6 +278,7 @@ test_that(".build() passes its options to build.jl and records the build", {
   args <- NULL
   local_mocked_bindings(
     .julia_version = function(julia) package_version("1.13.1"),
+    .cpu_model = function(...) "Some CPU",
     .run_julia = function(julia, a) {
       args <<- a
       file.create(file.path(out, .library_file()))
@@ -215,11 +287,21 @@ test_that(".build() passes its options to build.jl and records the build", {
     }
   )
   msgs <- capture_messages(
-    .build(clients, out, "julia", versions = "compat", develop = checkout)
+    .build(
+      clients,
+      out,
+      "julia",
+      versions = "compat",
+      develop = checkout,
+      cpu_target = "generic",
+      julia_args = c("-O3", "-g1")
+    )
   )
   expect_match(msgs[[1]], "without --trim, because b set")
   expect_match(msgs[[2]], "b was left out")
   expect_true(all(c("--update", "--no-trim") %in% args))
+  expect_true(shQuote("--cpu-target=generic") %in% args)
+  expect_true(all(shQuote(c("--julia-arg=-O3", "--julia-arg=-g1")) %in% args))
   expect_true(
     shQuote(paste0("--develop=", normalizePath(checkout))) %in% args
   )
@@ -232,6 +314,9 @@ test_that(".build() passes its options to build.jl and records the build", {
   expect_equal(build[, "Julia"][[1]], "1.13.1")
   expect_equal(build[, "Trim"][[1]], "FALSE")
   expect_equal(build[, "Develop"][[1]], normalizePath(checkout))
+  expect_equal(build[, "CpuTarget"][[1]], "generic")
+  expect_equal(build[, "CPU"][[1]], "Some CPU")
+  expect_equal(build[, "JuliaArgs"][[1]], "-O3 -g1")
 })
 
 test_that(".build() fails if build.jl does", {
