@@ -1,9 +1,6 @@
-# Configuration for quartodown::build_site(). See ?quartodown::build_site for
-# all fields, including `articles:` (navbar order) and `quarto:` (extra
-# Quarto settings).
+# Configuration for quartodown::build_site(). See
+# vignette("customizing", package = "quartodown") for all fields.
 
-# Groups the function reference index, in the same shape as pkgdown's
-# `reference:` field.
 reference:
   - title: "Building the library"
     desc: "Compile the Julia code of the installed packages that use jlbind."
