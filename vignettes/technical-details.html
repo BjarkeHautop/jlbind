@@ -875,7 +875,7 @@ Shape types and their areas
 </ul></section></section><div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
 
 <ol>
-<li id="fn1"><p>JuliaC can <em>privatize</em> a library, giving it its own copy of the Julia runtime, but jlbind doesn’t use this. Each client would then ship a bundle with its own runtime and compiled copy of Base: about 60 MB per client on Linux and 100 MB on Windows, even for a tiny client, where a shared library adds only each client’s own code. Each runtime would also have its own garbage-collected heap and threads in memory, and Julia objects couldn’t be passed between clients. Privatization also doesn’t work on Windows yet (<a href="https://github.com/JuliaLang/JuliaC.jl/pull/151">JuliaC.jl#151</a>).<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+<li id="fn1"><p>JuliaC can <em>privatize</em> a library, giving it its own copy of the Julia runtime, but jlbind doesn’t use this. Each client would then ship a bundle with its own runtime and compiled copy of Base, where a shared library adds only each client’s own code. On Linux with Julia 1.14, a bundle was over 80 MB for a larger client, and about 9 MB for a tiny client after removing the runtime libraries it doesn’t use by hand. Each runtime would also have its own garbage-collected heap and threads in memory, and Julia objects couldn’t be passed between clients. Privatization also doesn’t work on Windows yet (<a href="https://github.com/JuliaLang/JuliaC.jl/pull/151">JuliaC.jl#151</a>).<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
 </ol></section></div></main><!-- /main --><script>
 (function () {
   function contentLeft(main) {
@@ -1668,7 +1668,8 @@ Shape types and their areas
   <span class="at">versions</span> <span class="at">=</span> <span class="fu">c</span>(<span class="st">"manifest"</span>, <span class="st">"compat"</span>),
   <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
-  <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>
+  <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>
 )</code><span class="quartodown-tip-brief">Build a Julia library from specific packages</span>
 </div>
 <div data-for="t2">
@@ -1683,7 +1684,8 @@ Shape types and their areas
   <span class="at">versions</span> <span class="at">=</span> <span class="fu">c</span>(<span class="st">"manifest"</span>, <span class="st">"compat"</span>),
   <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
-  <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>
+  <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>
 )</code><span class="quartodown-tip-brief">Build the Julia library</span>
 </div>
 </div>

@@ -386,8 +386,9 @@ visitors who prefer it, before Quarto reads the stored choice.
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">versions =</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"manifest"</span>, <span class="st">"compat"</span>),</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">develop =</span> <span class="cn">NULL</span>,</span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">cpu_target =</span> <span class="cn">NULL</span>,</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">julia_args =</span> <span class="cn">NULL</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">julia_args =</span> <span class="cn">NULL</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">bundle =</span> <span class="cn">FALSE</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 </section><section id="arguments" class="level2"><h2 class="anchored" data-anchor-id="arguments">Arguments</h2>
@@ -454,6 +455,14 @@ The CPUs to compile for, as Julia’s <code>--cpu-target</code>. By default, <co
 </td>
 <td>
 For advanced use: extra Julia command-line options for compiling the library, such as <code>"-O3"</code>. jlbind passes <code>-g0</code> (no debug info), which these can override (e.g. <code>"-g1"</code>), but not the options it relies on: <code>--trim</code>, <code>--output-*</code> and <code>--compile-ccallable</code>. By default, <code>JLBIND_JULIA_ARGS</code> split at spaces.
+</td>
+</tr>
+<tr>
+<td>
+<code>bundle</code>
+</td>
+<td>
+If <code>TRUE</code>, copy the Julia runtime next to the library, so that it runs without Julia installed. This makes the library much larger, and is only useful for giving a library to people without Julia, who set <code>JLBIND_LIBRARY</code> to it. They also need a <code>cpu_target</code> other than <code>"native"</code>.
 </td>
 </tr>
 </tbody></table></section><section id="details" class="level2"><h2 class="anchored" data-anchor-id="details">Details</h2>
@@ -1271,7 +1280,8 @@ For advanced use: extra Julia command-line options for compiling the library, su
   <span class="at">versions</span> <span class="at">=</span> <span class="fu">c</span>(<span class="st">"manifest"</span>, <span class="st">"compat"</span>),
   <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
-  <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>
+  <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>
 )</code><span class="quartodown-tip-brief">Build the Julia library</span>
 </div>
 <div data-for="t2">
