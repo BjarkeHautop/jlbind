@@ -68,8 +68,10 @@ Run `jlbind::update_entrypoints()`, which generates the R function `greet(name)`
 that calls it.
 
 See [Get started with
-jlbind](https://bjarkehautop.github.io/jlbind/vignettes/jlbind.html) for a full
-walkthrough.
+jlbind](https://bjarkehautop.github.io/jlbind/vignettes/jlbind.html) for a
+walkthrough, and [Technical
+details](https://bjarkehautop.github.io/jlbind/vignettes/technical-details.html)
+for types, errors and compilation constraints.
 
 ## Contributing
 

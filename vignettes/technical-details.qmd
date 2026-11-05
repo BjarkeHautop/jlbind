@@ -1,0 +1,395 @@
+---
+title: "Technical details"
+vignette: >
+  %\VignetteIndexEntry{Technical details}
+  %\VignetteEngine{quarto::html}
+  %\VignetteEncoding{UTF-8}
+---
+
+This vignette covers what [Get started with jlbind](jlbind.html) leaves out, so
+read that first.
+
+## One library for all clients
+
+jlbind compiles Julia code with
+[JuliaC.jl](https://github.com/JuliaLang/JuliaC.jl). An R process can load only
+one compiled Julia library[^privatize], so your client shares Julia dependency
+versions with every other client the user has installed. [Using packages built
+on jlbind](using-clients.html) describes how those versions are chosen, what
+happens when clients conflict, and how to build a separate library for clients
+that are never used in the same R session.
+
+[^privatize]: JuliaC can *privatize* a library, giving it its own copy of the
+    Julia runtime, but jlbind doesn't use this. Each client would then ship a
+    bundle with its own runtime and compiled copy of Base: about 60 MB per
+    client on Linux and 100 MB on Windows, even for a tiny client, where a
+    shared library adds only each client's own code. Each runtime would also
+    have its own garbage-collected heap and threads in memory, and Julia objects
+    couldn't be passed between clients. Privatization also doesn't work on
+    Windows yet
+    ([JuliaC.jl#151](https://github.com/JuliaLang/JuliaC.jl/pull/151)).
+
+## What `use_jlbind()` adds
+
+- `inst/julia/`, containing a Julia binding package named after the R package
+  with a `Bindings` suffix (for example, `MyPkgBindings`), including an example
+  function.
+- `src/jlbind.c` and `src/entrypoints.h`, which register the native routines,
+  and a rule in `src/Makevars` that recompiles `jlbind.c` whenever
+  `entrypoints.h` changes.
+- `R/jlbind-wrappers.R`, with an R function for each Julia function the binding
+  package declares.
+- `R/jlbind.R`, which calls `jlbind::bind_client()` from `.onLoad()` and
+  includes the roxygen tag for `useDynLib()`.
+- The `Config/jlbind`, `Imports: jlbind` and
+  `SystemRequirements: Julia (>= 1.13)` fields in `DESCRIPTION`.
+- A `.jlbind/` directory for development builds, added to `.Rbuildignore` and
+  `.gitignore`.
+
+If your package already defines `.onLoad()`, add `jlbind::bind_client(pkgname)`
+to the existing function yourself.
+
+::: {.callout-important title="Give the Julia binding package a unique name"}
+All clients are compiled into one library, so binding package names must be
+unique across all jlbind clients. The default, the R package name with a
+`Bindings` suffix, ensures this.
+:::
+
+## Writing `@rcall` declarations
+
+The binding package is an ordinary Julia package. Declare its dependencies in
+`Project.toml` and import them as usual.
+
+::: {.callout-important title="Write `@rcall` declarations literally at the top level"}
+jlbind finds `@rcall` declarations by scanning the source files, not by running
+them, so write them literally at the top level of the module.
+:::
+
+A default in a declaration must be a literal number, string, `true`, `false` or
+`nothing`, which becomes `NULL` in R.
+
+## Development libraries
+
+By default, `build_library()` writes the library to `.jlbind/` in your package's
+source directory. When you load the package with `devtools::load_all()`, jlbind
+uses this development library instead of the one created by `install_library()`.
+Once `.jlbind/` exists, `devtools::load_all()` rebuilds it when your binding
+package's files or your package's version have changed since it was built.
+
+::: {.callout-note title="The development library is only used when your package loads first"}
+A library that has loaded cannot be replaced, so the `.jlbind/` library is used
+only if your package is the first jlbind client loaded in the R session.
+:::
+
+If you need to use a library stored elsewhere, set the `JLBIND_LIBRARY`
+environment variable to its path before loading the package.
+
+You can also test against an unreleased version of a Julia dependency by
+providing a local checkout through `develop`:
+
+```r
+jlbind::build_library(develop = "~/dev/SomePackage.jl")
+```
+
+::: {.callout-tip title="Pin the dependency versions"}
+Include a `Manifest.toml` next to the binding package's `Project.toml` with the
+Julia dependency versions known to compile with your package. [CRAN's
+policy](https://cran.r-project.org/web/packages/policies.html) asks that
+downloaded libraries be a fixed version rather than the latest.
+
+The build uses the manifest of only the first client that has one (see
+[Dependency versions](using-clients.html#dependency-versions)), so keep your
+`[compat]` bounds accurate too.
+:::
+
+## Types
+
+`@rcall` converts each argument using `from_sexp()` and converts the return
+value using `to_sexp()`. The built-in conversions are:
+
+**Single values**
+
+  | Julia                          | R argument                     | R result                         |
+  | ------------------------------ | ------------------------------ | -------------------------------- |
+  | `String`, `Symbol`             | A single string                | A character vector of length one |
+  | `Float64`                      | A single number                | A double                         |
+  | `Int64`                        | A single whole number          | A double                         |
+  | `Int32`                        | A single whole number          | An integer                       |
+  | `Int16`, `Int8`, `UInt16`      | A single whole number in range | An integer                       |
+  | `UInt32`                       | A single whole number in range | A double                         |
+  | `Float32`, `Float16`           | A single number in range       | A double                         |
+  | `Bool`                         | `TRUE` or `FALSE`              | A logical                        |
+  | `ComplexF64`                   | A single complex number        | A complex                        |
+  | `Date`                         | A single `Date`                | A `Date`                         |
+  | `DateTime`                     | A single `POSIXct`             | A `POSIXct` in UTC               |
+  | `Union{Missing,T}`             | A value of type `T`, or `NA`   | A value of type `T`, or `NA`     |
+  | `Union{Nothing,T}`             | `NULL`, or a value of type `T` | `NULL`, or a value of type `T`   |
+  | `Nothing`                      |                                | `NULL`                           |
+
+**Vectors and arrays**
+
+  | Julia                              | R argument                              | R result                      |
+  | ---------------------------------- | --------------------------------------- | ----------------------------- |
+  | `Vector{String}`, `Vector{Symbol}` | A character vector or factor            | A character vector            |
+  | `Vector{Float64}`, `Vector{Int64}` | A numeric vector                        | A double vector               |
+  | `Vector{Int32}`                    | A numeric vector of whole numbers       | An integer vector             |
+  | Vectors of the smaller types above | A numeric vector in range               | An integer or double vector   |
+  | `Vector{Bool}`                     | A logical vector                        | A logical vector              |
+  | `Vector{ComplexF64}`               | A complex or numeric vector             | A complex vector              |
+  | `Vector{UInt8}`                    | A raw vector                            | A raw vector                  |
+  | `Vector{Date}`                     | A `Date` vector                         | A `Date` vector               |
+  | `Vector{DateTime}`                 | A `POSIXct` vector                      | A `POSIXct` vector in UTC     |
+  | `Vector{Union{Missing,T}}`         | A vector of type `T`, which can have NA | A vector of type `T` with NA  |
+  | `RVector{T}`                       | A double, integer or raw vector         | The same vector               |
+  | `Matrix{T}`, `Array{T,N}`          | A matrix or array of type `T`           | A matrix or array of type `T` |
+
+**Lists, data frames and references**
+
+  | Julia                              | R argument                         | R result                      |
+  | ---------------------------------- | ---------------------------------- | ----------------------------- |
+  | Other `Vector`s, `Tuple`s          | A list                             | A list                        |
+  | `NamedTuple`                       | A named list, such as a data frame | A named list                  |
+  | `RDataFrame`                       | A data frame                       | A data frame                  |
+  | `Dict{String,T}`, `Dict{Symbol,T}` | A named list                       | A named list, sorted by name  |
+  | `RRef{T}`                          | A reference to a Julia object      | A reference to a Julia object |
+  | `Vector{RRef{T}}`                  | A list of references               | A list of references          |
+
+### Conversion rules
+
+- **Missing values:** `NA` is an error unless the type is `Union{Missing,T}` or
+  `Vector{Union{Missing,T}}`, which turn `NA` into `missing` and back.
+- **`NaN`:** accepted only where `missing` is.
+- **Ranges:** a number must fit its type, so an `Int16` argument rejects
+  `40000`.
+- **`Int64` results:** these become doubles, since R's integers have 32 bits.
+  Return `Int32` for an R integer.
+- **Dates:** to use `Date` or `DateTime`, add the `Dates` standard library to
+  the binding package's dependencies.
+- **Lists:** if one element of a list can't be converted, the error says which.
+  For example, passing `list(c(1, 2), "a")` as a `Vector{Vector{Float64}}` gives
+  the error `element 2: expected a numeric vector`.
+
+### Data frames
+
+To take or return a data frame, wrap the columns in an `RDataFrame`. Its type
+lists the column names and the type of each column, so a type alias keeps
+signatures short:
+
+```julia
+const Sales = RDataFrame{(:group, :amount),Tuple{Vector{String},Vector{Float64}}}
+const Summary = RDataFrame{(:group, :mean),Tuple{Vector{String},Vector{Float64}}}
+
+function summarise(df::Sales)
+    gs = sort(unique(df.group))
+    means = [sum(df.amount[df.group .== g]) / count(==(g), df.group) for g in gs]
+    return RDataFrame((group = gs, mean = means))
+end
+
+@rcall summarise(df::Sales)::Summary
+```
+
+```r
+summarise(data.frame(group = c("a", "b", "a"), amount = c(1, 2, 3)))
+#>   group mean
+#> 1     a    2
+#> 2     b    2
+```
+
+An `RDataFrame` argument:
+
+- Must be a data frame (a tibble works too) with exactly the declared columns,
+  in any order. If the data frame has other columns, select the ones you need in
+  the R wrapper: `summarise(df[c("group", "amount")])`.
+- Has its columns as properties (`df.group`), and `NamedTuple(df)` returns them
+  as a named tuple.
+- Converts each column by the usual rules, so a factor column arrives as
+  strings, and a `Vector{Union{Missing,Float64}}` column allows `NA`.
+
+Returning columns of different lengths is an error.
+
+If you don't need a data frame on the Julia side, a `NamedTuple` argument also
+accepts one, as a named tuple of its columns. It must have exactly the names of
+its fields, in any order.
+
+### Large vectors
+
+Other conversions copy, so a function given a large vector it only reads can
+take an `RVector{Float64}` (or `RVector{Int32}`, `RVector{UInt8}`). That is an
+`AbstractVector` viewing R's memory, without checking for `NA`. It is valid only
+until the call returns, so don't store it.
+
+### Your own types
+
+A binding package can support additional types by defining methods for
+`JLBind.from_sexp(::Type{T}, x::SEXP)` and `JLBind.to_sexp(x::T)`. `JLBind` also
+provides helpers for building R objects directly, such as `JLBind.data_frame()`
+for a data frame whose columns are not known when the library is compiled. See
+the [`JLBind`
+source](https://github.com/BjarkeHautop/jlbind/tree/main/inst/julia/JLBind/src)
+for the existing conversions and helpers.
+
+### Julia objects in R
+
+Sometimes an object is easier to keep in Julia than to convert into an R data
+structure. You can pass such objects by reference using `RRef{T}`. R receives an
+external pointer to the Julia object, allowing it to be reused across calls. The
+object is released when R garbage-collects the reference.
+
+For example, define a mutable Julia object and expose functions that operate on
+it (the
+[`counterjl`](https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/counterjl)
+test client is a complete version of this):
+
+```julia
+mutable struct Counter
+    n::Int64
+end
+
+JLBind.r_class(::Type{Counter}) = "counter"
+
+new_counter(start::Int64) = Counter(start)
+increment(c::Counter, by::Int64) = (c.n += by; c.n)
+
+@rcall new_counter(start::Int64)::RRef{Counter}
+@rcall increment(c::RRef{Counter}, by::Int64)::Int64
+```
+
+From R, you can create a counter and update it across calls:
+
+```r
+counter <- new_counter(0)
+class(counter)
+#> [1] "counter"
+
+increment(counter, 2)
+#> [1] 2
+```
+
+`r_class()` sets the R class of the external pointer, so your package can define
+methods such as `print()` for it. An argument declared as `RRef{Counter}` also
+checks that the reference points to a `Counter`, rather than accepting an
+arbitrary Julia object.
+
+## Errors
+
+If a function called through `@rcall` throws a Julia exception, jlbind turns it
+into an R error. The messages from `ArgumentError`, `ErrorException`,
+`DimensionMismatch`, `OverflowError`, and `AssertionError` are passed through.
+Other exceptions are summarized.
+
+## Compilation constraints (trimming)
+
+By default, jlbind compiles the shared library with `juliac --trim=safe`. This
+keeps the compiled image small by including only code reachable from the
+functions exposed through `@rcall`. It also requires calls to be resolvable at
+compile time.
+
+If your package cannot be compiled with trimming, add the following field to
+`DESCRIPTION`:
+
+```text
+Config/jlbind/trim: false
+```
+
+::: {.callout-warning}
+An untrimmed library includes the full Julia system image and is *much* larger,
+so avoid it if you can.
+:::
+
+### Abstract types
+
+With trimming, a common source of compilation errors is a function that accepts
+several concrete types through an abstract `RRef`. Suppose your binding package
+works with shapes:
+
+<details>
+<summary>Shape types and their areas</summary>
+
+```julia
+abstract type Shape end
+
+struct Circle <: Shape
+    radius::Float64
+end
+struct Square <: Shape
+    side::Float64
+end
+struct Rectangle <: Shape
+    width::Float64
+    height::Float64
+end
+struct Triangle <: Shape
+    base::Float64
+    height::Float64
+end
+
+JLBind.r_class(::Type{<:Shape}) = "shape"
+
+area(s::Circle) = pi * s.radius^2
+area(s::Square) = s.side^2
+area(s::Rectangle) = s.width * s.height
+area(s::Triangle) = s.base * s.height / 2
+```
+
+</details>
+
+An entrypoint that takes an `RRef{Shape}` knows only that its argument is *some*
+`Shape`. If it simply calls `area(s)`, the compiler cannot tell which of the
+four methods that call reaches, and the build fails with an error such as:
+
+```text
+Verifier error #1: unresolved call from statement area(s::Shape)::Any
+```
+
+One possible solution is to branch on the concrete types once, with
+`@nospecialize`, and to make the call inside each branch, where the type is
+known:
+
+```julia
+function with_shape(f::F, @nospecialize(s::Shape)) where {F}
+    s isa Circle && return f(s)
+    s isa Square && return f(s)
+    s isa Rectangle && return f(s)
+    s isa Triangle && return f(s)
+    throw(ArgumentError("unknown shape"))
+end
+
+circle(radius::Float64) = Circle(radius)
+square(side::Float64) = Square(side)
+rectangle(width::Float64, height::Float64) = Rectangle(width, height)
+triangle(base::Float64, height::Float64) = Triangle(base, height)
+shape_area(@nospecialize(s::Shape)) = with_shape(area, s)
+scaled_area(@nospecialize(s::Shape), factor::Float64) =
+    with_shape(x -> factor^2 * area(x), s)
+
+@rcall circle(radius::Float64)::RRef{Shape}
+@rcall square(side::Float64)::RRef{Shape}
+@rcall rectangle(width::Float64, height::Float64)::RRef{Shape}
+@rcall triangle(base::Float64, height::Float64)::RRef{Shape}
+@rcall shape_area(shape::RRef{Shape})::Float64
+@rcall scaled_area(shape::RRef{Shape}, factor::Float64)::Float64
+```
+
+Every shape can then be passed to the same generated R functions:
+
+```r
+shapes <- list(circle(1), square(2), rectangle(2, 3), triangle(2, 3))
+vapply(shapes, shape_area, numeric(1))
+#> [1] 3.141593 4.000000 6.000000 3.000000
+
+scaled_area(square(2), 3)
+#> [1] 36
+```
+
+Without `@nospecialize`, Julia compiles a separate `with_shape` for each
+concrete shape, and the call into it can't be resolved, for the same reason as
+`area(s)`. Functions that pass the shape on, such as `shape_area`, need it too
+(this small example happens to compile without it, since it is inlined).
+
+If a hierarchy has only a few types, some alternatives to `@nospecialize` are:
+
+- Declare a separate entrypoint for each concrete type
+  (`RRef{Circle}`,`RRef{Square}`, ...) and choose between them in R.
+
+- Use a small `Union` such as `RRef{Union{Circle,Square}}`, which Julia resolves
+  by checking each member in turn.
