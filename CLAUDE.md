@@ -97,7 +97,9 @@ Three layers, spread across R, Julia and C:
   everything to writable scratch dirs, generates a `JLBindImage` package
   importing JLBind and every binding package, seeds dependencies from the first
   client's `Manifest.toml` (falling back to `[compat]` resolution), and compiles
-  with JuliaC in a separate environment.
+  with JuliaC in a separate environment. With `bundle = TRUE` it also copies the
+  Julia runtime into `jlbind-bundle/` next to the library, found through a
+  relative RUNPATH (on Windows, `.add_julia_bindir()` puts it on the PATH).
 - **R side (`R/`)** — `library.R`: `install_library()` / `build_library()`
   (finds clients, runs `build.jl`, stores the library under
   `R_user_dir("jlbind", "data")/library/` with the client versions and binding

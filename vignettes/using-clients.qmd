@@ -85,13 +85,8 @@ You can select the Julia installation to use by setting the `JULIA` environment
 variable or by passing `julia =` to `install_library()`.
 
 The library is compiled for the building machine's CPU, and jlbind won't load it
-on another. If one R library is used from computers with different CPUs (e.g.
-cluster nodes sharing a home directory), build one that runs on any CPU, which
-can make numeric code slower:
-
-```r
-jlbind::install_library(cpu_target = "generic")
-```
+on another. If one R library is used from computers with different CPUs, see
+[Build options](#build-options).
 
 ### Threads
 
@@ -144,3 +139,116 @@ Sys.setenv(JLBIND_LIBRARY = "~/jlbind/pkgA/jlbind.so")
 library(pkgA)
 ```
 :::
+
+## Build options
+
+jlbind compiles the library with these options, which keep it small and fast.
+Most users don't need to change them.
+
+  | Option                | What it does                       | How to change it                                                                                                                                                         |
+  | --------------------- | ---------------------------------- | ----------------                                                                                                                                                         |
+  | `--output-lib`        | Builds a shared library            | Fixed                                                                                                                                                                    |
+  | `--compile-ccallable` | Exports the clients' functions     | Fixed                                                                                                                                                                    |
+  | `--trim=safe`         | Removes code that can't be reached | One client setting [`Config/jlbind/trim: false`](technical-details.html#compilation-constraints-trimming) turns it off for the whole library, which makes it much larger |
+  | `--cpu-target=native` | Compiles for this computer's CPU   | `cpu_target` or `JULIA_CPU_TARGET`                                                                                                                                       |
+  | `-g0`                 | Leaves out debug info              | `julia_args` or `JLBIND_JULIA_ARGS`                                                                                                                                      |
+
+When trimming, JuliaC also passes `--experimental`, `--strip-ir` and
+`--strip-metadata`.
+
+### CPU target
+
+Use `cpu_target` if one R library is used from computers with different CPUs,
+such as cluster nodes sharing a home directory:
+
+```r
+jlbind::install_library(cpu_target = "generic")
+```
+
+This table compares the options on an x86-64 Linux computer (AMD Zen 4) with
+Julia 1.14. Library size is the compiled library file for
+[CausalStructures.jl](https://github.com/BjarkeHautop/CausalStructures.jl), a
+package of graph algorithms; the Julia runtime it loads adds about 6 MB. Run
+times are relative to `"native"`, so 2× takes twice as long. Graph code is
+CausalStructures.jl, and the other columns are small numeric kernels. Results
+will differ for other packages and computers. The [benchmark
+code](https://github.com/BjarkeHautop/jlbind/tree/main/experiments/library-size)
+is in the jlbind repository.
+
+  | `cpu_target`                 | Runs on           | Library size | Graph code | SIMD loops | `exp`/`sin` |
+  | --------------------         | ----------------- | -----------: | ---------: | ---------: | ----------: |
+  | `"native"` (default)         | This CPU model    |       8.9 MB |         1× |         1× |          1× |
+  | `"generic"`                  | Any CPU           |       8.8 MB |         1× |   1.7–2.8× |        1.1× |
+  | Several targets              | The CPUs you list |        21 MB |   1.0–1.1× |   1.0–1.1× |        0.9× |
+  | `"generic;native,clone_all"` | This CPU model    |      13.7 MB |         1× |         1× |        2.1× |
+
+Sorting and a scalar ODE solver took about the same time with all of them.
+
+The several targets measured here are those of Julia's own system image, which
+keep numeric code fast across x86-64 CPUs:
+
+```r
+jlbind::install_library(
+  cpu_target = paste(
+    "generic",
+    "sandybridge,-xsaveopt,clone_all",
+    "haswell,-rdrnd,base(1)",
+    "x86-64-v4,-rdrnd,base(1)",
+    sep = ";"
+  )
+)
+```
+
+Build options count towards whether the library is up to date, so calling
+`install_library()` without them rebuilds the library with the defaults. To keep
+a target for every build, set `JULIA_CPU_TARGET`, for example in your
+`.Renviron` file:
+
+```sh
+JULIA_CPU_TARGET=generic
+```
+
+### Julia arguments
+
+For advanced use, `julia_args` passes extra options to Julia when it compiles
+the library, such as `"-O3"`, or `"-g1"` to keep the debug info that jlbind
+removes with `-g0`. You can also set them in `JLBIND_JULIA_ARGS`, separated by
+spaces. They can't change the options jlbind relies on: `--trim`, `--output-*`
+and `--compile-ccallable`.
+
+### Libraries for people without Julia
+
+The library loads the runtime of the Julia that built it, so that Julia must
+stay installed. With `bundle = TRUE`, jlbind copies Julia's runtime next to the
+library, using JuliaC's `--bundle`, so that it runs without Julia:
+
+```r
+jlbind::build_library(
+  c("pkgA", "pkgB"),
+  "~/jlbind/bundle",
+  cpu_target = "generic",
+  bundle = TRUE
+)
+```
+
+Give them the whole directory, built on the same operating system and CPU
+architecture as theirs. Then they should set `JLBIND_LIBRARY` to the library in
+it before loading them.
+
+The size depends on how much of the runtime you keep. Julia's whole runtime
+includes libraries that many packages never use, such as OpenBLAS. These sizes
+are for the whole directory, with `cpu_target = "generic"` on the computer
+above, for CausalStructures.jl and for a tiny package:
+
+  | Library                     | CausalStructures.jl | Tiny package |
+  | --------------------------- | ------------------: | -----------: |
+  | Not bundled (needs Julia)   |              8.8 MB |       2.0 MB |
+  | Bundled                     |               87 MB |        68 MB |
+  | Bundled and removed by hand |               15 MB |       8.9 MB |
+
+To get the last row, delete `jlbind-bundle/share`, and everything in
+`jlbind-bundle/lib` and `jlbind-bundle/lib/julia` except `libjulia`,
+`libjulia-internal`, `libunwind`, `libz`, `libzstd`, `libatomic`, `libgcc_s` and
+`libopenlibm`, then run `strip` on the library. jlbind doesn't do this for you,
+because a package can need more of them; one using `LinearAlgebra` needs
+OpenBLAS, for example. Test every package after removing anything.

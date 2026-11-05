@@ -15,8 +15,8 @@
 #'   * `library`: a list with `path`, `how` (`"loaded"`, `"failed to load"`,
 #'     `"JLBIND_LIBRARY"` or `"default"`), `exists`, `build` (how it was
 #'     built: the jlbind and Julia versions, when, whether it is trimmed, the
-#'     CPU target and the CPU it was built on, and any extra Julia arguments,
-#'     or `NULL`), `problems` (why it
+#'     CPU target and the CPU it was built on, any extra Julia arguments and
+#'     whether it is a bundle, or `NULL`), `problems` (why it
 #'     should be rebuilt or cannot load; empty
 #'     if none) and `objects` (how many Julia objects R holds references to,
 #'     or `NULL` if no library is loaded).
@@ -105,7 +105,8 @@ jlbind_sitrep <- function(julia = NULL) {
       "Trim",
       "CpuTarget",
       "CPU",
-      "JuliaArgs"
+      "JuliaArgs",
+      "Bundle"
     )],
     problems = problems,
     objects = .object_count()
@@ -190,7 +191,8 @@ jlbind_sitrep <- function(julia = NULL) {
           nzchar(build$JuliaArgs)
       ) {
         paste0(", with Julia arguments \"", build$JuliaArgs, "\"")
-      }
+      },
+      if (identical(unname(build$Bundle), "TRUE")) ", bundled"
     )
   }
   if (!is.null(lib$objects)) {

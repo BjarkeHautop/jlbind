@@ -376,6 +376,68 @@ test_that("a client can turn trimming off", {
   expect_equal(res$fail, "custom failure")
 })
 
+# A bundle carries its own Julia runtime, so it still works after being moved,
+# with no Julia to find.
+test_that("a bundled library can be moved and runs without Julia", {
+  skip_on_cran()
+  skip_if_not(
+    identical(Sys.getenv("JLBIND_TEST_BUILD"), "true"),
+    "set JLBIND_TEST_BUILD=true to compile a library"
+  )
+  skip_if_not_installed("callr")
+  julia <- tryCatch(.find_julia(), error = function(e) NULL)
+  skip_if(is.null(julia), "Julia >= 1.13 not found")
+
+  pkg <- test_path("..", "clients", "hellojl")
+  built <- withr::local_tempdir()
+  build_library(
+    pkg,
+    built,
+    julia = julia,
+    cpu_target = "generic",
+    bundle = TRUE
+  )
+  expect_false(file.exists(file.path(built, "julia_bindir")))
+
+  moved <- withr::local_tempdir()
+  file.rename(built, file.path(moved, "lib"))
+  dir <- file.path(moved, "lib")
+
+  libpath <- local_install(pkg)
+  sep <- .Platform$path.sep
+  path <- strsplit(Sys.getenv("PATH"), sep, fixed = TRUE)[[1L]]
+  path <- path[!grepl("julia", path, ignore.case = TRUE)]
+  env <- callr::rcmd_safe_env()
+  res <- callr::r(
+    function() {
+      library(hellojl)
+      maps <- if (file.exists("/proc/self/maps")) {
+        readLines("/proc/self/maps")
+      }
+      list(
+        bound = jlbind::is_bound("hellojl"),
+        greet = greet("R"),
+        julia = sub(".* ", "", maps[grepl("libjulia", maps, fixed = TRUE)]),
+        report = suppressMessages(jlbind::jlbind_sitrep())$library$problems
+      )
+    },
+    libpath = libpath,
+    env = c(
+      env,
+      JULIA = "",
+      JLBIND_LIBRARY = file.path(dir, .library_file()),
+      PATH = paste(path, collapse = sep)
+    ),
+    show = TRUE
+  )
+  expect_true(res$bound)
+  expect_equal(res$greet, "Hello, R!")
+  expect_length(res$report, 0)
+  if (length(res$julia)) {
+    expect_true(all(startsWith(res$julia, normalizePath(dir))))
+  }
+})
+
 test_that("a client reloaded with pkgload::load_all() binds its new DLL", {
   skip_on_cran()
   skip_if_not(

@@ -19,8 +19,19 @@ test_that("install_library() leaves an up-to-date library alone", {
   local_mocked_bindings(
     jlbind_clients = function(...) fake_clients(),
     .library_dir = function() dir,
-    .up_to_date = function(dir, clients, julia, cpu_target, julia_args) {
-      options <<- list(cpu_target = cpu_target, julia_args = julia_args)
+    .up_to_date = function(
+      dir,
+      clients,
+      julia,
+      cpu_target,
+      julia_args,
+      bundle
+    ) {
+      options <<- list(
+        cpu_target = cpu_target,
+        julia_args = julia_args,
+        bundle = bundle
+      )
       TRUE
     },
     .find_julia = function(julia) "julia",
@@ -34,13 +45,17 @@ test_that("install_library() leaves an up-to-date library alone", {
     path <- install_library(
       packages = "a",
       cpu_target = "generic",
-      julia_args = "-O1"
+      julia_args = "-O1",
+      bundle = TRUE
     ),
     "up to date"
   )
   expect_equal(path, file.path(dir, .library_file()))
   expect_true(bound)
-  expect_equal(options, list(cpu_target = "generic", julia_args = "-O1"))
+  expect_equal(
+    options,
+    list(cpu_target = "generic", julia_args = "-O1", bundle = TRUE)
+  )
 })
 
 test_that("extra Julia arguments come from the argument or JLBIND_JULIA_ARGS", {
@@ -84,7 +99,16 @@ test_that("install_library() can be cancelled", {
   local_mocked_bindings(
     jlbind_clients = function(...) fake_clients(),
     .library_dir = function() dir,
-    .up_to_date = function(dir, clients, julia, cpu_target, julia_args) FALSE,
+    .up_to_date = function(
+      dir,
+      clients,
+      julia,
+      cpu_target,
+      julia_args,
+      bundle
+    ) {
+      FALSE
+    },
     .find_julia = function(julia) "julia",
     .julia_version = function(julia) package_version("1.13.1"),
     .build = function(...) stop("should not build")
@@ -108,7 +132,16 @@ test_that("install_library() replaces the old library and prunes stale ones", {
   local_mocked_bindings(
     jlbind_clients = function(...) fake_clients(),
     .library_dir = function() dir,
-    .up_to_date = function(dir, clients, julia, cpu_target, julia_args) FALSE,
+    .up_to_date = function(
+      dir,
+      clients,
+      julia,
+      cpu_target,
+      julia_args,
+      bundle
+    ) {
+      FALSE
+    },
     .find_julia = function(julia) "julia",
     .julia_version = function(julia) package_version("1.13.1"),
     .bind_requested = function() NULL,
@@ -119,7 +152,8 @@ test_that("install_library() replaces the old library and prunes stale ones", {
       versions,
       develop,
       cpu_target,
-      julia_args
+      julia_args,
+      bundle
     ) {
       built <<- list(clients = clients$package, versions = versions)
       dir.create(out)
@@ -149,7 +183,16 @@ test_that("install_library() keeps the old library if the new one fails", {
   local_mocked_bindings(
     jlbind_clients = function(...) fake_clients(),
     .library_dir = function() dir,
-    .up_to_date = function(dir, clients, julia, cpu_target, julia_args) FALSE,
+    .up_to_date = function(
+      dir,
+      clients,
+      julia,
+      cpu_target,
+      julia_args,
+      bundle
+    ) {
+      FALSE
+    },
     .find_julia = function(julia) "julia",
     .julia_version = function(julia) package_version("1.13.1"),
     # Builds nothing, so there is nothing to move into place.
@@ -160,7 +203,8 @@ test_that("install_library() keeps the old library if the new one fails", {
       versions,
       develop,
       cpu_target,
-      julia_args
+      julia_args,
+      bundle
     ) {
       NULL
     }
@@ -239,7 +283,8 @@ test_that("build_library() builds a source package into its .jlbind/", {
       versions,
       develop,
       cpu_target,
-      julia_args
+      julia_args,
+      bundle
     ) {
       args <<- list(package = clients$package, out = out)
       dir.create(out)
@@ -346,4 +391,45 @@ test_that("Julia must be found and at least 1.13", {
 
 test_that("a missing julia has no version", {
   expect_true(is.na(.julia_version(file.path(tempdir(), "no-such-julia"))))
+})
+
+test_that("`bundle` must be TRUE or FALSE", {
+  expect_null(.check_bundle(TRUE))
+  expect_null(.check_bundle(FALSE))
+  expect_error(.check_bundle(NA), "TRUE or FALSE")
+  expect_error(.check_bundle("yes"), "TRUE or FALSE")
+})
+
+test_that("`julia_args` refuses JuliaC's options", {
+  expect_error(.julia_args("--bundle=x"), "`bundle`", fixed = TRUE)
+  expect_error(.julia_args("--privatize"), "--privatize", fixed = TRUE)
+})
+
+test_that(".build() only bundles when asked, and says so for a native bundle", {
+  build <- function(...) {
+    out <- withr::local_tempdir()
+    args <- NULL
+    local_mocked_bindings(
+      .julia_version = function(julia) package_version("1.13.1"),
+      .run_julia = function(julia, a) {
+        args <<- a
+        file.create(file.path(out, .library_file()))
+        0L
+      }
+    )
+    msgs <- capture_messages(.build(fake_clients(), out, "julia", ...))
+    list(args = args, msgs = msgs, build = read.dcf(file.path(out, "build")))
+  }
+
+  default <- build()
+  expect_false("--bundle" %in% default$args)
+  expect_equal(default$build[, "Bundle"][[1]], "FALSE")
+  expect_length(default$msgs, 0)
+
+  native <- build(bundle = TRUE)
+  expect_true("--bundle" %in% native$args)
+  expect_equal(native$build[, "Bundle"][[1]], "TRUE")
+  expect_match(native$msgs, "only loads on this CPU model")
+
+  expect_length(build(cpu_target = "generic", bundle = TRUE)$msgs, 0)
 })

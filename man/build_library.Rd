@@ -11,7 +11,8 @@ build_library(
   versions = c("manifest", "compat"),
   develop = NULL,
   cpu_target = NULL,
-  julia_args = NULL
+  julia_args = NULL,
+  bundle = FALSE
 )
 }
 \arguments{
@@ -43,6 +44,11 @@ compiling the library, such as \code{"-O3"}. jlbind passes \code{-g0} (no debug
 info), which these can override (e.g. \code{"-g1"}), but not the options it
 relies on: \code{--trim}, \verb{--output-*} and \code{--compile-ccallable}. By default,
 \code{JLBIND_JULIA_ARGS} split at spaces.}
+
+\item{bundle}{If \code{TRUE}, copy the Julia runtime next to the library, so that
+it runs without Julia installed. This makes the library much larger, and is
+only useful for giving a library to people without Julia, who set
+\code{JLBIND_LIBRARY} to it. They also need a \code{cpu_target} other than \code{"native"}.}
 }
 \value{
 The path to the library, invisibly.

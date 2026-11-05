@@ -23,6 +23,8 @@
 # default, the targets of Julia's system image, which multiplies the code by
 # compiling it once for each. `--julia-arg=<option>` (repeatable) passes
 # <option> to the Julia that compiles the library, after jlbind's own.
+# `--bundle` copies the Julia runtime into <output directory>/jlbind-bundle, so
+# the library runs without Julia installed and the directory can be moved.
 
 import Pkg
 import TOML
@@ -31,6 +33,7 @@ const HERE = @__DIR__
 const OUT = abspath(ARGS[1])
 const UPDATE = "--update" in ARGS
 const TRIM = !("--no-trim" in ARGS)
+const BUNDLE = "--bundle" in ARGS
 const CPU_TARGET = let a = findlast(startswith("--cpu-target="), ARGS)
     a === nothing ? nothing : String(chopprefix(ARGS[a], "--cpu-target="))
 end
@@ -244,9 +247,27 @@ image = JuliaC.ImageRecipe(;
     cpu_target = CPU_TARGET,
 )
 JuliaC.compile_products(image)
-JuliaC.link_products(JuliaC.LinkRecipe(; image_recipe = image, outname = joinpath(OUT, "jlbind")))
 
-# Record where the Julia runtime the library links against lives. A Windows
-# DLL has no RUNPATH, so the R package puts it on the DLL search path before
-# loading; on every platform, jlbind_sitrep() checks that it still exists.
-write(joinpath(OUT, "julia_bindir"), Sys.BINDIR)
+# A bundle keeps the runtime in its own directory, so a rebuild can replace it
+# without touching anything else in <output directory>. The library stays at
+# the top, where the R package looks for it and its metadata, so it finds the
+# runtime through a relative RUNPATH. Windows has none: the R package puts the
+# bundle's `bin` on the DLL search path before loading.
+const BUNDLE_DIR = joinpath(OUT, "jlbind-bundle")
+rm(BUNDLE_DIR; force = true, recursive = true)
+link = JuliaC.LinkRecipe(;
+    image_recipe = image,
+    outname = joinpath(OUT, "jlbind"),
+    rpath = !BUNDLE ? "@julia" : Sys.iswindows() ? "@bundle" : "jlbind-bundle/lib",
+)
+JuliaC.link_products(link)
+if BUNDLE
+    JuliaC.bundle_products(JuliaC.BundleRecipe(; link_recipe = link, output_dir = BUNDLE_DIR))
+    mv(link.outname, joinpath(OUT, basename(link.outname)); force = true)
+    rm(joinpath(OUT, "julia_bindir"); force = true)
+else
+    # Record where the Julia runtime the library links against lives. A Windows
+    # DLL has no RUNPATH, so the R package puts it on the DLL search path before
+    # loading; on every platform, jlbind_sitrep() checks that it still exists.
+    write(joinpath(OUT, "julia_bindir"), Sys.BINDIR)
+end

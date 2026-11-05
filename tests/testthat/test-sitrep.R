@@ -205,3 +205,26 @@ test_that("jlbind_sitrep() reports a missing Julia and library", {
   expect_match(out, "not found", all = FALSE)
   expect_match(out, "has not been built", all = FALSE)
 })
+
+test_that("a bundle is stale only for `bundle`, not for the installed Julia", {
+  clients <- fake_clients()
+  dir <- fake_library(clients)
+  # Libraries from before `bundle` aren't bundles.
+  expect_equal(.stale_reasons(dir, clients, NA, NA, NULL, FALSE), character())
+  expect_equal(
+    .stale_reasons(dir, clients, NA, NA, NULL, TRUE),
+    "not built as a bundle"
+  )
+  expect_equal(
+    .stale_reasons(dir, clients, "1.14.1"),
+    "built with Julia 1.14.0, not 1.14.1"
+  )
+  build <- read.dcf(file.path(dir, "build"))
+  write.dcf(cbind(build, Bundle = "TRUE"), file.path(dir, "build"))
+  expect_equal(.stale_reasons(dir, clients, NA, NA, NULL, TRUE), character())
+  expect_equal(
+    .stale_reasons(dir, clients, NA, NA, NULL, FALSE),
+    "built as a bundle"
+  )
+  expect_equal(.stale_reasons(dir, clients, "1.14.1"), character())
+})

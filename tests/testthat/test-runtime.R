@@ -243,7 +243,8 @@ fake_dev_library <- function(src, dir, version = NULL, hash = NULL) {
       Julia = "1.14.0",
       Develop = "/some/checkout",
       CpuTarget = "generic",
-      JuliaArgs = "-O1 -g1"
+      JuliaArgs = "-O1 -g1",
+      Bundle = "TRUE"
     ),
     file.path(dir, "build")
   )
@@ -280,13 +281,21 @@ test_that("an out-of-date development library is rebuilt before loading", {
   local_mocked_bindings(.dev_library = function(pkg) path)
   built <- NULL
   local_mocked_bindings(
-    build_library = function(packages, out, develop, cpu_target, julia_args) {
+    build_library = function(
+      packages,
+      out,
+      develop,
+      cpu_target,
+      julia_args,
+      bundle
+    ) {
       built <<- list(
         packages = packages,
         out = out,
         develop = develop,
         cpu_target = cpu_target,
-        julia_args = julia_args
+        julia_args = julia_args,
+        bundle = bundle
       )
     }
   )
@@ -299,6 +308,7 @@ test_that("an out-of-date development library is rebuilt before loading", {
   expect_equal(built$develop, "/some/checkout")
   expect_equal(built$cpu_target, "generic")
   expect_equal(built$julia_args, c("-O1", "-g1"))
+  expect_true(built$bundle)
 
   built <- NULL
 
@@ -411,4 +421,17 @@ test_that("a library is out of date once a client's Julia code changes", {
   expect_true(.up_to_date(dir, clients, "1.13.1"))
   clients$hash <- "h2"
   expect_false(.up_to_date(dir, clients, "1.13.1"))
+})
+
+test_that("on Windows, a bundle's own runtime is put on the PATH", {
+  dir <- withr::local_tempdir()
+  lib <- file.path(dir, .library_file())
+  bin <- file.path(dir, "jlbind-bundle", "bin")
+  dir.create(bin, recursive = TRUE)
+  withr::local_envvar(PATH = "C:\\Windows")
+  .add_julia_bindir(lib, windows = TRUE)
+  expect_equal(
+    Sys.getenv("PATH"),
+    paste0(normalizePath(bin), ";C:\\Windows")
+  )
 })

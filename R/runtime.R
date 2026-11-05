@@ -124,7 +124,8 @@
       out = dir,
       develop = develop,
       cpu_target = cpu_target,
-      julia_args = julia_args
+      julia_args = julia_args,
+      bundle = identical(unname(build$Bundle), "TRUE")
     ),
     error = identity
   )
@@ -262,20 +263,24 @@
 }
 
 # On Windows the library has no RUNPATH, so the directory of the Julia
-# runtime it links against (recorded by build.jl next to it) is put on the
-# PATH, where Windows finds libjulia.dll and its dependencies.
+# runtime it links against (recorded by build.jl next to it, or in its bundle)
+# is put on the PATH, where Windows finds libjulia.dll and its dependencies.
 .add_julia_bindir <- function(path, windows = .Platform$OS.type == "windows") {
   if (!windows) {
     return(invisible(NULL))
   }
   record <- file.path(dirname(path), "julia_bindir")
-  if (!file.exists(record)) {
+  bundled <- file.path(dirname(path), "jlbind-bundle", "bin")
+  if (dir.exists(bundled)) {
+    bindir <- normalizePath(bundled)
+  } else if (file.exists(record)) {
+    bindir <- normalizePath(
+      readLines(record, warn = FALSE)[[1L]],
+      mustWork = FALSE
+    )
+  } else {
     return(invisible(NULL))
   }
-  bindir <- normalizePath(
-    readLines(record, warn = FALSE)[[1L]],
-    mustWork = FALSE
-  )
   dirs <- strsplit(Sys.getenv("PATH"), ";", fixed = TRUE)[[1L]]
   if (!tolower(bindir) %in% tolower(normalizePath(dirs, mustWork = FALSE))) {
     Sys.setenv(PATH = paste(c(bindir, dirs), collapse = ";"))

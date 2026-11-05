@@ -42,6 +42,10 @@
 #'   info), which these can override (e.g. `"-g1"`), but not the options it
 #'   relies on: `--trim`, `--output-*` and `--compile-ccallable`. By default,
 #'   `JLBIND_JULIA_ARGS` split at spaces.
+#' @param bundle If `TRUE`, copy the Julia runtime next to the library, so that
+#'   it runs without Julia installed. This makes the library much larger, and is
+#'   only useful for giving a library to people without Julia, who set
+#'   `JLBIND_LIBRARY` to it. They also need a `cpu_target` other than `"native"`.
 #'
 #' @return The path to the library (invisibly), or `NULL` if there was nothing
 #'   to build.
@@ -67,11 +71,13 @@ install_library <- function(
   versions = c("manifest", "compat"),
   develop = NULL,
   cpu_target = NULL,
-  julia_args = NULL
+  julia_args = NULL,
+  bundle = FALSE
 ) {
   versions <- match.arg(versions)
   cpu_target <- .cpu_target(cpu_target)
   julia_args <- .julia_args(julia_args)
+  .check_bundle(bundle)
   clients <- jlbind_clients()
   if (!is.null(packages)) {
     missing <- setdiff(packages, clients$package)
@@ -96,7 +102,14 @@ install_library <- function(
     !force &&
       versions == "manifest" &&
       !length(develop) &&
-      .up_to_date(dir, clients, .julia_version(julia), cpu_target, julia_args)
+      .up_to_date(
+        dir,
+        clients,
+        .julia_version(julia),
+        cpu_target,
+        julia_args,
+        bundle
+      )
   ) {
     message(
       "The compiled Julia library is up to date (",
@@ -133,7 +146,7 @@ install_library <- function(
   dir.create(root, recursive = TRUE, showWarnings = FALSE)
   out <- tempfile("build-", tmpdir = root)
   on.exit(unlink(out, recursive = TRUE), add = TRUE)
-  .build(clients, out, julia, versions, develop, cpu_target, julia_args)
+  .build(clients, out, julia, versions, develop, cpu_target, julia_args, bundle)
 
   # A loaded library cannot be deleted on Windows, but it can be renamed, so
   # the old build is moved aside first; whatever cannot be removed now is
@@ -267,11 +280,13 @@ build_library <- function(
   versions = c("manifest", "compat"),
   develop = NULL,
   cpu_target = NULL,
-  julia_args = NULL
+  julia_args = NULL,
+  bundle = FALSE
 ) {
   versions <- match.arg(versions)
   cpu_target <- .cpu_target(cpu_target)
   julia_args <- .julia_args(julia_args)
+  .check_bundle(bundle)
   is_path <- .is_path(packages)
   if (is.null(out)) {
     if (length(packages) != 1L || !is_path) {
@@ -289,20 +304,30 @@ build_library <- function(
   )
   clients <- .client_table(infos)
   julia <- .find_julia(julia)
-  .build(clients, out, julia, versions, develop, cpu_target, julia_args)
+  .build(clients, out, julia, versions, develop, cpu_target, julia_args, bundle)
   invisible(file.path(normalizePath(out), .library_file()))
+}
+
+.check_bundle <- function(bundle) {
+  if (!isTRUE(bundle) && !isFALSE(bundle)) {
+    stop("`bundle` must be TRUE or FALSE.", call. = FALSE)
+  }
+  invisible(NULL)
 }
 
 # Options of the compile that jlbind sets itself: the entrypoints are exported
 # from a library (--output-lib, --compile-ccallable), trimming is up to the
 # clients (--trim, with --experimental), and the CPU target is `cpu_target`.
+# `--bundle` and `--privatize` are options of JuliaC, which Julia doesn't know.
 .fixed_julia_args <- c(
   "--trim",
   "--output",
   "--compile-ccallable",
   "--experimental",
   "--cpu-target",
-  "-C"
+  "-C",
+  "--bundle",
+  "--privatize"
 )
 
 # The extra `julia_args` to build with: the argument, else JLBIND_JULIA_ARGS
@@ -326,7 +351,7 @@ build_library <- function(
       ": each must be an option (starting with `-`), and not one jlbind sets ",
       "itself (",
       paste0(.fixed_julia_args, collapse = ", "),
-      "; use `cpu_target` for the CPU target).",
+      "; use `cpu_target` for the CPU target and `bundle` for a bundle).",
       call. = FALSE
     )
   }
@@ -412,7 +437,8 @@ build_library <- function(
   versions = "manifest",
   develop = NULL,
   cpu_target = "native",
-  julia_args = character()
+  julia_args = character(),
+  bundle = FALSE
 ) {
   if (anyDuplicated(clients$module)) {
     dup <- clients$module[duplicated(clients$module)][[1L]]
@@ -438,6 +464,14 @@ build_library <- function(
       ": false`. The library is larger and may compile code when it runs."
     )
   }
+  if (bundle && grepl("native", cpu_target, fixed = TRUE)) {
+    message(
+      "Building a bundle for CPU target \"",
+      cpu_target,
+      "\", which jlbind only loads on this CPU model. To give it to others, ",
+      "use another `cpu_target`, such as \"generic\"."
+    )
+  }
   dir.create(out, recursive = TRUE, showWarnings = FALSE)
   script <- system.file("julia", "build.jl", package = "jlbind")
   status <- .run_julia(
@@ -447,6 +481,7 @@ build_library <- function(
       shQuote(out),
       if (versions == "compat") "--update",
       if (!trim) "--no-trim",
+      if (bundle) "--bundle",
       shQuote(paste0("--cpu-target=", cpu_target)),
       if (length(julia_args)) {
         shQuote(paste0("--julia-arg=", julia_args))
@@ -497,7 +532,8 @@ build_library <- function(
       Develop = paste(develop, collapse = "\n"),
       CpuTarget = cpu_target,
       CPU = if (is.na(cpu)) "" else cpu,
-      JuliaArgs = paste(julia_args, collapse = " ")
+      JuliaArgs = paste(julia_args, collapse = " "),
+      Bundle = bundle
     ),
     file.path(out, "build")
   )
@@ -597,8 +633,8 @@ build_library <- function(
 }
 
 # How the library in `dir` was built (a list with jlbind, Julia, Built, Trim,
-# Develop, CpuTarget, CPU and JuliaArgs, NA where not recorded), or NULL if it
-# records nothing.
+# Develop, CpuTarget, CPU, JuliaArgs and Bundle, NA where not recorded), or NULL
+# if it records nothing.
 .read_build <- function(dir) {
   file <- file.path(dir, "build")
   if (!file.exists(file)) {
@@ -612,34 +648,38 @@ build_library <- function(
     "Develop",
     "CpuTarget",
     "CPU",
-    "JuliaArgs"
+    "JuliaArgs",
+    "Bundle"
   )
   as.list(read.dcf(file, fields = fields)[1L, ])
 }
 
 # Was the library in `dir` built by this version of jlbind and Julia version
-# `julia`, for `cpu_target`, with `julia_args`, from exactly these versions of
-# these clients, with the same binding package files (counting the clients it
-# left out), and with no local checkouts?
+# `julia`, for `cpu_target`, with `julia_args`, as a bundle or not (`bundle`),
+# from exactly these versions of these clients, with the same binding package
+# files (counting the clients it left out), and with no local checkouts?
 .up_to_date <- function(
   dir,
   clients,
   julia,
   cpu_target = NA,
-  julia_args = NULL
+  julia_args = NULL,
+  bundle = NA
 ) {
-  !length(.stale_reasons(dir, clients, julia, cpu_target, julia_args))
+  !length(.stale_reasons(dir, clients, julia, cpu_target, julia_args, bundle))
 }
 
 # Why the library in `dir` is not what install_library() would build from
-# `clients` with Julia version `julia` for `cpu_target` with `julia_args`
-# (each skipped if NA or NULL): a character vector, empty if it is up to date.
+# `clients` with Julia version `julia` for `cpu_target` with `julia_args`, as a
+# bundle or not (`bundle`) (each skipped if NA or NULL): a character vector,
+# empty if it is up to date.
 .stale_reasons <- function(
   dir,
   clients,
   julia,
   cpu_target = NA,
-  julia_args = NULL
+  julia_args = NULL,
+  bundle = NA
 ) {
   built <- .read_clients(dir)
   build <- .read_build(dir)
@@ -652,7 +692,7 @@ build_library <- function(
   }
   status <- .client_status(clients, built, .read_excluded(dir))
   c(
-    .build_reasons(build, julia, cpu_target, julia_args),
+    .build_reasons(build, julia, cpu_target, julia_args, bundle),
     paste0(status$package, ": ", status$status)[
       !status$status %in% c("ok", "left out")
     ]
@@ -660,22 +700,36 @@ build_library <- function(
 }
 
 # Why a library built as `build` (.read_build()) is out of date regardless of
-# its clients, for Julia version `julia`, `cpu_target` and `julia_args` (each
-# skipped if NA or NULL).
-.build_reasons <- function(build, julia, cpu_target = NA, julia_args = NULL) {
+# its clients, for Julia version `julia`, `cpu_target`, `julia_args` and
+# `bundle` (each skipped if NA or NULL). A bundle doesn't use the installed
+# Julia, so another version of it is no reason.
+.build_reasons <- function(
+  build,
+  julia,
+  cpu_target = NA,
+  julia_args = NULL,
+  bundle = NA
+) {
   # Libraries from before `julia_args` were built with none.
   built_args <- build$JuliaArgs
   if (is.null(built_args) || is.na(built_args)) {
     built_args <- ""
   }
+  # Likewise, libraries from before `bundle` aren't bundles.
+  bundled <- identical(unname(build$Bundle), "TRUE")
   julia_args <- if (!is.null(julia_args)) paste(julia_args, collapse = " ")
   jlbind <- as.character(utils::packageVersion("jlbind"))
   c(
     if (!identical(build$jlbind, jlbind)) {
       paste0("built by jlbind ", build$jlbind, ", not ", jlbind)
     },
-    if (!is.na(julia) && !identical(build$Julia, as.character(julia))) {
+    if (
+      !bundled && !is.na(julia) && !identical(build$Julia, as.character(julia))
+    ) {
       paste0("built with Julia ", build$Julia, ", not ", julia)
+    },
+    if (!is.na(bundle) && !identical(bundled, bundle)) {
+      if (bundled) "built as a bundle" else "not built as a bundle"
     },
     if (!is.na(cpu_target) && !identical(build$CpuTarget, cpu_target)) {
       paste0(

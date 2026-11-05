@@ -21,12 +21,13 @@ that are never used in the same R session.
 
 [^privatize]: JuliaC can *privatize* a library, giving it its own copy of the
     Julia runtime, but jlbind doesn't use this. Each client would then ship a
-    bundle with its own runtime and compiled copy of Base: about 60 MB per
-    client on Linux and 100 MB on Windows, even for a tiny client, where a
-    shared library adds only each client's own code. Each runtime would also
-    have its own garbage-collected heap and threads in memory, and Julia objects
-    couldn't be passed between clients. Privatization also doesn't work on
-    Windows yet
+    bundle with its own runtime and compiled copy of Base, where a shared
+    library adds only each client's own code. On Linux with Julia 1.14, a bundle
+    was over 80 MB for a larger client, and about 9 MB for a tiny client after
+    removing the runtime libraries it doesn't use by hand. Each runtime would
+    also have its own garbage-collected heap and threads in memory, and Julia
+    objects couldn't be passed between clients. Privatization also doesn't work
+    on Windows yet
     ([JuliaC.jl#151](https://github.com/JuliaLang/JuliaC.jl/pull/151)).
 
 ## What `use_jlbind()` adds
