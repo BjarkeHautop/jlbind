@@ -67,9 +67,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-5edf9aa48914e65fdee7ecfb349af396.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-cec79b75b621f41fbf3f714b42497c04.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-5edf9aa48914e65fdee7ecfb349af396.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-174b53273fa95a7cc7088e76628606fb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -319,6 +319,10 @@ visitors who prefer it, before Quarto reads the stored choice.
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-articles">
 <li>
+    <a class="dropdown-item" href="../vignettes/technical-details.html">
+ <span class="dropdown-text">Technical details</span></a>
+  </li>  
+        <li>
     <a class="dropdown-item" href="../vignettes/using-clients.html">
  <span class="dropdown-text">Using packages built on jlbind</span></a>
   </li>  
@@ -371,11 +375,10 @@ visitors who prefer it, before Quarto reads the stored choice.
 <small class="dont-index">Source: <a href="https://github.com/BjarkeHautop/jlbind/blob/HEAD/R/runtime.R"><code>R/runtime.R</code></a></small>
 </p>
 <section id="description" class="level2"><h2 class="anchored" data-anchor-id="description">Description</h2>
-<p>Call this from the <code>.onLoad()</code> of a package that uses jlbind; <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./use_jlbind.html">use_jlbind()</a></code> sets that up. The first call loads the compiled library, and each call binds one package’s routines to it. If the library is missing or was built from another version of the package, the package isn’t bound and its functions give an error; <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./is_bound.html">check_bound()</a></code> says why.</p>
+<p>Call this from the <code>.onLoad()</code> of a package that uses jlbind; <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./use_jlbind.html">use_jlbind()</a></code> sets that up. The first call loads the compiled library, and each call binds one package’s routines to it. If the library is missing or was built from another version of the package, the package isn’t bound and its functions give an error; <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="./is_bound.html">check_bound()</a></code> says why.</p>
 </section><section id="usage" class="level2"><h2 class="anchored" data-anchor-id="usage">Usage</h2>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="./bind_client.html">bind_client</a></span><span class="op">(</span><span class="va">pkg</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./bind_client.html">bind_client</a></span>(pkg)</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 </section><section id="arguments" class="level2"><h2 class="anchored" data-anchor-id="arguments">Arguments</h2>
@@ -393,11 +396,10 @@ The package name.
 <p>Invisibly, <code>TRUE</code> if the package is bound and <code>FALSE</code> if not.</p>
 </section><section id="examples" class="level2"><h2 class="anchored" data-anchor-id="examples">Examples</h2>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="co"># In a package's R/jlbind.R, as use_jlbind() writes it</span></span>
-<span><span class="va">.onLoad</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">libname</span>, <span class="va">pkgname</span><span class="op">)</span> <span class="op">{</span></span>
-<span>  <span class="fu">jlbind</span><span class="fu">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="./bind_client.html">bind_client</a></span><span class="op">(</span><span class="va">pkgname</span><span class="op">)</span></span>
-<span><span class="op">}</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># In a package's R/jlbind.R, as use_jlbind() writes it</span></span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>.onLoad <span class="ot">&lt;-</span> <span class="cf">function</span>(libname, pkgname) {</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a>  jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./bind_client.html">bind_client</a></span>(pkgname)</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 
@@ -432,6 +434,33 @@ The package name.
     if (overflow > 0) {
       navContainer.style.paddingLeft = Math.max(diff - overflow, 0) + "px";
     }
+  }
+  // While previewing the site locally, reload the page when a rebuild changes
+  // it. It checks its own address, which needs nothing of the server.
+  function reloadWhenRebuilt() {
+    if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
+    var url = location.href.split("#")[0];
+    var page;
+    function check() {
+      if (document.hidden) {
+        setTimeout(check, 1000);
+        return;
+      }
+      fetch(url, { cache: "no-store" })
+        .then(function (response) {
+          return response.ok ? response.text() : page;
+        })
+        .then(function (text) {
+          if (page !== undefined && text !== page) {
+            location.reload();
+            return;
+          }
+          page = text;
+          setTimeout(check, 1000);
+        })
+        .catch(function () {}); // The server has stopped.
+    }
+    check();
   }
   // Wrap the version in the "<pkg> <version>" title so it can be styled.
   function shrinkNavbarVersion() {
@@ -571,7 +600,7 @@ The package name.
     }, true);
   }
   // Shows the tip of a reference to the package's own topics, from the
-  // page's hidden `.quartodown-tip-payload` (see add_tooltips_html()), in
+  // page's hidden `.quartodown-tip-payload` (see link_code_html()), in
   // one `position: fixed` element, so code blocks' `overflow: auto` can't
   // clip it.
   function initTooltips() {
@@ -621,6 +650,7 @@ The package name.
   alignNavbarToContent();
   window.addEventListener("load", alignNavbarToContent);
   window.addEventListener("resize", alignNavbarToContent);
+  reloadWhenRebuilt();
 })();
 </script><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
@@ -1157,20 +1187,39 @@ The package name.
 <p>Site built with <a href="https://github.com/BjarkeHautop/quartodown">quartodown</a> and <a href="https://quarto.org/">Quarto</a>.</p>
 </div>
   </div>
-</footer>
-<div class="quartodown-tip-payload" hidden><div data-for="t1"><code class="quartodown-tip-sig">use_jlbind(path = &quot;.&quot;, module = NULL, dir = &quot;julia&quot;)</code><span class="quartodown-tip-brief">Adds what a package needs to call Julia code through jlbind.</span></div><div data-for="t2"><code class="quartodown-tip-sig">check_bound(pkg)</code><span class="quartodown-tip-brief"><code>is_bound()</code> returns <code>TRUE</code> or <code>FALSE</code>.</span></div><div data-for="t3"><code class="quartodown-tip-sig">bind_client(pkg)</code><span class="quartodown-tip-brief">Call this from the <code>.onLoad()</code> of a package that uses jlbind; <code>use_jlbind()</code> sets that up.</span></div><div data-for="t4"><code class="quartodown-tip-sig">install_library(
-  packages = NULL,
-  julia = NULL,
-  ask = interactive(),
-  force = FALSE,
-  versions = c(&quot;manifest&quot;, &quot;compat&quot;),
-  develop = NULL
-)</code><span class="quartodown-tip-brief">Compiles the Julia code of every installed package that uses jlbind into one shared library, stored in <code>tools::R_user_dir(&quot;jlbind&quot;, &quot;data&quot;)</code>.</span></div><div data-for="t5"><code class="quartodown-tip-sig">build_library(
-  packages = &quot;.&quot;,
-  out = NULL,
-  julia = NULL,
-  versions = c(&quot;manifest&quot;, &quot;compat&quot;),
-  develop = NULL
-)</code><span class="quartodown-tip-brief">Like <code>install_library()</code>, but compiles only <code>packages</code> and writes the library to <code>out</code>, for package development.</span></div></div>
+</footer><div class="quartodown-tip-payload" hidden>
+<div data-for="t1">
+<code class="quartodown-tip-sig"><span class="fu">bind_client</span>(pkg)</code><span class="quartodown-tip-brief">Bind a package to the Julia library</span>
+</div>
+<div data-for="t2">
+<code class="quartodown-tip-sig"><span class="fu">use_jlbind</span>(<span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>, <span class="at">module</span> <span class="at">=</span> <span class="cn">NULL</span>, <span class="at">dir</span> <span class="at">=</span> <span class="st">"julia"</span>)</code><span class="quartodown-tip-brief">Set up a package to use jlbind</span>
+</div>
+<div data-for="t3">
+<code class="quartodown-tip-sig"><span class="fu">check_bound</span>(pkg)</code><span class="quartodown-tip-brief">Check whether a package is bound to the Julia library</span>
+</div>
+<div data-for="t4">
+<code class="quartodown-tip-sig"><span class="fu">install_library</span>(
+  <span class="at">packages</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">julia</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">ask</span> <span class="at">=</span> <span class="fu">interactive</span>(),
+  <span class="at">force</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">versions</span> <span class="at">=</span> <span class="fu">c</span>(<span class="st">"manifest"</span>, <span class="st">"compat"</span>),
+  <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>
+)</code><span class="quartodown-tip-brief">Build the Julia library</span>
+</div>
+<div data-for="t5">
+<code class="quartodown-tip-sig"><span class="fu">build_library</span>(
+  <span class="at">packages</span> <span class="at">=</span> <span class="st">"."</span>,
+  <span class="at">out</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">julia</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">versions</span> <span class="at">=</span> <span class="fu">c</span>(<span class="st">"manifest"</span>, <span class="st">"compat"</span>),
+  <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>
+)</code><span class="quartodown-tip-brief">Build a Julia library from specific packages</span>
+</div>
+</div>
 </body>
 </html>

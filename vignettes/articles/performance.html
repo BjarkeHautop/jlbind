@@ -67,9 +67,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script><link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-5edf9aa48914e65fdee7ecfb349af396.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../site_libs/bootstrap/bootstrap-dark-cec79b75b621f41fbf3f714b42497c04.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../site_libs/bootstrap/bootstrap-5edf9aa48914e65fdee7ecfb349af396.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-174b53273fa95a7cc7088e76628606fb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -113,16 +113,14 @@ visitors who prefer it, before Quarto reads the stored choice.
 })();
 </script><meta property="og:title" content="Performance – jlbind 0.0.0.9000">
 <meta property="og:description" content="Bind R Packages to Compiled Julia Code">
-<meta property="og:image" content="https://bjarkehautop.github.io/jlbind/vignettes/articles/performance_files/figure-html/transfer-plot-1.png">
+<meta property="og:image" content="https://bjarkehautop.github.io/jlbind/man/figures/logo.png">
 <meta property="og:site_name" content="jlbind 0.0.0.9000">
-<meta property="og:image:alt" content="Median time of shift(x, 1) against the length of x, on log scales, for jlbind, JuliaCall and JuliaConnectoR. jlbind is fastest at every length.">
-<meta property="og:image:height" content="806">
-<meta property="og:image:width" content="1344">
+<meta property="og:image:height" content="600">
+<meta property="og:image:width" content="520">
 <meta name="twitter:title" content="Performance – jlbind 0.0.0.9000">
 <meta name="twitter:description" content="Bind R Packages to Compiled Julia Code">
-<meta name="twitter:image" content="https://bjarkehautop.github.io/jlbind/vignettes/articles/performance_files/figure-html/transfer-plot-1.png">
+<meta name="twitter:image" content="https://bjarkehautop.github.io/jlbind/man/figures/logo.png">
 <meta name="twitter:card" content="summary">
-<meta name="twitter:image:alt" content="Median time of shift(x, 1) against the length of x, on log scales, for jlbind, JuliaCall and JuliaConnectoR. jlbind is fastest at every length.">
 </head>
 <body class="nav-fixed quarto-light">
 <a id="quarto-skip-link" class="visually-hidden-focusable" href="#quarto-document-content">Skip to main content</a><script id="quarto-html-before-body" type="application/javascript">
@@ -321,6 +319,10 @@ visitors who prefer it, before Quarto reads the stored choice.
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-articles">
 <li>
+    <a class="dropdown-item" href="../../vignettes/technical-details.html">
+ <span class="dropdown-text">Technical details</span></a>
+  </li>  
+        <li>
     <a class="dropdown-item" href="../../vignettes/using-clients.html">
  <span class="dropdown-text">Using packages built on jlbind</span></a>
   </li>  
@@ -382,12 +384,13 @@ visitors who prefer it, before Quarto reads the stored choice.
 <p>jlbind calls them through <code>benchjl</code>, compiled into a jlbind library. JuliaCall and JuliaConnectoR evaluate the same definitions and call them with <code>julia_call()</code> and <code>juliaFun()</code>. Each interface runs in fresh R processes, since jlbind and JuliaCall can’t share one.</p>
 <ul>
 <li>
-<strong>Startup</strong>: the time from loading the package to the result of the first call, <code>greet("world")</code>, in a new R process (R’s own startup excluded), repeated 10 times.</li>
+<strong>Startup</strong>: the median time from loading the package to the result of the first call, <code>greet("world")</code>, in a new R process (R’s own startup excluded), over 10 repetitions.</li>
 <li>
 <strong>Call overhead</strong>: the median time of <code>greet("world")</code>, a string in and a string out, after the first call.</li>
 <li>
 <strong>Data transfer</strong>: the median time of <code>shift(x, 1)</code> for numeric vectors <code>x</code> of length 10 to 10<sup>7</sup>, which copies <code>x</code> to Julia and the result back.</li>
 </ul>
+<p>Each table shows the median time for each interface and, in parentheses, how many times jlbind’s median it is.</p>
 <p>The benchmark script is <a href="https://github.com/BjarkeHautop/jlbind/blob/main/vignettes/articles/performance/benchmark.R"><code>vignettes/articles/performance/benchmark.R</code></a>. The results below were run on<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>:</p>
 <div class="cell">
 <div class="cell-output-display">
@@ -428,31 +431,15 @@ visitors who prefer it, before Quarto reads the stored choice.
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <thead><tr class="header">
-<th style="text-align: left;">Interface</th>
-<th style="text-align: right;">Median</th>
-<th style="text-align: right;">Min</th>
-<th style="text-align: right;">Max</th>
+<th style="text-align: right;">jlbind</th>
+<th style="text-align: right;">JuliaCall</th>
+<th style="text-align: right;">JuliaConnectoR</th>
 </tr></thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">jlbind</td>
+<tbody><tr class="odd">
 <td style="text-align: right;">36.2 ms</td>
-<td style="text-align: right;">32.6 ms</td>
-<td style="text-align: right;">40.1 ms</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">JuliaCall</td>
-<td style="text-align: right;">3.94 s</td>
-<td style="text-align: right;">3.88 s</td>
-<td style="text-align: right;">4.28 s</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">JuliaConnectoR</td>
-<td style="text-align: right;">3.02 s</td>
-<td style="text-align: right;">2.99 s</td>
-<td style="text-align: right;">3.16 s</td>
-</tr>
-</tbody>
+<td style="text-align: right;">3.94 s (109×)</td>
+<td style="text-align: right;">3.02 s (84×)</td>
+</tr></tbody>
 </table>
 </div>
 </div>
@@ -462,40 +449,20 @@ visitors who prefer it, before Quarto reads the stored choice.
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
 <thead><tr class="header">
-<th style="text-align: left;">Interface</th>
-<th style="text-align: right;">Time per call</th>
-<th style="text-align: right;">Relative to jlbind</th>
+<th style="text-align: right;">jlbind</th>
+<th style="text-align: right;">JuliaCall</th>
+<th style="text-align: right;">JuliaConnectoR</th>
 </tr></thead>
-<tbody>
-<tr class="odd">
-<td style="text-align: left;">jlbind</td>
+<tbody><tr class="odd">
 <td style="text-align: right;">0.702 µs</td>
-<td style="text-align: right;">1×</td>
-</tr>
-<tr class="even">
-<td style="text-align: left;">JuliaCall</td>
-<td style="text-align: right;">8.76 µs</td>
-<td style="text-align: right;">12×</td>
-</tr>
-<tr class="odd">
-<td style="text-align: left;">JuliaConnectoR</td>
-<td style="text-align: right;">207 µs</td>
-<td style="text-align: right;">295×</td>
-</tr>
-</tbody>
+<td style="text-align: right;">8.76 µs (12×)</td>
+<td style="text-align: right;">207 µs (295×)</td>
+</tr></tbody>
 </table>
 </div>
 </div>
 <p>A jlbind call is a <code><a href="https://rdrr.io/r/base/CallExternal.html">.Call()</a></code> into the compiled library, where the arguments are converted with R’s C API and the function is called directly. JuliaCall converts arguments and looks up the function at run time in the embedded session. JuliaConnectoR serializes the call to a separate Julia process and the result back, so each call costs a round trip.</p>
 </section><section id="data-transfer" class="level2"><h2 class="anchored" data-anchor-id="data-transfer">Data transfer</h2>
-<div class="cell">
-<div class="cell-output-display">
-<div>
-<figure class="figure"><p><img src="performance_files/figure-html/transfer-plot-1.png" class="img-fluid figure-img" alt="Median time of shift(x, 1) against the length of x, on log scales, for jlbind, JuliaCall and JuliaConnectoR. jlbind is fastest at every length." width="672"></p>
-</figure>
-</div>
-</div>
-</div>
 <div class="cell">
 <div class="cell-output-display">
 <table class="caption-top table table-sm table-striped small">
@@ -509,44 +476,44 @@ visitors who prefer it, before Quarto reads the stored choice.
 <tr class="odd">
 <td style="text-align: right;">10</td>
 <td style="text-align: right;">1.14 µs</td>
-<td style="text-align: right;">11.1 µs</td>
-<td style="text-align: right;">237 µs</td>
+<td style="text-align: right;">11.1 µs (9.8×)</td>
+<td style="text-align: right;">237 µs (207×)</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">100</td>
 <td style="text-align: right;">1.33 µs</td>
-<td style="text-align: right;">14.5 µs</td>
-<td style="text-align: right;">261 µs</td>
+<td style="text-align: right;">14.5 µs (11×)</td>
+<td style="text-align: right;">261 µs (196×)</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">1,000</td>
 <td style="text-align: right;">11.6 µs</td>
-<td style="text-align: right;">43.6 µs</td>
-<td style="text-align: right;">262 µs</td>
+<td style="text-align: right;">43.6 µs (3.8×)</td>
+<td style="text-align: right;">262 µs (23×)</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">10,000</td>
 <td style="text-align: right;">72.8 µs</td>
-<td style="text-align: right;">292 µs</td>
-<td style="text-align: right;">389 µs</td>
+<td style="text-align: right;">292 µs (4.0×)</td>
+<td style="text-align: right;">389 µs (5.3×)</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">100,000</td>
 <td style="text-align: right;">175 µs</td>
-<td style="text-align: right;">2.95 ms</td>
-<td style="text-align: right;">2.16 ms</td>
+<td style="text-align: right;">2.95 ms (17×)</td>
+<td style="text-align: right;">2.16 ms (12×)</td>
 </tr>
 <tr class="even">
 <td style="text-align: right;">1,000,000</td>
 <td style="text-align: right;">4.88 ms</td>
-<td style="text-align: right;">33.8 ms</td>
-<td style="text-align: right;">18.9 ms</td>
+<td style="text-align: right;">33.8 ms (6.9×)</td>
+<td style="text-align: right;">18.9 ms (3.9×)</td>
 </tr>
 <tr class="odd">
 <td style="text-align: right;">10,000,000</td>
 <td style="text-align: right;">118 ms</td>
-<td style="text-align: right;">471 ms</td>
-<td style="text-align: right;">291 ms</td>
+<td style="text-align: right;">471 ms (4.0×)</td>
+<td style="text-align: right;">291 ms (2.5×)</td>
 </tr>
 </tbody>
 </table>
@@ -588,6 +555,33 @@ visitors who prefer it, before Quarto reads the stored choice.
     if (overflow > 0) {
       navContainer.style.paddingLeft = Math.max(diff - overflow, 0) + "px";
     }
+  }
+  // While previewing the site locally, reload the page when a rebuild changes
+  // it. It checks its own address, which needs nothing of the server.
+  function reloadWhenRebuilt() {
+    if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
+    var url = location.href.split("#")[0];
+    var page;
+    function check() {
+      if (document.hidden) {
+        setTimeout(check, 1000);
+        return;
+      }
+      fetch(url, { cache: "no-store" })
+        .then(function (response) {
+          return response.ok ? response.text() : page;
+        })
+        .then(function (text) {
+          if (page !== undefined && text !== page) {
+            location.reload();
+            return;
+          }
+          page = text;
+          setTimeout(check, 1000);
+        })
+        .catch(function () {}); // The server has stopped.
+    }
+    check();
   }
   // Wrap the version in the "<pkg> <version>" title so it can be styled.
   function shrinkNavbarVersion() {
@@ -727,7 +721,7 @@ visitors who prefer it, before Quarto reads the stored choice.
     }, true);
   }
   // Shows the tip of a reference to the package's own topics, from the
-  // page's hidden `.quartodown-tip-payload` (see add_tooltips_html()), in
+  // page's hidden `.quartodown-tip-payload` (see link_code_html()), in
   // one `position: fixed` element, so code blocks' `overflow: auto` can't
   // clip it.
   function initTooltips() {
@@ -777,6 +771,7 @@ visitors who prefer it, before Quarto reads the stored choice.
   alignNavbarToContent();
   window.addEventListener("load", alignNavbarToContent);
   window.addEventListener("resize", alignNavbarToContent);
+  reloadWhenRebuilt();
 })();
 </script><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {

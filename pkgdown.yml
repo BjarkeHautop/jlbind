@@ -3,5 +3,6 @@ urls:
   article: https://bjarkehautop.github.io/jlbind/vignettes
 articles:
   jlbind: jlbind.html
+  technical-details: technical-details.html
   using-clients: using-clients.html
   performance: articles/performance.html

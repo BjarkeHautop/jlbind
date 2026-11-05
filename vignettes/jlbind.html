@@ -67,9 +67,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-5edf9aa48914e65fdee7ecfb349af396.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-cec79b75b621f41fbf3f714b42497c04.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-5edf9aa48914e65fdee7ecfb349af396.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-174b53273fa95a7cc7088e76628606fb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -319,6 +319,10 @@ visitors who prefer it, before Quarto reads the stored choice.
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-articles">
 <li>
+    <a class="dropdown-item" href="../vignettes/technical-details.html">
+ <span class="dropdown-text">Technical details</span></a>
+  </li>  
+        <li>
     <a class="dropdown-item" href="../vignettes/using-clients.html">
  <span class="dropdown-text">Using packages built on jlbind</span></a>
   </li>  
@@ -343,24 +347,19 @@ visitors who prefer it, before Quarto reads the stored choice.
         <nav id="TOC" role="doc-toc" aria-labelledby="toc-title" class="toc-active"><h2 id="toc-title">On this page</h2>
    
   <ul>
-<li><a href="#set-up" id="toc-set-up" class="nav-link active" data-scroll-target="#set-up">Set up</a></li>
-  <li><a href="#declare-julia-functions" id="toc-declare-julia-functions" class="nav-link" data-scroll-target="#declare-julia-functions">Declare Julia functions</a></li>
-  <li><a href="#call-them-from-r" id="toc-call-them-from-r" class="nav-link" data-scroll-target="#call-them-from-r">Call them from R</a></li>
-  <li><a href="#build-and-test-locally" id="toc-build-and-test-locally" class="nav-link" data-scroll-target="#build-and-test-locally">Build and test locally</a></li>
-  <li><a href="#tests-and-cran" id="toc-tests-and-cran" class="nav-link" data-scroll-target="#tests-and-cran">Tests and CRAN</a></li>
+<li><a href="#set-up-your-package" id="toc-set-up-your-package" class="nav-link active" data-scroll-target="#set-up-your-package">Set up your package</a></li>
+  <li><a href="#try-the-example" id="toc-try-the-example" class="nav-link" data-scroll-target="#try-the-example">Try the example</a></li>
   <li>
-<a href="#types" id="toc-types" class="nav-link" data-scroll-target="#types">Types</a>
+<a href="#add-your-own-function" id="toc-add-your-own-function" class="nav-link" data-scroll-target="#add-your-own-function">Add your own function</a>
   <ul class="collapse">
-<li><a href="#julia-objects-in-r" id="toc-julia-objects-in-r" class="nav-link" data-scroll-target="#julia-objects-in-r">Julia objects in R</a></li>
+<li><a href="#declare-it-in-julia" id="toc-declare-it-in-julia" class="nav-link" data-scroll-target="#declare-it-in-julia">1. Declare it in Julia</a></li>
+  <li><a href="#generate-its-r-function" id="toc-generate-its-r-function" class="nav-link" data-scroll-target="#generate-its-r-function">2. Generate its R function</a></li>
+  <li><a href="#restart-r-and-load-your-package" id="toc-restart-r-and-load-your-package" class="nav-link" data-scroll-target="#restart-r-and-load-your-package">3. Restart R and load your package</a></li>
   </ul>
 </li>
-  <li><a href="#errors" id="toc-errors" class="nav-link" data-scroll-target="#errors">Errors</a></li>
-  <li>
-<a href="#compilation-constraints-trimming" id="toc-compilation-constraints-trimming" class="nav-link" data-scroll-target="#compilation-constraints-trimming">Compilation constraints (trimming)</a>
-  <ul class="collapse">
-<li><a href="#abstract-types" id="toc-abstract-types" class="nav-link" data-scroll-target="#abstract-types">Abstract types</a></li>
-  </ul>
-</li>
+  <li><a href="#export-your-functions" id="toc-export-your-functions" class="nav-link" data-scroll-target="#export-your-functions">Export your functions</a></li>
+  <li><a href="#share-your-package" id="toc-share-your-package" class="nav-link" data-scroll-target="#share-your-package">Share your package</a></li>
+  <li><a href="#next-steps" id="toc-next-steps" class="nav-link" data-scroll-target="#next-steps">Next steps</a></li>
   </ul></nav>
 </div>
 <!-- main -->
@@ -382,541 +381,120 @@ visitors who prefer it, before Quarto reads the stored choice.
 </header><p class="source-note">
 <small class="dont-index">Source: <a href="https://github.com/BjarkeHautop/jlbind/blob/HEAD/vignettes/jlbind.qmd"><code>vignettes/jlbind.qmd</code></a></small>
 </p>
-<p>jlbind lets an R package call Julia code without starting a separate Julia session. It compiles Julia code into a shared library using <a href="https://github.com/JuliaLang/JuliaC.jl">JuliaC.jl</a>, then exposes Julia functions to R through native <code><a href="https://rdrr.io/r/base/CallExternal.html">.Call()</a></code> routines.</p>
-<p>This vignette explains how to add Julia functions to your own R package with jlbind. An R package that uses jlbind is called a <em>client</em>. For how jlbind compares with other ways of calling Julia from R, see <a href="https://bjarkehautop.github.io/jlbind/vignettes/articles/performance.html">Performance</a>.</p>
-<p>An R process can load only one compiled Julia library<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>, so jlbind compiles the Julia code of <em>all</em> installed clients into one shared library, which each user builds with <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/install_library.html">jlbind::install_library()</a></code>. Your client therefore shares Julia dependency versions with every other client the user has installed. <a href="using-clients.html">Using packages built on jlbind</a> describes how this works and what your users need to do; your README should tell them to run <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/install_library.html">jlbind::install_library()</a></code> after installing your package.</p>
-<p>For complete, working examples, see the two small clients that jlbind’s tests build: <a href="https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/hellojl"><code>hellojl</code></a>, which passes plain values, and <a href="https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/counterjl"><code>counterjl</code></a>, which keeps Julia objects in R (see <a href="#julia-objects-in-r">Julia objects in R</a>).</p>
-<section id="set-up" class="level2"><h2 class="anchored" data-anchor-id="set-up">Set up</h2>
-<p>You need <a href="https://julialang.org/install/">Julia</a> 1.13 or later. From your R package’s directory, run:</p>
+<p>jlbind lets an R package call Julia code without starting a Julia session. The Julia code is compiled ahead of time into a shared library, and R calls it through native <code><a href="https://rdrr.io/r/base/CallExternal.html">.Call()</a></code> routines.</p>
+<p>You need <a href="https://julialang.org/install/">Julia</a> 1.13 or later, and <a href="https://devtools.r-lib.org/">devtools</a> for the development workflow below.</p>
+<p>We will refer to an R package that uses jlbind as a <em>client</em>.</p>
+<section id="set-up-your-package" class="level2"><h2 class="anchored" data-anchor-id="set-up-your-package">Set up your package</h2>
+<p>From your R package’s directory, run:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">jlbind</span><span class="fu">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/use_jlbind.html">use_jlbind</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/use_jlbind.html">use_jlbind</a></span>()</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">document</span>()</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p>This creates the files and configuration needed to connect the package to jlbind:</p>
-<ul>
-<li>
-<code>inst/julia/</code>, containing a Julia binding package named after the R package with a <code>Bindings</code> suffix (for example, <code>MyPkgBindings</code>), including an example function.</li>
-<li>
-<code>src/jlbind.c</code> and <code>src/entrypoints.h</code>, which register the native routines, and a rule in <code>src/Makevars</code> that recompiles <code>jlbind.c</code> whenever <code>entrypoints.h</code> changes.</li>
-<li>
-<code>R/jlbind-wrappers.R</code>, with an R function for each Julia function the binding package declares.</li>
-<li>
-<code>R/jlbind.R</code>, which calls <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../reference/bind_client.html">jlbind::bind_client()</a></code> from <code>.onLoad()</code> and includes the roxygen tag for <code>useDynLib()</code>.</li>
-<li>The <code>Config/jlbind</code>, <code>Imports: jlbind</code> and <code>SystemRequirements: Julia (&gt;= 1.13)</code> fields in <code>DESCRIPTION</code>.</li>
-<li>A <code>.jlbind/</code> directory for development builds, added to <code>.Rbuildignore</code> and <code>.gitignore</code>.</li>
-</ul>
-<p>If your package already defines <code>.onLoad()</code>, add <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../reference/bind_client.html">jlbind::bind_client(pkgname)</a></code> to the existing function yourself. Then run <code>devtools::document()</code> to update <code>NAMESPACE</code>.</p>
-<div class="callout callout-style-default callout-important callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Important</span>Give the Julia binding package a unique name
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>All clients are compiled into one library, so binding package names must be unique across all jlbind clients. The default, the R package name with a <code>Bindings</code> suffix, ensures this.</p>
-</div>
-</div>
-</section><section id="declare-julia-functions" class="level2"><h2 class="anchored" data-anchor-id="declare-julia-functions">Declare Julia functions</h2>
-<p>Inside the binding package, declare each function that R should be able to call using <code>@rcall</code>. Each declaration specifies the argument types and return type expected by the binding.</p>
-<p>For example:</p>
+<p>This adds everything your package needs to talk to Julia, including a Julia <em>binding package</em> in <code>inst/julia/</code>. For a package called <code>mypkg</code>, its main file is <code>inst/julia/src/mypkgBindings.jl</code>, and it comes with one example function:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> MyPkgBindings</span>
+<div class="sourceCode" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> mypkgBindings</span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="im">using</span> <span class="bu">JLBind</span></span>
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">greet</span>(name<span class="op">::</span><span class="dt">String</span>) <span class="op">=</span> <span class="st">"Hello, "</span> <span class="op">*</span> name <span class="op">*</span> <span class="st">"!"</span></span>
-<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="fu">shift</span>(x<span class="op">::</span><span class="dt">Vector{Float64}</span>, by<span class="op">::</span><span class="dt">Union{Nothing,Float64}</span>) <span class="op">=</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    by <span class="op">===</span> <span class="cn">nothing</span> ? x <span class="op">:</span> x <span class="op">.+</span> by</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="fu">hello</span>(name<span class="op">::</span><span class="dt">String</span>) <span class="op">=</span> <span class="st">"Hello, "</span> <span class="op">*</span> name <span class="op">*</span> <span class="st">", from Julia!"</span></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">hello</span>(name<span class="op">::</span><span class="dt">String</span>)<span class="op">::</span><span class="dt">String</span></span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">greet</span>(name<span class="op">::</span><span class="dt">String</span>)<span class="op">::</span><span class="dt">String</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">shift</span>(x<span class="op">::</span><span class="dt">Vector{Float64}</span>, by<span class="op">::</span><span class="dt">Union{Nothing,Float64} </span><span class="op">=</span> <span class="cn">nothing</span>)<span class="op">::</span><span class="dt">Vector{Float64}</span></span>
-<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p>The binding package is an ordinary Julia package. Declare its dependencies in <code>Project.toml</code> and import them as usual.</p>
-<div class="callout callout-style-default callout-important callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Important</span>Write <code>@rcall</code> declarations literally at the top level
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>jlbind finds <code>@rcall</code> declarations by scanning the source files, not by running them, so write them literally at the top level of the module.</p>
-</div>
-</div>
-</section><section id="call-them-from-r" class="level2"><h2 class="anchored" data-anchor-id="call-them-from-r">Call them from R</h2>
-<p>Whenever you add or change <code>@rcall</code> declarations, regenerate the native routine list:</p>
+<p><code>@rcall</code> declares a Julia function that R can call, along with its argument and return types.</p>
+</section><section id="try-the-example" class="level2"><h2 class="anchored" data-anchor-id="try-the-example">Try the example</h2>
+<p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/use_jlbind.html">use_jlbind()</a></code> has already generated the R function for <code>hello()</code>, so all that’s left is to compile the Julia code and load your package:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb3"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">jlbind</span><span class="fu">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="../reference/update_entrypoints.html">update_entrypoints</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/build_library.html">build_library</a></span>()</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">load_all</span>()</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p>This generates an R function for each declaration, in <code>R/jlbind-wrappers.R</code>:</p>
+<p>The first build downloads and compiles Julia dependencies, so it may take a few minutes. Then call it like any R function:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb4"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">greet</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">name</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html">.Call</a></span><span class="op">(</span><span class="va">C_greet</span>, <span class="va">name</span><span class="op">)</span></span>
-<span><span class="va">shift</span> <span class="op">&lt;-</span> <span class="kw">function</span><span class="op">(</span><span class="va">x</span>, <span class="va">by</span> <span class="op">=</span> <span class="cn">NULL</span><span class="op">)</span> <span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html">.Call</a></span><span class="op">(</span><span class="va">C_shift</span>, <span class="va">x</span>, <span class="va">by</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">hello</span>(<span class="st">"world"</span>)</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] "Hello, world, from Julia!"</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p>Defaults in the declaration (literal numbers, strings, <code>true</code>, <code>false</code> or <code>nothing</code>) become R defaults.</p>
-<p>To export or document a generated function, use a roxygen block on <code>NULL</code> with <code>@name greet</code> in another file. To add R code around a call, declare the Julia function with a <code>jl_</code> prefix, e.g. <code>@rcall jl_shift(...)</code>, and write <code>shift()</code> yourself.</p>
-</section><section id="build-and-test-locally" class="level2"><h2 class="anchored" data-anchor-id="build-and-test-locally">Build and test locally</h2>
-<p>During development, you usually want to build the library from your package’s source rather than from the installed clients. Run:</p>
+</section><section id="add-your-own-function" class="level2"><h2 class="anchored" data-anchor-id="add-your-own-function">Add your own function</h2>
+<p>Adding a function takes three steps.</p>
+<section id="declare-it-in-julia" class="level3"><h3 class="anchored" data-anchor-id="declare-it-in-julia">1. Declare it in Julia</h3>
+<p>Inside the module in the binding package, write the function and declare it with <code>@rcall</code>. Defaults in the declaration become R defaults:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb5"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">jlbind</span><span class="fu">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t5" href="../reference/build_library.html">build_library</a></span><span class="op">(</span><span class="op">)</span></span>
-<span><span class="fu">devtools</span><span class="fu">::</span><span class="fu">load_all</span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="fu">shift</span>(x<span class="op">::</span><span class="dt">Vector{Float64}</span>, by<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span> x <span class="op">.+</span> by</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">shift</span>(x<span class="op">::</span><span class="dt">Vector{Float64}</span>, by<span class="op">::</span><span class="dt">Float64 </span><span class="op">=</span> <span class="fl">1.0</span>)<span class="op">::</span><span class="dt">Vector{Float64}</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p>By default, <code><a class="quartodown-tip-ref" data-quartodown-tip="t5" href="../reference/build_library.html">build_library()</a></code> writes the library to <code>.jlbind/</code> in your package’s source directory. When you load the package with <code>devtools::load_all()</code>, jlbind uses this development library instead of the one created by <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/install_library.html">install_library()</a></code>.</p>
-<p>Once <code>.jlbind/</code> exists, <code>devtools::load_all()</code> rebuilds it when your binding package’s files or your package’s version have changed since it was built.</p>
+</section><section id="generate-its-r-function" class="level3"><h3 class="anchored" data-anchor-id="generate-its-r-function">2. Generate its R function</h3>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../reference/update_entrypoints.html">update_entrypoints</a></span>()</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>This adds <code>shift()</code> to <code>R/jlbind-wrappers.R</code>:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>shift <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">by =</span> <span class="fl">1.0</span>) <span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html">.Call</a></span>(C_shift, x, by)</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
 <div class="callout callout-style-default callout-note callout-titled">
-<div class="callout-header d-flex align-content-center">
+<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-1-contents" aria-controls="callout-1" aria-expanded="false" aria-label="Toggle callout">
 <div class="callout-icon-container">
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>The development library is only used when your package loads first
+<span class="screen-reader-only">Note</span>What <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../reference/update_entrypoints.html">update_entrypoints()</a></code> generates
 </div>
+<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
+<div id="callout-1" class="callout-1-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>The <code>.jlbind/</code> library is used only if your package is the first jlbind client loaded in the R session. A library that has loaded cannot be replaced, so after changing your Julia code, restart R; the next <code>load_all()</code> rebuilds it.</p>
-</div>
-</div>
-<p>If you need to use a library stored elsewhere, set the <code>JLBIND_LIBRARY</code> environment variable to its path before loading the package.</p>
-<p>You can also test against an unreleased version of a Julia dependency by providing a local checkout through <code>develop</code>:</p>
-<div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb6"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">jlbind</span><span class="fu">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t5" href="../reference/build_library.html">build_library</a></span><span class="op">(</span>develop <span class="op">=</span> <span class="st">"~/dev/SomePackage.jl"</span><span class="op">)</span></span></code></pre></div>
-<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-<div class="callout callout-style-default callout-tip callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Tip</span>Pin the dependency versions
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>Include a <code>Manifest.toml</code> next to the binding package’s <code>Project.toml</code> with the Julia dependency versions known to compile with your package. <a href="https://cran.r-project.org/web/packages/policies.html">CRAN’s policy</a> asks that downloaded libraries be a fixed version rather than the latest.</p>
-<p>The build uses the manifest of only the first client that has one (see <a href="using-clients.html#dependency-versions">Dependency versions</a>), so keep your <code>[compat]</code> bounds accurate too.</p>
-</div>
-</div>
-</section><section id="tests-and-cran" class="level2"><h2 class="anchored" data-anchor-id="tests-and-cran">Tests and CRAN</h2>
-<p>CRAN’s check machines do not have Julia installed, so your package must install and pass <code>R CMD check</code> without a compiled Julia library.</p>
-<p>In tests, skip anything that needs the library:</p>
-<div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb7"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">skip_if_not</span><span class="op">(</span><span class="fu">jlbind</span><span class="fu">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t6" href="../reference/is_bound.html">is_bound</a></span><span class="op">(</span><span class="st">"mypkg"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
-<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-<p>In examples, wrap calls that require the library in <code>if (jlbind::is_bound("mypkg"))</code>.</p>
-<p>To check your package on GitHub Actions both ways, run:</p>
-<div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb8"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">jlbind</span><span class="fu">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t7" href="../reference/use_jlbind_ci.html">use_jlbind_ci</a></span><span class="op">(</span><span class="op">)</span></span></code></pre></div>
-<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-<p>This writes <code>.github/workflows/R-CMD-check.yaml</code>, which runs <code>R CMD check</code> on Linux, Windows and macOS after compiling your package’s Julia code with <code><a class="quartodown-tip-ref" data-quartodown-tip="t5" href="../reference/build_library.html">build_library()</a></code>, and once on Linux without Julia, as CRAN does.</p>
-</section><section id="types" class="level2"><h2 class="anchored" data-anchor-id="types">Types</h2>
-<p><code>@rcall</code> converts each argument using <code>from_sexp()</code> and converts the return value using <code>to_sexp()</code>. The built-in conversions are:</p>
-<p><strong>Single values</strong></p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 32%">
-<col style="width: 32%">
-<col style="width: 34%">
-</colgroup>
-<thead><tr class="header">
-<th>Julia</th>
-<th>R argument</th>
-<th>R result</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td>
-<code>String</code>, <code>Symbol</code>
-</td>
-<td>A single string</td>
-<td>A character vector of length one</td>
-</tr>
-<tr class="even">
-<td><code>Float64</code></td>
-<td>A single number</td>
-<td>A double</td>
-</tr>
-<tr class="odd">
-<td><code>Int64</code></td>
-<td>A single whole number</td>
-<td>A double</td>
-</tr>
-<tr class="even">
-<td><code>Int32</code></td>
-<td>A single whole number</td>
-<td>An integer</td>
-</tr>
-<tr class="odd">
-<td>
-<code>Int16</code>, <code>Int8</code>, <code>UInt16</code>
-</td>
-<td>A single whole number in range</td>
-<td>An integer</td>
-</tr>
-<tr class="even">
-<td><code>UInt32</code></td>
-<td>A single whole number in range</td>
-<td>A double</td>
-</tr>
-<tr class="odd">
-<td>
-<code>Float32</code>, <code>Float16</code>
-</td>
-<td>A single number in range</td>
-<td>A double</td>
-</tr>
-<tr class="even">
-<td><code>Bool</code></td>
-<td>
-<code>TRUE</code> or <code>FALSE</code>
-</td>
-<td>A logical</td>
-</tr>
-<tr class="odd">
-<td><code>ComplexF64</code></td>
-<td>A single complex number</td>
-<td>A complex</td>
-</tr>
-<tr class="even">
-<td><code>Date</code></td>
-<td>A single <code>Date</code>
-</td>
-<td>A <code>Date</code>
-</td>
-</tr>
-<tr class="odd">
-<td><code>DateTime</code></td>
-<td>A single <code>POSIXct</code>
-</td>
-<td>A <code>POSIXct</code> in UTC</td>
-</tr>
-<tr class="even">
-<td><code>Union{Missing,T}</code></td>
-<td>A value of type <code>T</code>, or <code>NA</code>
-</td>
-<td>A value of type <code>T</code>, or <code>NA</code>
-</td>
-</tr>
-<tr class="odd">
-<td><code>Union{Nothing,T}</code></td>
-<td>
-<code>NULL</code>, or a value of type <code>T</code>
-</td>
-<td>
-<code>NULL</code>, or a value of type <code>T</code>
-</td>
-</tr>
-<tr class="even">
-<td><code>Nothing</code></td>
-<td></td>
-<td><code>NULL</code></td>
-</tr>
-</tbody>
-</table>
-<p><strong>Vectors and arrays</strong></p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 33%">
-<col style="width: 38%">
-<col style="width: 28%">
-</colgroup>
-<thead><tr class="header">
-<th>Julia</th>
-<th>R argument</th>
-<th>R result</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td>
-<code>Vector{String}</code>, <code>Vector{Symbol}</code>
-</td>
-<td>A character vector or factor</td>
-<td>A character vector</td>
-</tr>
-<tr class="even">
-<td>
-<code>Vector{Float64}</code>, <code>Vector{Int64}</code>
-</td>
-<td>A numeric vector</td>
-<td>A double vector</td>
-</tr>
-<tr class="odd">
-<td><code>Vector{Int32}</code></td>
-<td>A numeric vector of whole numbers</td>
-<td>An integer vector</td>
-</tr>
-<tr class="even">
-<td>Vectors of the smaller types above</td>
-<td>A numeric vector in range</td>
-<td>An integer or double vector</td>
-</tr>
-<tr class="odd">
-<td><code>Vector{Bool}</code></td>
-<td>A logical vector</td>
-<td>A logical vector</td>
-</tr>
-<tr class="even">
-<td><code>Vector{ComplexF64}</code></td>
-<td>A complex or numeric vector</td>
-<td>A complex vector</td>
-</tr>
-<tr class="odd">
-<td><code>Vector{UInt8}</code></td>
-<td>A raw vector</td>
-<td>A raw vector</td>
-</tr>
-<tr class="even">
-<td><code>Vector{Date}</code></td>
-<td>A <code>Date</code> vector</td>
-<td>A <code>Date</code> vector</td>
-</tr>
-<tr class="odd">
-<td><code>Vector{DateTime}</code></td>
-<td>A <code>POSIXct</code> vector</td>
-<td>A <code>POSIXct</code> vector in UTC</td>
-</tr>
-<tr class="even">
-<td><code>Vector{Union{Missing,T}}</code></td>
-<td>A vector of type <code>T</code>, which can have NA</td>
-<td>A vector of type <code>T</code> with NA</td>
-</tr>
-<tr class="odd">
-<td><code>RVector{T}</code></td>
-<td>A double, integer or raw vector</td>
-<td>The same vector</td>
-</tr>
-<tr class="even">
-<td>
-<code>Matrix{T}</code>, <code>Array{T,N}</code>
-</td>
-<td>A matrix or array of type <code>T</code>
-</td>
-<td>A matrix or array of type <code>T</code>
-</td>
-</tr>
-</tbody>
-</table>
-<p><strong>Lists, data frames and references</strong></p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 35%">
-<col style="width: 35%">
-<col style="width: 29%">
-</colgroup>
-<thead><tr class="header">
-<th>Julia</th>
-<th>R argument</th>
-<th>R result</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td>Other <code>Vector</code>s, <code>Tuple</code>s</td>
-<td>A list</td>
-<td>A list</td>
-</tr>
-<tr class="even">
-<td><code>NamedTuple</code></td>
-<td>A named list, such as a data frame</td>
-<td>A named list</td>
-</tr>
-<tr class="odd">
-<td><code>RDataFrame</code></td>
-<td>A data frame</td>
-<td>A data frame</td>
-</tr>
-<tr class="even">
-<td>
-<code>Dict{String,T}</code>, <code>Dict{Symbol,T}</code>
-</td>
-<td>A named list</td>
-<td>A named list, sorted by name</td>
-</tr>
-<tr class="odd">
-<td><code>RRef{T}</code></td>
-<td>A reference to a Julia object</td>
-<td>A reference to a Julia object</td>
-</tr>
-<tr class="even">
-<td><code>Vector{RRef{T}}</code></td>
-<td>A list of references</td>
-<td>A list of references</td>
-</tr>
-</tbody>
-</table>
-<p><code>NA</code> is an error unless the type is <code>Union{Missing,T}</code> or <code>Vector{Union{Missing,T}}</code>, which turn <code>NA</code> into <code>missing</code> and back. A number must fit its type, so an <code>Int16</code> argument rejects <code>40000</code>, and <code>NaN</code> is accepted only where <code>missing</code> is. <code>Int64</code> results become doubles, since R’s integers have 32 bits; return <code>Int32</code> for an R integer.</p>
-<p>To use <code>Date</code> or <code>DateTime</code>, add the <code>Dates</code> standard library to the binding package’s dependencies.</p>
-<p>A <code>NamedTuple</code> argument must have exactly the names of its fields, in any order, so you can pass a data frame as a named tuple of its columns. To take or return an actual data frame, wrap the columns in an <code>RDataFrame</code>. Its type lists the column names and the type of each column, so a type alias keeps signatures short:</p>
-<div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> Sales <span class="op">=</span> RDataFrame{(<span class="op">:</span>group, <span class="op">:</span>amount),<span class="dt">Tuple</span>{<span class="dt">Vector</span>{<span class="dt">String</span>},<span class="dt">Vector</span>{<span class="dt">Float64</span>}}}</span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> Summary <span class="op">=</span> RDataFrame{(<span class="op">:</span>group, <span class="op">:</span>mean),<span class="dt">Tuple</span>{<span class="dt">Vector</span>{<span class="dt">String</span>},<span class="dt">Vector</span>{<span class="dt">Float64</span>}}}</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">summarise</span>(df<span class="op">::</span><span class="dt">Sales</span>)</span>
-<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    gs <span class="op">=</span> <span class="fu">sort</span>(<span class="fu">unique</span>(df.group))</span>
-<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    means <span class="op">=</span> [<span class="fu">sum</span>(df.amount[df.group <span class="op">.==</span> g]) <span class="op">/</span> <span class="fu">count</span>(<span class="op">==</span>(g), df.group) for g <span class="kw">in</span> gs]</span>
-<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="fu">RDataFrame</span>((group <span class="op">=</span> gs, mean <span class="op">=</span> means))</span>
-<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">summarise</span>(df<span class="op">::</span><span class="dt">Sales</span>)<span class="op">::</span><span class="dt">Summary</span></span></code></pre></div>
-<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-<div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb10"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu">summarise</span><span class="op">(</span><span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span><span class="op">(</span>group <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"a"</span><span class="op">)</span>, amount <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="fl">1</span>, <span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt;   group mean</span></span>
-<span><span class="co">#&gt; 1     a    2</span></span>
-<span><span class="co">#&gt; 2     b    2</span></span></code></pre></div>
-<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-<p>An <code>RDataFrame</code> argument must be a data frame (a tibble works too) with exactly the declared columns, in any order, so select the columns in the R wrapper if the data frame has others: <code>summarise(df[c("group", "amount")])</code>. Its columns are its properties (<code>df.group</code>), and <code>NamedTuple(df)</code> returns them as a named tuple. Each column converts by the usual rules, so a factor column arrives as strings, and a <code>Vector{Union{Missing,Float64}}</code> column allows <code>NA</code>. Returning columns of different lengths is an error.</p>
-<p>Errors inside a list name the element, as in <code>element 2: expected a number</code>.</p>
-<p>Every other conversion copies, so a function given a large vector it only reads can take an <code>RVector{Float64}</code> (or <code>RVector{Int32}</code>, <code>RVector{UInt8}</code>). That is an <code>AbstractVector</code> viewing R’s memory, without checking for <code>NA</code>. It is valid only until the call returns, so don’t store it.</p>
-<p>A binding package can support additional types by defining methods for <code>JLBind.from_sexp(::Type{T}, x::SEXP)</code> and <code>JLBind.to_sexp(x::T)</code>. <code>JLBind</code> also provides helpers for building R objects directly, such as <code>JLBind.data_frame()</code> for a data frame whose columns are not known when the library is compiled. See the <a href="https://github.com/BjarkeHautop/jlbind/tree/main/inst/julia/JLBind/src"><code>JLBind</code> source</a> for the existing conversions and helpers.</p>
-<section id="julia-objects-in-r" class="level3"><h3 class="anchored" data-anchor-id="julia-objects-in-r">Julia objects in R</h3>
-<p>Sometimes an object is easier to keep in Julia than to convert into an R data structure. You can pass such objects by reference using <code>RRef{T}</code>. R receives an external pointer to the Julia object, allowing it to be reused across calls. The object is released when R garbage-collects the reference.</p>
-<p>For example, define a mutable Julia object and expose functions that operate on it (the <a href="https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/counterjl"><code>counterjl</code></a> test client is a complete version of this):</p>
-<div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb11"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="kw">mutable struct</span> Counter</span>
-<span id="cb11-2"><a href="#cb11-2" aria-hidden="true" tabindex="-1"></a>    n<span class="op">::</span><span class="dt">Int64</span></span>
-<span id="cb11-3"><a href="#cb11-3" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb11-4"><a href="#cb11-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-5"><a href="#cb11-5" aria-hidden="true" tabindex="-1"></a>JLBind.<span class="fu">r_class</span>(<span class="op">::</span><span class="dt">Type{Counter}</span>) <span class="op">=</span> <span class="st">"counter"</span></span>
-<span id="cb11-6"><a href="#cb11-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-7"><a href="#cb11-7" aria-hidden="true" tabindex="-1"></a><span class="fu">new_counter</span>(start<span class="op">::</span><span class="dt">Int64</span>) <span class="op">=</span> <span class="fu">Counter</span>(start)</span>
-<span id="cb11-8"><a href="#cb11-8" aria-hidden="true" tabindex="-1"></a><span class="fu">increment</span>(c<span class="op">::</span><span class="dt">Counter</span>, by<span class="op">::</span><span class="dt">Int64</span>) <span class="op">=</span> (c.n <span class="op">+=</span> by; c.n)</span>
-<span id="cb11-9"><a href="#cb11-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb11-10"><a href="#cb11-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">new_counter</span>(start<span class="op">::</span><span class="dt">Int64</span>)<span class="op">::</span><span class="dt">RRef{Counter}</span></span>
-<span id="cb11-11"><a href="#cb11-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">increment</span>(c<span class="op">::</span><span class="dt">RRef{Counter}</span>, by<span class="op">::</span><span class="dt">Int64</span>)<span class="op">::</span><span class="dt">Int64</span></span></code></pre></div>
-<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-<p>From R, you can create a counter and update it across calls:</p>
-<div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb12"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">counter</span> <span class="op">&lt;-</span> <span class="fu">new_counter</span><span class="op">(</span><span class="fl">0</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/class.html">class</a></span><span class="op">(</span><span class="va">counter</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] "counter"</span></span>
-<span></span>
-<span><span class="fu">increment</span><span class="op">(</span><span class="va">counter</span>, <span class="fl">2</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 2</span></span></code></pre></div>
-<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-<p><code>r_class()</code> sets the R class of the external pointer, so your package can define methods such as <code><a href="https://rdrr.io/r/base/print.html">print()</a></code> for it. An argument declared as <code>RRef{Counter}</code> also checks that the reference points to a <code>Counter</code>, rather than accepting an arbitrary Julia object.</p>
-</section></section><section id="errors" class="level2"><h2 class="anchored" data-anchor-id="errors">Errors</h2>
-<p>If a function called through <code>@rcall</code> throws a Julia exception, jlbind turns it into an R error. The messages from <code>ArgumentError</code>, <code>ErrorException</code>, <code>DimensionMismatch</code>, <code>OverflowError</code>, and <code>AssertionError</code> are passed through. Other exceptions are summarized.</p>
-</section><section id="compilation-constraints-trimming" class="level2"><h2 class="anchored" data-anchor-id="compilation-constraints-trimming">Compilation constraints (trimming)</h2>
-<p>By default, jlbind compiles the shared library with <code>juliac --trim=safe</code>. This keeps the compiled image small by including only code reachable from the functions exposed through <code>@rcall</code>. It also requires calls to be resolvable at compile time.</p>
-<p>If your package cannot be compiled with trimming, add the following field to <code>DESCRIPTION</code>:</p>
-<pre class="text"><code>Config/jlbind/trim: false</code></pre>
-<div class="callout callout-style-default callout-warning callout-titled">
-<div class="callout-header d-flex align-content-center">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
-</div>
-<div class="callout-title-container flex-fill">
-Warning
-</div>
-</div>
-<div class="callout-body-container callout-body">
-<p>An untrimmed library includes the full Julia system image and is <em>much</em> larger, so avoid it if you can.</p>
-</div>
-</div>
-<section id="abstract-types" class="level3"><h3 class="anchored" data-anchor-id="abstract-types">Abstract types</h3>
-<p>With trimming, a common source of compilation errors is a function that accepts several concrete types through an abstract <code>RRef</code>. Suppose your binding package works with shapes:</p>
-<details><summary>
-Shape types and their areas
-</summary><div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">abstract type</span> Shape <span class="kw">end</span></span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Circle <span class="op">&lt;:</span><span class="dt"> Shape</span></span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    radius<span class="op">::</span><span class="dt">Float64</span></span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Square <span class="op">&lt;:</span><span class="dt"> Shape</span></span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a>    side<span class="op">::</span><span class="dt">Float64</span></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Rectangle <span class="op">&lt;:</span><span class="dt"> Shape</span></span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a>    width<span class="op">::</span><span class="dt">Float64</span></span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a>    height<span class="op">::</span><span class="dt">Float64</span></span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Triangle <span class="op">&lt;:</span><span class="dt"> Shape</span></span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a>    base<span class="op">::</span><span class="dt">Float64</span></span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    height<span class="op">::</span><span class="dt">Float64</span></span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a>JLBind.<span class="fu">r_class</span>(<span class="op">::</span><span class="dt">Type{&lt;:Shape}</span>) <span class="op">=</span> <span class="st">"shape"</span></span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a><span class="fu">area</span>(s<span class="op">::</span><span class="dt">Circle</span>) <span class="op">=</span> <span class="cn">pi</span> <span class="op">*</span> s.radius<span class="op">^</span><span class="fl">2</span></span>
-<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a><span class="fu">area</span>(s<span class="op">::</span><span class="dt">Square</span>) <span class="op">=</span> s.side<span class="op">^</span><span class="fl">2</span></span>
-<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a><span class="fu">area</span>(s<span class="op">::</span><span class="dt">Rectangle</span>) <span class="op">=</span> s.width <span class="op">*</span> s.height</span>
-<span id="cb14-23"><a href="#cb14-23" aria-hidden="true" tabindex="-1"></a><span class="fu">area</span>(s<span class="op">::</span><span class="dt">Triangle</span>) <span class="op">=</span> s.base <span class="op">*</span> s.height <span class="op">/</span> <span class="fl">2</span></span></code></pre></div>
-<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-</details><p>An entrypoint that takes an <code>RRef{Shape}</code> knows only that its argument is <em>some</em> <code>Shape</code>. If it simply calls <code>area(s)</code>, the compiler cannot tell which of the four methods that call reaches, and the build fails with an error such as:</p>
-<pre class="text"><code>Verifier error #1: unresolved call from statement area(s::Shape)::Any</code></pre>
-<p>One possible solution is to branch on the concrete types once, with <code>@nospecialize</code>, and to make the call inside each branch, where the type is known:</p>
-<div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb16"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb16-1"><a href="#cb16-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">with_shape</span>(f<span class="op">::</span><span class="dt">F</span>, <span class="pp">@nospecialize</span>(s<span class="op">::</span><span class="dt">Shape</span>)) <span class="kw">where</span> {F}</span>
-<span id="cb16-2"><a href="#cb16-2" aria-hidden="true" tabindex="-1"></a>    s isa Circle <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
-<span id="cb16-3"><a href="#cb16-3" aria-hidden="true" tabindex="-1"></a>    s isa Square <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
-<span id="cb16-4"><a href="#cb16-4" aria-hidden="true" tabindex="-1"></a>    s isa Rectangle <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
-<span id="cb16-5"><a href="#cb16-5" aria-hidden="true" tabindex="-1"></a>    s isa Triangle <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
-<span id="cb16-6"><a href="#cb16-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">throw</span>(<span class="fu">ArgumentError</span>(<span class="st">"unknown shape"</span>))</span>
-<span id="cb16-7"><a href="#cb16-7" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb16-8"><a href="#cb16-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-9"><a href="#cb16-9" aria-hidden="true" tabindex="-1"></a><span class="fu">circle</span>(radius<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span> <span class="fu">Circle</span>(radius)</span>
-<span id="cb16-10"><a href="#cb16-10" aria-hidden="true" tabindex="-1"></a><span class="fu">square</span>(side<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span> <span class="fu">Square</span>(side)</span>
-<span id="cb16-11"><a href="#cb16-11" aria-hidden="true" tabindex="-1"></a><span class="fu">rectangle</span>(width<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span> <span class="fu">Rectangle</span>(width, height)</span>
-<span id="cb16-12"><a href="#cb16-12" aria-hidden="true" tabindex="-1"></a><span class="fu">triangle</span>(base<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span> <span class="fu">Triangle</span>(base, height)</span>
-<span id="cb16-13"><a href="#cb16-13" aria-hidden="true" tabindex="-1"></a><span class="fu">shape_area</span>(<span class="pp">@nospecialize</span>(s<span class="op">::</span><span class="dt">Shape</span>)) <span class="op">=</span> <span class="fu">with_shape</span>(area, s)</span>
-<span id="cb16-14"><a href="#cb16-14" aria-hidden="true" tabindex="-1"></a><span class="fu">scaled_area</span>(<span class="pp">@nospecialize</span>(s<span class="op">::</span><span class="dt">Shape</span>), factor<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span></span>
-<span id="cb16-15"><a href="#cb16-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">with_shape</span>(x <span class="op">-&gt;</span> factor<span class="op">^</span><span class="fl">2</span> <span class="op">*</span> <span class="fu">area</span>(x), s)</span>
-<span id="cb16-16"><a href="#cb16-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb16-17"><a href="#cb16-17" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">circle</span>(radius<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
-<span id="cb16-18"><a href="#cb16-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">square</span>(side<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
-<span id="cb16-19"><a href="#cb16-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">rectangle</span>(width<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
-<span id="cb16-20"><a href="#cb16-20" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">triangle</span>(base<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
-<span id="cb16-21"><a href="#cb16-21" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">shape_area</span>(shape<span class="op">::</span><span class="dt">RRef{Shape}</span>)<span class="op">::</span><span class="dt">Float64</span></span>
-<span id="cb16-22"><a href="#cb16-22" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">scaled_area</span>(shape<span class="op">::</span><span class="dt">RRef{Shape}</span>, factor<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">Float64</span></span></code></pre></div>
-<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-<p>Every shape can then be passed to the same generated R functions:</p>
-<div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb17"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="va">shapes</span> <span class="op">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span><span class="op">(</span><span class="fu">circle</span><span class="op">(</span><span class="fl">1</span><span class="op">)</span>, <span class="fu">square</span><span class="op">(</span><span class="fl">2</span><span class="op">)</span>, <span class="fu">rectangle</span><span class="op">(</span><span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span>, <span class="fu">triangle</span><span class="op">(</span><span class="fl">2</span>, <span class="fl">3</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span><span class="op">(</span><span class="va">shapes</span>, <span class="va">shape_area</span>, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">numeric</a></span><span class="op">(</span><span class="fl">1</span><span class="op">)</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 3.141593 4.000000 6.000000 3.000000</span></span>
-<span></span>
-<span><span class="fu">scaled_area</span><span class="op">(</span><span class="fu">square</span><span class="op">(</span><span class="fl">2</span><span class="op">)</span>, <span class="fl">3</span><span class="op">)</span></span>
-<span><span class="co">#&gt; [1] 36</span></span></code></pre></div>
-<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-<p>Without <code>@nospecialize</code>, Julia compiles a separate <code>with_shape</code> for each concrete shape, and the call into it can’t be resolved, for the same reason as <code>area(s)</code>. Functions that pass the shape on, such as <code>shape_area</code>, need it too (this small example happens to compile without it, since it is inlined).</p>
-<p>If a hierarchy has only a few types, some alternatives to <code>@nospecialize</code> are:</p>
+<p>It writes two files from the <code>@rcall</code> declarations, which you shouldn’t edit by hand:</p>
 <ul>
-<li><p>Declare a separate entrypoint for each concrete type (<code>RRef{Circle}</code>,<code>RRef{Square}</code>, …) and choose between them in R.</p></li>
-<li><p>Use a small <code>Union</code> such as <code>RRef{Union{Circle,Square}}</code>, which Julia resolves by checking each member in turn.</p></li>
-</ul></section></section><div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
-
-<ol>
-<li id="fn1"><p>JuliaC can <em>privatize</em> a library, giving it its own copy of the Julia runtime, but jlbind doesn’t use this. Each client would then ship a bundle with its own runtime and compiled copy of Base: about 60 MB per client on Linux and 100 MB on Windows, even for a tiny client, where a shared library adds only each client’s own code. Each runtime would also have its own garbage-collected heap and threads in memory, and Julia objects couldn’t be passed between clients. Privatization also doesn’t work on Windows yet (<a href="https://github.com/JuliaLang/JuliaC.jl/pull/151">JuliaC.jl#151</a>).<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-</ol></section></div></main><!-- /main --><script>
+<li>
+<code>R/jlbind-wrappers.R</code>, with an R function for each declaration, as above.</li>
+<li>
+<code>src/entrypoints.h</code>, which lists the native routines:</li>
+</ul>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb8"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define JLBIND_PREFIX </span><span class="st">"mypkgBindings_"</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#define JLBIND_ENTRIES </span><span class="op">\</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="pp">    JLBIND_ENTRY</span><span class="op">(</span><span class="pp">hello</span><span class="op">,</span><span class="pp"> </span><span class="dv">1</span><span class="op">,</span><span class="pp"> </span><span class="op">(</span><span class="pp">SEXP a1</span><span class="op">),</span><span class="pp"> </span><span class="op">(</span><span class="pp">a1</span><span class="op">))</span><span class="pp"> </span><span class="op">\</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="pp">    JLBIND_ENTRY</span><span class="op">(</span><span class="pp">shift</span><span class="op">,</span><span class="pp"> </span><span class="dv">2</span><span class="op">,</span><span class="pp"> </span><span class="op">(</span><span class="pp">SEXP a1</span><span class="op">,</span><span class="pp"> SEXP a2</span><span class="op">),</span><span class="pp"> </span><span class="op">(</span><span class="pp">a1</span><span class="op">,</span><span class="pp"> a2</span><span class="op">))</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p><code>src/jlbind.c</code>, which <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/use_jlbind.html">use_jlbind()</a></code> added, turns each entry into a routine for <code><a href="https://rdrr.io/r/base/CallExternal.html">.Call()</a></code>, such as <code>C_shift</code>. That routine forwards to <code>mypkgBindings_shift_2</code>, the function <code>@rcall</code> exports from the compiled library. The name includes the number of arguments, so if the list and the library disagree, your package fails to bind instead of crashing.</p>
+</div>
+</div>
+</div>
+</section><section id="restart-r-and-load-your-package" class="level3"><h3 class="anchored" data-anchor-id="restart-r-and-load-your-package">3. Restart R and load your package</h3>
+<p>A library that has loaded can’t be replaced, so restart R first. <code>devtools::load_all()</code> then rebuilds the library, since your Julia code changed.</p>
+<p>Repeat these steps as you develop. If you only change the body of a Julia function, you can skip step 2.</p>
+</section></section><section id="export-your-functions" class="level2"><h2 class="anchored" data-anchor-id="export-your-functions">Export your functions</h2>
+<p>To export or document a generated function, use a roxygen block on <code>NULL</code> with <code>@name shift</code> in another file. To add R code around a call, declare the Julia function with a <code>jl_</code> prefix, e.g. <code>@rcall jl_shift(...)</code>, and write <code>shift()</code> yourself.</p>
+</section><section id="share-your-package" class="level2"><h2 class="anchored" data-anchor-id="share-your-package">Share your package</h2>
+<p>An R process can load only one compiled Julia library, so jlbind compiles the Julia code of all installed clients into one library on each user’s machine. Tell your users, for example in your README, to run this after installing your package:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="../reference/install_library.html">install_library</a></span>()</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>Your package must also install and pass <code>R CMD check</code> without Julia, as on CRAN. In tests, skip anything that needs the library:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">skip_if_not</span>(jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t5" href="../reference/is_bound.html">is_bound</a></span>(<span class="st">"mypkg"</span>))</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>In examples, wrap such calls in <code>if (jlbind::is_bound("mypkg"))</code>. Then run <code><a class="quartodown-tip-ref" data-quartodown-tip="t6" href="../reference/use_jlbind_ci.html">jlbind::use_jlbind_ci()</a></code> to check your package both with and without Julia on GitHub Actions.</p>
+</section><section id="next-steps" class="level2"><h2 class="anchored" data-anchor-id="next-steps">Next steps</h2>
+<ul>
+<li>
+<a href="technical-details.html">Technical details</a> covers what you’ll likely need next: the <a href="technical-details.html#types">types</a> R and Julia can exchange, <a href="technical-details.html#julia-objects-in-r">keeping Julia objects in R</a>, <a href="technical-details.html#errors">errors</a>, the <a href="technical-details.html#compilation-constraints-trimming">compilation constraints</a> on your Julia code, and <a href="technical-details.html#development-libraries">development libraries</a>, including how to pin Julia dependency versions.</li>
+<li>
+<a href="using-clients.html">Using packages built on jlbind</a> describes what your users see, including threads and how clients share Julia dependencies.</li>
+<li>
+<a href="https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/hellojl"><code>hellojl</code></a> and <a href="https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/counterjl"><code>counterjl</code></a> are small, complete clients used in jlbind’s tests, and are good examples to learn from.</li>
+</ul></section></main><!-- /main --><script>
 (function () {
   function contentLeft(main) {
     // With margin content, <main> is a full-width grid; use the title.
@@ -946,6 +524,33 @@ Shape types and their areas
     if (overflow > 0) {
       navContainer.style.paddingLeft = Math.max(diff - overflow, 0) + "px";
     }
+  }
+  // While previewing the site locally, reload the page when a rebuild changes
+  // it. It checks its own address, which needs nothing of the server.
+  function reloadWhenRebuilt() {
+    if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
+    var url = location.href.split("#")[0];
+    var page;
+    function check() {
+      if (document.hidden) {
+        setTimeout(check, 1000);
+        return;
+      }
+      fetch(url, { cache: "no-store" })
+        .then(function (response) {
+          return response.ok ? response.text() : page;
+        })
+        .then(function (text) {
+          if (page !== undefined && text !== page) {
+            location.reload();
+            return;
+          }
+          page = text;
+          setTimeout(check, 1000);
+        })
+        .catch(function () {}); // The server has stopped.
+    }
+    check();
   }
   // Wrap the version in the "<pkg> <version>" title so it can be styled.
   function shrinkNavbarVersion() {
@@ -1085,7 +690,7 @@ Shape types and their areas
     }, true);
   }
   // Shows the tip of a reference to the package's own topics, from the
-  // page's hidden `.quartodown-tip-payload` (see add_tooltips_html()), in
+  // page's hidden `.quartodown-tip-payload` (see link_code_html()), in
   // one `position: fixed` element, so code blocks' `overflow: auto` can't
   // clip it.
   function initTooltips() {
@@ -1135,6 +740,7 @@ Shape types and their areas
   alignNavbarToContent();
   window.addEventListener("load", alignNavbarToContent);
   window.addEventListener("resize", alignNavbarToContent);
+  reloadWhenRebuilt();
 })();
 </script><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
@@ -1671,20 +1277,42 @@ Shape types and their areas
 <p>Site built with <a href="https://github.com/BjarkeHautop/quartodown">quartodown</a> and <a href="https://quarto.org/">Quarto</a>.</p>
 </div>
   </div>
-</footer>
-<div class="quartodown-tip-payload" hidden><div data-for="t1"><code class="quartodown-tip-sig">install_library(
-  packages = NULL,
-  julia = NULL,
-  ask = interactive(),
-  force = FALSE,
-  versions = c(&quot;manifest&quot;, &quot;compat&quot;),
-  develop = NULL
-)</code><span class="quartodown-tip-brief">Compiles the Julia code of every installed package that uses jlbind into one shared library, stored in <code>tools::R_user_dir(&quot;jlbind&quot;, &quot;data&quot;)</code>.</span></div><div data-for="t2"><code class="quartodown-tip-sig">use_jlbind(path = &quot;.&quot;, module = NULL, dir = &quot;julia&quot;)</code><span class="quartodown-tip-brief">Adds what a package needs to call Julia code through jlbind.</span></div><div data-for="t3"><code class="quartodown-tip-sig">bind_client(pkg)</code><span class="quartodown-tip-brief">Call this from the <code>.onLoad()</code> of a package that uses jlbind; <code>use_jlbind()</code> sets that up.</span></div><div data-for="t4"><code class="quartodown-tip-sig">update_entrypoints(path = &quot;.&quot;)</code><span class="quartodown-tip-brief">Finds the <code>@rcall</code> declarations in the package's Julia binding package and generates the code that lets R call them.</span></div><div data-for="t5"><code class="quartodown-tip-sig">build_library(
-  packages = &quot;.&quot;,
-  out = NULL,
-  julia = NULL,
-  versions = c(&quot;manifest&quot;, &quot;compat&quot;),
-  develop = NULL
-)</code><span class="quartodown-tip-brief">Like <code>install_library()</code>, but compiles only <code>packages</code> and writes the library to <code>out</code>, for package development.</span></div><div data-for="t6"><code class="quartodown-tip-sig">is_bound(pkg)</code><span class="quartodown-tip-brief"><code>is_bound()</code> returns <code>TRUE</code> or <code>FALSE</code>.</span></div><div data-for="t7"><code class="quartodown-tip-sig">use_jlbind_ci(path = &quot;.&quot;, overwrite = FALSE)</code><span class="quartodown-tip-brief">Writes a GitHub Actions workflow that checks the package with and without Julia.</span></div></div>
+</footer><div class="quartodown-tip-payload" hidden>
+<div data-for="t1">
+<code class="quartodown-tip-sig"><span class="fu">use_jlbind</span>(<span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>, <span class="at">module</span> <span class="at">=</span> <span class="cn">NULL</span>, <span class="at">dir</span> <span class="at">=</span> <span class="st">"julia"</span>)</code><span class="quartodown-tip-brief">Set up a package to use jlbind</span>
+</div>
+<div data-for="t2">
+<code class="quartodown-tip-sig"><span class="fu">build_library</span>(
+  <span class="at">packages</span> <span class="at">=</span> <span class="st">"."</span>,
+  <span class="at">out</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">julia</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">versions</span> <span class="at">=</span> <span class="fu">c</span>(<span class="st">"manifest"</span>, <span class="st">"compat"</span>),
+  <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>
+)</code><span class="quartodown-tip-brief">Build a Julia library from specific packages</span>
+</div>
+<div data-for="t3">
+<code class="quartodown-tip-sig"><span class="fu">update_entrypoints</span>(<span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>)</code><span class="quartodown-tip-brief">Update the list of Julia functions R can call</span>
+</div>
+<div data-for="t4">
+<code class="quartodown-tip-sig"><span class="fu">install_library</span>(
+  <span class="at">packages</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">julia</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">ask</span> <span class="at">=</span> <span class="fu">interactive</span>(),
+  <span class="at">force</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">versions</span> <span class="at">=</span> <span class="fu">c</span>(<span class="st">"manifest"</span>, <span class="st">"compat"</span>),
+  <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>
+)</code><span class="quartodown-tip-brief">Build the Julia library</span>
+</div>
+<div data-for="t5">
+<code class="quartodown-tip-sig"><span class="fu">is_bound</span>(pkg)</code><span class="quartodown-tip-brief">Check whether a package is bound to the Julia library</span>
+</div>
+<div data-for="t6">
+<code class="quartodown-tip-sig"><span class="fu">use_jlbind_ci</span>(<span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>, <span class="at">overwrite</span> <span class="at">=</span> <span class="cn">FALSE</span>)</code><span class="quartodown-tip-brief">Check a package with its Julia code on GitHub Actions</span>
+</div>
+</div>
 </body>
 </html>

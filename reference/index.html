@@ -32,9 +32,9 @@ ul.task-list li input[type="checkbox"] {
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-5edf9aa48914e65fdee7ecfb349af396.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-cec79b75b621f41fbf3f714b42497c04.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-5edf9aa48914e65fdee7ecfb349af396.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-174b53273fa95a7cc7088e76628606fb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -284,6 +284,10 @@ visitors who prefer it, before Quarto reads the stored choice.
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-articles">
 <li>
+    <a class="dropdown-item" href="../vignettes/technical-details.html">
+ <span class="dropdown-text">Technical details</span></a>
+  </li>  
+        <li>
     <a class="dropdown-item" href="../vignettes/using-clients.html">
  <span class="dropdown-text">Using packages built on jlbind</span></a>
   </li>  
@@ -429,6 +433,33 @@ Check a package with its Julia code on GitHub Actions
       navContainer.style.paddingLeft = Math.max(diff - overflow, 0) + "px";
     }
   }
+  // While previewing the site locally, reload the page when a rebuild changes
+  // it. It checks its own address, which needs nothing of the server.
+  function reloadWhenRebuilt() {
+    if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
+    var url = location.href.split("#")[0];
+    var page;
+    function check() {
+      if (document.hidden) {
+        setTimeout(check, 1000);
+        return;
+      }
+      fetch(url, { cache: "no-store" })
+        .then(function (response) {
+          return response.ok ? response.text() : page;
+        })
+        .then(function (text) {
+          if (page !== undefined && text !== page) {
+            location.reload();
+            return;
+          }
+          page = text;
+          setTimeout(check, 1000);
+        })
+        .catch(function () {}); // The server has stopped.
+    }
+    check();
+  }
   // Wrap the version in the "<pkg> <version>" title so it can be styled.
   function shrinkNavbarVersion() {
     var title = document.querySelector(".navbar-title");
@@ -567,7 +598,7 @@ Check a package with its Julia code on GitHub Actions
     }, true);
   }
   // Shows the tip of a reference to the package's own topics, from the
-  // page's hidden `.quartodown-tip-payload` (see add_tooltips_html()), in
+  // page's hidden `.quartodown-tip-payload` (see link_code_html()), in
   // one `position: fixed` element, so code blocks' `overflow: auto` can't
   // clip it.
   function initTooltips() {
@@ -617,6 +648,7 @@ Check a package with its Julia code on GitHub Actions
   alignNavbarToContent();
   window.addEventListener("load", alignNavbarToContent);
   window.addEventListener("resize", alignNavbarToContent);
+  reloadWhenRebuilt();
 })();
 </script><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
@@ -1153,20 +1185,57 @@ Check a package with its Julia code on GitHub Actions
 <p>Site built with <a href="https://github.com/BjarkeHautop/quartodown">quartodown</a> and <a href="https://quarto.org/">Quarto</a>.</p>
 </div>
   </div>
-</footer>
-<div class="quartodown-tip-payload" hidden><div data-for="t1"><code class="quartodown-tip-sig">install_library(
-  packages = NULL,
-  julia = NULL,
-  ask = interactive(),
-  force = FALSE,
-  versions = c(&quot;manifest&quot;, &quot;compat&quot;),
-  develop = NULL
-)</code><span class="quartodown-tip-brief">Compiles the Julia code of every installed package that uses jlbind into one shared library, stored in <code>tools::R_user_dir(&quot;jlbind&quot;, &quot;data&quot;)</code>.</span></div><div data-for="t2"><code class="quartodown-tip-sig">build_library(
-  packages = &quot;.&quot;,
-  out = NULL,
-  julia = NULL,
-  versions = c(&quot;manifest&quot;, &quot;compat&quot;),
-  develop = NULL
-)</code><span class="quartodown-tip-brief">Like <code>install_library()</code>, but compiles only <code>packages</code> and writes the library to <code>out</code>, for package development.</span></div><div data-for="t3"><code class="quartodown-tip-sig">remove_library(ask = interactive())</code><span class="quartodown-tip-brief">Deletes the library built by <code>install_library()</code>, with everything else jlbind stores in <code>tools::R_user_dir(&quot;jlbind&quot;, &quot;data&quot;)</code>.</span></div><div data-for="t4"><code class="quartodown-tip-sig">jlbind_clients(lib.loc = NULL)</code><span class="quartodown-tip-brief">Lists the installed packages that <code>install_library()</code> will compile.</span></div><div data-for="t5"><code class="quartodown-tip-sig">bind_client(pkg)</code><span class="quartodown-tip-brief">Call this from the <code>.onLoad()</code> of a package that uses jlbind; <code>use_jlbind()</code> sets that up.</span></div><div data-for="t6"><code class="quartodown-tip-sig">is_bound(pkg)</code><span class="quartodown-tip-brief"><code>is_bound()</code> returns <code>TRUE</code> or <code>FALSE</code>.</span></div><div data-for="t7"><code class="quartodown-tip-sig">check_bound(pkg)</code><span class="quartodown-tip-brief"><code>is_bound()</code> returns <code>TRUE</code> or <code>FALSE</code>.</span></div><div data-for="t8"><code class="quartodown-tip-sig">jlbind_sitrep(julia = NULL)</code><span class="quartodown-tip-brief">Prints a report to run when a package that uses jlbind doesn't work.</span></div><div data-for="t9"><code class="quartodown-tip-sig">use_jlbind(path = &quot;.&quot;, module = NULL, dir = &quot;julia&quot;)</code><span class="quartodown-tip-brief">Adds what a package needs to call Julia code through jlbind.</span></div><div data-for="t10"><code class="quartodown-tip-sig">update_entrypoints(path = &quot;.&quot;)</code><span class="quartodown-tip-brief">Finds the <code>@rcall</code> declarations in the package's Julia binding package and generates the code that lets R call them.</span></div><div data-for="t11"><code class="quartodown-tip-sig">use_jlbind_ci(path = &quot;.&quot;, overwrite = FALSE)</code><span class="quartodown-tip-brief">Writes a GitHub Actions workflow that checks the package with and without Julia.</span></div></div>
+</footer><div class="quartodown-tip-payload" hidden>
+<div data-for="t1">
+<code class="quartodown-tip-sig"><span class="fu">install_library</span>(
+  <span class="at">packages</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">julia</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">ask</span> <span class="at">=</span> <span class="fu">interactive</span>(),
+  <span class="at">force</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">versions</span> <span class="at">=</span> <span class="fu">c</span>(<span class="st">"manifest"</span>, <span class="st">"compat"</span>),
+  <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>
+)</code><span class="quartodown-tip-brief">Build the Julia library</span>
+</div>
+<div data-for="t2">
+<code class="quartodown-tip-sig"><span class="fu">build_library</span>(
+  <span class="at">packages</span> <span class="at">=</span> <span class="st">"."</span>,
+  <span class="at">out</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">julia</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">versions</span> <span class="at">=</span> <span class="fu">c</span>(<span class="st">"manifest"</span>, <span class="st">"compat"</span>),
+  <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>
+)</code><span class="quartodown-tip-brief">Build a Julia library from specific packages</span>
+</div>
+<div data-for="t3">
+<code class="quartodown-tip-sig"><span class="fu">remove_library</span>(<span class="at">ask</span> <span class="at">=</span> <span class="fu">interactive</span>())</code><span class="quartodown-tip-brief">Remove the Julia library</span>
+</div>
+<div data-for="t4">
+<code class="quartodown-tip-sig"><span class="fu">jlbind_clients</span>(<span class="at">lib.loc</span> <span class="at">=</span> <span class="cn">NULL</span>)</code><span class="quartodown-tip-brief">List the packages that use jlbind</span>
+</div>
+<div data-for="t5">
+<code class="quartodown-tip-sig"><span class="fu">bind_client</span>(pkg)</code><span class="quartodown-tip-brief">Bind a package to the Julia library</span>
+</div>
+<div data-for="t6">
+<code class="quartodown-tip-sig"><span class="fu">is_bound</span>(pkg)</code><span class="quartodown-tip-brief">Check whether a package is bound to the Julia library</span>
+</div>
+<div data-for="t7">
+<code class="quartodown-tip-sig"><span class="fu">check_bound</span>(pkg)</code><span class="quartodown-tip-brief">Check whether a package is bound to the Julia library</span>
+</div>
+<div data-for="t8">
+<code class="quartodown-tip-sig"><span class="fu">jlbind_sitrep</span>(<span class="at">julia</span> <span class="at">=</span> <span class="cn">NULL</span>)</code><span class="quartodown-tip-brief">Report on the jlbind setup</span>
+</div>
+<div data-for="t9">
+<code class="quartodown-tip-sig"><span class="fu">use_jlbind</span>(<span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>, <span class="at">module</span> <span class="at">=</span> <span class="cn">NULL</span>, <span class="at">dir</span> <span class="at">=</span> <span class="st">"julia"</span>)</code><span class="quartodown-tip-brief">Set up a package to use jlbind</span>
+</div>
+<div data-for="t10">
+<code class="quartodown-tip-sig"><span class="fu">update_entrypoints</span>(<span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>)</code><span class="quartodown-tip-brief">Update the list of Julia functions R can call</span>
+</div>
+<div data-for="t11">
+<code class="quartodown-tip-sig"><span class="fu">use_jlbind_ci</span>(<span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>, <span class="at">overwrite</span> <span class="at">=</span> <span class="cn">FALSE</span>)</code><span class="quartodown-tip-brief">Check a package with its Julia code on GitHub Actions</span>
+</div>
+</div>
 </body>
 </html>

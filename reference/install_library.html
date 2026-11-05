@@ -67,9 +67,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-5edf9aa48914e65fdee7ecfb349af396.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-cec79b75b621f41fbf3f714b42497c04.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-5edf9aa48914e65fdee7ecfb349af396.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-174b53273fa95a7cc7088e76628606fb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -319,6 +319,10 @@ visitors who prefer it, before Quarto reads the stored choice.
     </a>
     <ul class="dropdown-menu" aria-labelledby="nav-menu-articles">
 <li>
+    <a class="dropdown-item" href="../vignettes/technical-details.html">
+ <span class="dropdown-text">Technical details</span></a>
+  </li>  
+        <li>
     <a class="dropdown-item" href="../vignettes/using-clients.html">
  <span class="dropdown-text">Using packages built on jlbind</span></a>
   </li>  
@@ -371,18 +375,19 @@ visitors who prefer it, before Quarto reads the stored choice.
 <small class="dont-index">Source: <a href="https://github.com/BjarkeHautop/jlbind/blob/HEAD/R/library.R"><code>R/library.R</code></a></small>
 </p>
 <section id="description" class="level2"><h2 class="anchored" data-anchor-id="description">Description</h2>
-<p>Compiles the Julia code of every installed package that uses jlbind into one shared library, stored in <code>tools::R_user_dir("jlbind", "data")</code>. Run this after you install or update one of those packages. You need Julia 1.13 or later. The first build downloads and compiles the Julia dependencies, which can take a few minutes.</p>
+<p>Compiles the Julia code of every installed package that uses jlbind into one shared library, stored in <code><a href="https://rdrr.io/r/tools/userdir.html">tools::R_user_dir("jlbind", "data")</a></code>. Run this after you install or update one of those packages. You need Julia 1.13 or later. The first build downloads and compiles the Julia dependencies, which can take a few minutes.</p>
 </section><section id="usage" class="level2"><h2 class="anchored" data-anchor-id="usage">Usage</h2>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb1"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./install_library.html">install_library</a></span><span class="op">(</span></span>
-<span>  packages <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  julia <span class="op">=</span> <span class="cn">NULL</span>,</span>
-<span>  ask <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/interactive.html">interactive</a></span><span class="op">(</span><span class="op">)</span>,</span>
-<span>  force <span class="op">=</span> <span class="cn">FALSE</span>,</span>
-<span>  versions <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"manifest"</span>, <span class="st">"compat"</span><span class="op">)</span>,</span>
-<span>  develop <span class="op">=</span> <span class="cn">NULL</span></span>
-<span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./install_library.html">install_library</a></span>(</span>
+<span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">packages =</span> <span class="cn">NULL</span>,</span>
+<span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">julia =</span> <span class="cn">NULL</span>,</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">ask =</span> <span class="fu"><a href="https://rdrr.io/r/base/interactive.html">interactive</a></span>(),</span>
+<span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">force =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">versions =</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"manifest"</span>, <span class="st">"compat"</span>),</span>
+<span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">develop =</span> <span class="cn">NULL</span>,</span>
+<span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">cpu_target =</span> <span class="cn">NULL</span>,</span>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">julia_args =</span> <span class="cn">NULL</span></span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 </section><section id="arguments" class="level2"><h2 class="anchored" data-anchor-id="arguments">Arguments</h2>
@@ -435,21 +440,40 @@ Where the Julia dependency versions come from. <code>"manifest"</code> keeps the
 Paths to local Julia packages to use instead of their released versions.
 </td>
 </tr>
+<tr>
+<td>
+<code>cpu_target</code>
+</td>
+<td>
+The CPUs to compile for, as Julia’s <code>--cpu-target</code>. By default, <code>JULIA_CPU_TARGET</code>, or <code>"native"</code>. <code>"generic"</code> runs on any CPU, but numeric code can be slower.
+</td>
+</tr>
+<tr>
+<td>
+<code>julia_args</code>
+</td>
+<td>
+For advanced use: extra Julia command-line options for compiling the library, such as <code>"-O3"</code>. jlbind passes <code>-g0</code> (no debug info), which these can override (e.g. <code>"-g1"</code>), but not the options it relies on: <code>--trim</code>, <code>--output-*</code> and <code>--compile-ccallable</code>. By default, <code>JLBIND_JULIA_ARGS</code> split at spaces.
+</td>
+</tr>
 </tbody></table></section><section id="details" class="level2"><h2 class="anchored" data-anchor-id="details">Details</h2>
-<p>All packages share one Julia environment. By default, the dependencies get the versions in the first package’s <code>Manifest.toml</code>. If two packages conflict, the one listed later by <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./jlbind_clients.html">jlbind_clients()</a></code> is left out, and <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="./is_bound.html">check_bound()</a></code> says why. See <code>vignette("using-clients", "jlbind")</code> for details.</p>
-<p>The library is rebuilt only if it is out of date: built from other versions of the packages or other Julia code in them, by another version of jlbind or Julia, or with <code>develop</code>. If a library is already loaded, restart R to use the new one.</p>
+<p>All packages share one Julia environment. By default, the dependencies get the versions in the first package’s <code>Manifest.toml</code>. If two packages conflict, the one listed later by <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./jlbind_clients.html">jlbind_clients()</a></code> is left out, and <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="./is_bound.html">check_bound()</a></code> says why. See <code><a href="../vignettes/using-clients.html">vignette("using-clients", "jlbind")</a></code> for details.</p>
+<p>The library is rebuilt only if it is out of date: built from other versions of the packages or their Julia code, by another version of jlbind or Julia, or with other options. If a library is already loaded, restart R to use the new one.</p>
+<p>The library is compiled for this computer’s CPU, and jlbind won’t load it on another. If one R library is used from computers with different CPUs, as on a cluster, use <code>cpu_target = "generic"</code>.</p>
 </section><section id="value" class="level2"><h2 class="anchored" data-anchor-id="value">Value</h2>
 <p>The path to the library (invisibly), or <code>NULL</code> if there was nothing to build.</p>
 </section><section id="examples" class="level2"><h2 class="anchored" data-anchor-id="examples">Examples</h2>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb2"><pre class="downlit sourceCode r">
-<code class="sourceCode R"><span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./install_library.html">install_library</a></span><span class="op">(</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># With a local checkout of a Julia dependency</span></span>
-<span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./install_library.html">install_library</a></span><span class="op">(</span>develop <span class="op">=</span> <span class="st">"~/dev/SomePackage.jl"</span><span class="op">)</span></span>
-<span></span>
-<span><span class="co"># Only two of the installed packages</span></span>
-<span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./install_library.html">install_library</a></span><span class="op">(</span>packages <span class="op">=</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span><span class="op">(</span><span class="st">"pkgA"</span>, <span class="st">"pkgB"</span><span class="op">)</span><span class="op">)</span></span></code></pre></div>
+<div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./install_library.html">install_library</a></span>()</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co"># With a local checkout of a Julia dependency</span></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./install_library.html">install_library</a></span>(<span class="at">develop =</span> <span class="st">"~/dev/SomePackage.jl"</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Only two of the installed packages</span></span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./install_library.html">install_library</a></span>(<span class="at">packages =</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"pkgA"</span>, <span class="st">"pkgB"</span>))</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co"># For an R library shared by computers with different CPUs</span></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./install_library.html">install_library</a></span>(<span class="at">cpu_target =</span> <span class="st">"generic"</span>)</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 
@@ -484,6 +508,33 @@ Paths to local Julia packages to use instead of their released versions.
     if (overflow > 0) {
       navContainer.style.paddingLeft = Math.max(diff - overflow, 0) + "px";
     }
+  }
+  // While previewing the site locally, reload the page when a rebuild changes
+  // it. It checks its own address, which needs nothing of the server.
+  function reloadWhenRebuilt() {
+    if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
+    var url = location.href.split("#")[0];
+    var page;
+    function check() {
+      if (document.hidden) {
+        setTimeout(check, 1000);
+        return;
+      }
+      fetch(url, { cache: "no-store" })
+        .then(function (response) {
+          return response.ok ? response.text() : page;
+        })
+        .then(function (text) {
+          if (page !== undefined && text !== page) {
+            location.reload();
+            return;
+          }
+          page = text;
+          setTimeout(check, 1000);
+        })
+        .catch(function () {}); // The server has stopped.
+    }
+    check();
   }
   // Wrap the version in the "<pkg> <version>" title so it can be styled.
   function shrinkNavbarVersion() {
@@ -623,7 +674,7 @@ Paths to local Julia packages to use instead of their released versions.
     }, true);
   }
   // Shows the tip of a reference to the package's own topics, from the
-  // page's hidden `.quartodown-tip-payload` (see add_tooltips_html()), in
+  // page's hidden `.quartodown-tip-payload` (see link_code_html()), in
   // one `position: fixed` element, so code blocks' `overflow: auto` can't
   // clip it.
   function initTooltips() {
@@ -673,6 +724,7 @@ Paths to local Julia packages to use instead of their released versions.
   alignNavbarToContent();
   window.addEventListener("load", alignNavbarToContent);
   window.addEventListener("resize", alignNavbarToContent);
+  reloadWhenRebuilt();
 })();
 </script><script id="quarto-html-after-body" type="application/javascript">
   window.document.addEventListener("DOMContentLoaded", function (event) {
@@ -1209,14 +1261,25 @@ Paths to local Julia packages to use instead of their released versions.
 <p>Site built with <a href="https://github.com/BjarkeHautop/quartodown">quartodown</a> and <a href="https://quarto.org/">Quarto</a>.</p>
 </div>
   </div>
-</footer>
-<div class="quartodown-tip-payload" hidden><div data-for="t1"><code class="quartodown-tip-sig">install_library(
-  packages = NULL,
-  julia = NULL,
-  ask = interactive(),
-  force = FALSE,
-  versions = c(&quot;manifest&quot;, &quot;compat&quot;),
-  develop = NULL
-)</code><span class="quartodown-tip-brief">Compiles the Julia code of every installed package that uses jlbind into one shared library, stored in <code>tools::R_user_dir(&quot;jlbind&quot;, &quot;data&quot;)</code>.</span></div><div data-for="t2"><code class="quartodown-tip-sig">jlbind_clients(lib.loc = NULL)</code><span class="quartodown-tip-brief">Lists the installed packages that <code>install_library()</code> will compile.</span></div><div data-for="t3"><code class="quartodown-tip-sig">check_bound(pkg)</code><span class="quartodown-tip-brief"><code>is_bound()</code> returns <code>TRUE</code> or <code>FALSE</code>.</span></div></div>
+</footer><div class="quartodown-tip-payload" hidden>
+<div data-for="t1">
+<code class="quartodown-tip-sig"><span class="fu">install_library</span>(
+  <span class="at">packages</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">julia</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">ask</span> <span class="at">=</span> <span class="fu">interactive</span>(),
+  <span class="at">force</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">versions</span> <span class="at">=</span> <span class="fu">c</span>(<span class="st">"manifest"</span>, <span class="st">"compat"</span>),
+  <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>
+)</code><span class="quartodown-tip-brief">Build the Julia library</span>
+</div>
+<div data-for="t2">
+<code class="quartodown-tip-sig"><span class="fu">jlbind_clients</span>(<span class="at">lib.loc</span> <span class="at">=</span> <span class="cn">NULL</span>)</code><span class="quartodown-tip-brief">List the packages that use jlbind</span>
+</div>
+<div data-for="t3">
+<code class="quartodown-tip-sig"><span class="fu">check_bound</span>(pkg)</code><span class="quartodown-tip-brief">Check whether a package is bound to the Julia library</span>
+</div>
+</div>
 </body>
 </html>

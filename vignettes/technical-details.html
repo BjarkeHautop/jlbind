@@ -1,0 +1,1691 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.11.9">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+<title>Technical details – jlbind 0.0.0.9000</title>
+<style>
+/* Default styles provided by pandoc.
+** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
+*/
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: 1.5em;}
+div.column{flex: auto;}
+@media screen {
+div.columns{gap: min(4vw, 1.5em);}
+div.column{overflow-x: auto;}
+}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1em; /* quarto-specific, see https://github.com/quarto-dev/quarto-cli/issues/4556 */ 
+  vertical-align: middle;
+}
+/* CSS for syntax highlighting */
+html { -webkit-text-size-adjust: 100%; }
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+  }
+pre.numberSource { margin-left: 3em;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+</style>
+<script src="../site_libs/quarto-nav/quarto-nav.js"></script><script src="../site_libs/quarto-nav/headroom.min.js"></script><script src="../site_libs/clipboard/clipboard.min.js"></script><script src="../site_libs/quarto-search/autocomplete.umd.js"></script><script src="../site_libs/quarto-search/fuse.min.js"></script><script src="../site_libs/quarto-search/quarto-search.js"></script><meta name="quarto:offset" content="../">
+<link href="../man/figures/logo.png" rel="icon" type="image/png">
+<script src="../site_libs/quarto-html/quarto.js" type="module"></script><script src="../site_libs/quarto-html/tabsets/tabsets.js" type="module"></script><script src="../site_libs/quarto-html/scrollable-regions/scrollable-regions.js" type="module"></script><script src="../site_libs/quarto-html/popper.min.js"></script><script src="../site_libs/quarto-html/tippy.umd.min.js"></script><script src="../site_libs/quarto-html/anchor.min.js"></script><link href="../site_libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
+<link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
+<script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-174b53273fa95a7cc7088e76628606fb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<script id="quarto-search-options" type="application/json">{
+  "location": "navbar",
+  "copy-button": false,
+  "collapse-after": 3,
+  "panel-placement": "end",
+  "type": "textbox",
+  "limit": 50,
+  "keyboard-shortcut": [
+    "f",
+    "/",
+    "s"
+  ],
+  "language": {
+    "search-no-results-text": "No results",
+    "search-matching-documents-text": "matching documents",
+    "search-copy-link-title": "Copy link to search",
+    "search-hide-matches-text": "Hide additional matches",
+    "search-more-match-text": "more match in this document",
+    "search-more-matches-text": "more matches in this document",
+    "search-clear-button-title": "Clear",
+    "search-text-placeholder": " Search",
+    "search-detached-cancel-button-title": "Cancel",
+    "search-submit-button-title": "Submit",
+    "search-label": "Search"
+  }
+}</script><!--
+Quarto ignores `prefers-color-scheme`, so pick dark mode for first-time
+visitors who prefer it, before Quarto reads the stored choice.
+--><script>
+(function () {
+  try {
+    if (
+      window.localStorage.getItem("quarto-color-scheme") === null &&
+      window.matchMedia("(prefers-color-scheme: dark)").matches
+    ) {
+      window.localStorage.setItem("quarto-color-scheme", "alternate");
+    }
+  } catch (e) {
+    // No localStorage: keep Quarto's light default.
+  }
+})();
+</script><meta property="og:title" content="Technical details – jlbind 0.0.0.9000">
+<meta property="og:description" content="Bind R Packages to Compiled Julia Code">
+<meta property="og:image" content="https://bjarkehautop.github.io/jlbind/man/figures/logo.png">
+<meta property="og:site_name" content="jlbind 0.0.0.9000">
+<meta property="og:image:height" content="600">
+<meta property="og:image:width" content="520">
+<meta name="twitter:title" content="Technical details – jlbind 0.0.0.9000">
+<meta name="twitter:description" content="Bind R Packages to Compiled Julia Code">
+<meta name="twitter:image" content="https://bjarkehautop.github.io/jlbind/man/figures/logo.png">
+<meta name="twitter:card" content="summary">
+</head>
+<body class="nav-fixed quarto-light">
+<a id="quarto-skip-link" class="visually-hidden-focusable" href="#quarto-document-content">Skip to main content</a><script id="quarto-html-before-body" type="application/javascript">
+    const toggleBodyColorMode = (bsSheetEl) => {
+      const mode = bsSheetEl.getAttribute("data-mode");
+      const bodyEl = window.document.querySelector("body");
+      if (mode === "dark") {
+        bodyEl.classList.add("quarto-dark");
+        bodyEl.classList.remove("quarto-light");
+      } else {
+        bodyEl.classList.add("quarto-light");
+        bodyEl.classList.remove("quarto-dark");
+      }
+    }
+    const toggleBodyColorPrimary = () => {
+      const bsSheetEl = window.document.querySelector("link#quarto-bootstrap:not([rel=disabled-stylesheet])");
+      if (bsSheetEl) {
+        toggleBodyColorMode(bsSheetEl);
+      }
+    }
+    const setColorSchemeToggle = (alternate) => {
+      const toggles = window.document.querySelectorAll('.quarto-color-scheme-toggle');
+      for (let i=0; i < toggles.length; i++) {
+        const toggle = toggles[i];
+        if (toggle) {
+          toggle.setAttribute("aria-checked", alternate ? "true" : "false");
+          if (alternate) {
+            toggle.classList.add("alternate");
+          } else {
+            toggle.classList.remove("alternate");
+          }
+        }
+      }
+    };
+    const toggleColorMode = (alternate) => {
+      // Switch the stylesheets
+      const primaryStylesheets = window.document.querySelectorAll('link.quarto-color-scheme:not(.quarto-color-alternate)');
+      const alternateStylesheets = window.document.querySelectorAll('link.quarto-color-scheme.quarto-color-alternate');
+      manageTransitions('#quarto-margin-sidebar .nav-link', false);
+      if (alternate) {
+        // note: dark is layered on light, we don't disable primary!
+        enableStylesheet(alternateStylesheets);
+        for (const sheetNode of alternateStylesheets) {
+          if (sheetNode.id === "quarto-bootstrap") {
+            toggleBodyColorMode(sheetNode);
+          }
+        }
+      } else {
+        disableStylesheet(alternateStylesheets);
+        enableStylesheet(primaryStylesheets)
+        toggleBodyColorPrimary();
+      }
+      manageTransitions('#quarto-margin-sidebar .nav-link', true);
+      // Switch the toggles
+      setColorSchemeToggle(alternate)
+    }
+    // Hack to workaround the fact that safari doesn't
+    // properly recolor the scrollbar when toggling (#1455).
+    // Not run on load: stylesheets are set before first paint there, and
+    // scrolling would undo the scroll to a URL fragment (#14973).
+    // The one pixel nudge keeps the reader where they were.
+    const refreshSafariScrollbar = () => {
+      if (navigator.userAgent.indexOf('Safari') > 0 && navigator.userAgent.indexOf('Chrome') == -1) {
+        manageTransitions("body", false);
+        const scrollY = window.scrollY;
+        window.scrollTo(0, scrollY > 0 ? scrollY - 1 : 1);
+        setTimeout(() => {
+          window.scrollTo(0, scrollY);
+          manageTransitions("body", true);
+        }, 40);
+      }
+    }
+    const disableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        stylesheet.rel = 'disabled-stylesheet';
+      }
+    }
+    const enableStylesheet = (stylesheets) => {
+      for (let i=0; i < stylesheets.length; i++) {
+        const stylesheet = stylesheets[i];
+        if(stylesheet.rel !== 'stylesheet') { // for Chrome, which will still FOUC without this check
+          stylesheet.rel = 'stylesheet';
+        }
+      }
+    }
+    const manageTransitions = (selector, allowTransitions) => {
+      const els = window.document.querySelectorAll(selector);
+      for (let i=0; i < els.length; i++) {
+        const el = els[i];
+        if (allowTransitions) {
+          el.classList.remove('notransition');
+        } else {
+          el.classList.add('notransition');
+        }
+      }
+    }
+    const isFileUrl = () => {
+      return window.location.protocol === 'file:';
+    }
+    const hasAlternateSentinel = () => {
+      let styleSentinel = getColorSchemeSentinel();
+      if (styleSentinel !== null) {
+        return styleSentinel === "alternate";
+      } else {
+        return false;
+      }
+    }
+    const setStyleSentinel = (alternate) => {
+      const value = alternate ? "alternate" : "default";
+      if (!isFileUrl()) {
+        window.localStorage.setItem("quarto-color-scheme", value);
+      } else {
+        localAlternateSentinel = value;
+      }
+    }
+    const getColorSchemeSentinel = () => {
+      if (!isFileUrl()) {
+        const storageValue = window.localStorage.getItem("quarto-color-scheme");
+        return storageValue != null ? storageValue : localAlternateSentinel;
+      } else {
+        return localAlternateSentinel;
+      }
+    }
+    const toggleGiscusIfUsed = (isAlternate, darkModeDefault) => {
+      const baseTheme = document.querySelector('#giscus-base-theme')?.value ?? 'light';
+      const alternateTheme = document.querySelector('#giscus-alt-theme')?.value ?? 'dark';
+      let newTheme = '';
+      if(authorPrefersDark) {
+        newTheme = isAlternate ? baseTheme : alternateTheme;
+      } else {
+        newTheme = isAlternate ? alternateTheme : baseTheme;
+      }
+      const changeGiscusTheme = () => {
+        // From: https://github.com/giscus/giscus/issues/336
+        const sendMessage = (message) => {
+          const iframe = document.querySelector('iframe.giscus-frame');
+          if (!iframe) return;
+          iframe.contentWindow.postMessage({ giscus: message }, 'https://giscus.app');
+        }
+        sendMessage({
+          setConfig: {
+            theme: newTheme
+          }
+        });
+      }
+      const isGiscussLoaded = window.document.querySelector('iframe.giscus-frame') !== null;
+      if (isGiscussLoaded) {
+        changeGiscusTheme();
+      }
+    };
+    const authorPrefersDark = false;
+    const darkModeDefault = authorPrefersDark;
+      document.querySelector('link#quarto-text-highlighting-styles.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+      document.querySelector('link#quarto-bootstrap.quarto-color-scheme-extra').rel = 'disabled-stylesheet';
+    let localAlternateSentinel = darkModeDefault ? 'alternate' : 'default';
+    // Dark / light mode switch
+    window.quartoToggleColorScheme = () => {
+      // Read the current dark / light value
+      let toAlternate = !hasAlternateSentinel();
+      toggleColorMode(toAlternate);
+      refreshSafariScrollbar();
+      setStyleSentinel(toAlternate);
+      toggleGiscusIfUsed(toAlternate, darkModeDefault);
+      window.dispatchEvent(new Event('resize'));
+    };
+    // Switch to dark mode if need be
+    if (hasAlternateSentinel()) {
+      toggleColorMode(true);
+    } else {
+      toggleColorMode(false);
+    }
+  </script><div id="quarto-search-results"></div>
+  <header id="quarto-header" class="headroom fixed-top"><nav class="navbar navbar-expand-lg " data-bs-theme="dark" aria-label="Site"><div class="navbar-container container-fluid">
+      <div class="navbar-brand-container mx-auto">
+    <a class="navbar-brand" href="../index.html">
+    <span class="navbar-title">jlbind 0.0.0.9000</span>
+    </a>
+  </div>
+          <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarCollapse" aria-controls="navbarCollapse" aria-expanded="false" aria-label="Toggle navigation" onclick="if (window.quartoToggleHeadroom) { window.quartoToggleHeadroom(); }">
+  <span class="navbar-toggler-icon"></span>
+</button>
+          <div class="collapse navbar-collapse" id="navbarCollapse">
+            <ul class="navbar-nav navbar-nav-scroll me-auto">
+<li class="nav-item">
+    <a class="nav-link" href="../vignettes/jlbind.html"> 
+<span class="menu-text">Get started</span></a>
+  </li>  
+  <li class="nav-item">
+    <a class="nav-link" href="../reference/index.html"> 
+<span class="menu-text">Reference</span></a>
+  </li>  
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-articles" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Articles</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-articles">
+<li>
+    <a class="dropdown-item" href="../vignettes/technical-details.html">
+ <span class="dropdown-text">Technical details</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/using-clients.html">
+ <span class="dropdown-text">Using packages built on jlbind</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/articles/performance.html">
+ <span class="dropdown-text">Performance</span></a>
+  </li>  
+    </ul>
+</li>
+</ul>
+</div> <!-- /navcollapse -->
+            <div class="quarto-navbar-tools">
+    <a href="https://github.com/BjarkeHautop/jlbind" title="GitHub" class="quarto-navigation-tool px-1" aria-label="GitHub"><i class="bi bi-github"></i></a>
+  <button type="button" role="switch" aria-checked="false" class="quarto-color-scheme-toggle quarto-navigation-tool  px-1" onclick="window.quartoToggleColorScheme(); return false;" title="Toggle dark mode" aria-label="Toggle dark mode"><i class="bi"></i></button>
+</div>
+            <div id="quarto-search" class="" title="Search"></div>
+      </div> <!-- /container-fluid -->
+    </nav></header><!-- content --><div id="quarto-content" class="quarto-container page-columns page-rows-contents page-layout-article page-navbar">
+<!-- sidebar -->
+<!-- margin-sidebar -->
+    <div id="quarto-margin-sidebar" class="sidebar margin-sidebar">
+        <nav id="TOC" role="doc-toc" aria-labelledby="toc-title" class="toc-active"><h2 id="toc-title">On this page</h2>
+   
+  <ul>
+<li><a href="#one-library-for-all-clients" id="toc-one-library-for-all-clients" class="nav-link active" data-scroll-target="#one-library-for-all-clients">One library for all clients</a></li>
+  <li><a href="#what-use_jlbind-adds" id="toc-what-use_jlbind-adds" class="nav-link" data-scroll-target="#what-use_jlbind-adds">What <code>use_jlbind()</code> adds</a></li>
+  <li><a href="#writing-rcall-declarations" id="toc-writing-rcall-declarations" class="nav-link" data-scroll-target="#writing-rcall-declarations">Writing <code>@rcall</code> declarations</a></li>
+  <li><a href="#development-libraries" id="toc-development-libraries" class="nav-link" data-scroll-target="#development-libraries">Development libraries</a></li>
+  <li>
+<a href="#types" id="toc-types" class="nav-link" data-scroll-target="#types">Types</a>
+  <ul class="collapse">
+<li><a href="#conversion-rules" id="toc-conversion-rules" class="nav-link" data-scroll-target="#conversion-rules">Conversion rules</a></li>
+  <li><a href="#data-frames" id="toc-data-frames" class="nav-link" data-scroll-target="#data-frames">Data frames</a></li>
+  <li><a href="#large-vectors" id="toc-large-vectors" class="nav-link" data-scroll-target="#large-vectors">Large vectors</a></li>
+  <li><a href="#your-own-types" id="toc-your-own-types" class="nav-link" data-scroll-target="#your-own-types">Your own types</a></li>
+  <li><a href="#julia-objects-in-r" id="toc-julia-objects-in-r" class="nav-link" data-scroll-target="#julia-objects-in-r">Julia objects in R</a></li>
+  </ul>
+</li>
+  <li><a href="#errors" id="toc-errors" class="nav-link" data-scroll-target="#errors">Errors</a></li>
+  <li>
+<a href="#compilation-constraints-trimming" id="toc-compilation-constraints-trimming" class="nav-link" data-scroll-target="#compilation-constraints-trimming">Compilation constraints (trimming)</a>
+  <ul class="collapse">
+<li><a href="#abstract-types" id="toc-abstract-types" class="nav-link" data-scroll-target="#abstract-types">Abstract types</a></li>
+  </ul>
+</li>
+  </ul></nav>
+</div>
+<!-- main -->
+<main class="content" id="quarto-document-content" tabindex="-1"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
+<img src="../man/figures/logo-light.svg" class="quartodown-logo light-content" alt=""><img src="../man/figures/logo.svg" class="quartodown-logo dark-content" alt=""><h1 class="title">Technical details</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    
+  
+    
+  </div>
+  
+
+
+</header><p class="source-note">
+<small class="dont-index">Source: <a href="https://github.com/BjarkeHautop/jlbind/blob/HEAD/vignettes/technical-details.qmd"><code>vignettes/technical-details.qmd</code></a></small>
+</p>
+<p>This vignette covers what <a href="jlbind.html">Get started with jlbind</a> leaves out, so read that first.</p>
+<section id="one-library-for-all-clients" class="level2"><h2 class="anchored" data-anchor-id="one-library-for-all-clients">One library for all clients</h2>
+<p>jlbind compiles Julia code with <a href="https://github.com/JuliaLang/JuliaC.jl">JuliaC.jl</a>. An R process can load only one compiled Julia library<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>, so your client shares Julia dependency versions with every other client the user has installed. <a href="using-clients.html">Using packages built on jlbind</a> describes how those versions are chosen, what happens when clients conflict, and how to build a separate library for clients that are never used in the same R session.</p>
+</section><section id="what-use_jlbind-adds" class="level2"><h2 class="anchored" data-anchor-id="what-use_jlbind-adds">What <code>use_jlbind()</code> adds</h2>
+<ul>
+<li>
+<code>inst/julia/</code>, containing a Julia binding package named after the R package with a <code>Bindings</code> suffix (for example, <code>MyPkgBindings</code>), including an example function.</li>
+<li>
+<code>src/jlbind.c</code> and <code>src/entrypoints.h</code>, which register the native routines, and a rule in <code>src/Makevars</code> that recompiles <code>jlbind.c</code> whenever <code>entrypoints.h</code> changes.</li>
+<li>
+<code>R/jlbind-wrappers.R</code>, with an R function for each Julia function the binding package declares.</li>
+<li>
+<code>R/jlbind.R</code>, which calls <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/bind_client.html">jlbind::bind_client()</a></code> from <code>.onLoad()</code> and includes the roxygen tag for <code>useDynLib()</code>.</li>
+<li>The <code>Config/jlbind</code>, <code>Imports: jlbind</code> and <code>SystemRequirements: Julia (&gt;= 1.13)</code> fields in <code>DESCRIPTION</code>.</li>
+<li>A <code>.jlbind/</code> directory for development builds, added to <code>.Rbuildignore</code> and <code>.gitignore</code>.</li>
+</ul>
+<p>If your package already defines <code>.onLoad()</code>, add <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/bind_client.html">jlbind::bind_client(pkgname)</a></code> to the existing function yourself.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Give the Julia binding package a unique name
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>All clients are compiled into one library, so binding package names must be unique across all jlbind clients. The default, the R package name with a <code>Bindings</code> suffix, ensures this.</p>
+</div>
+</div>
+</section><section id="writing-rcall-declarations" class="level2"><h2 class="anchored" data-anchor-id="writing-rcall-declarations">Writing <code>@rcall</code> declarations</h2>
+<p>The binding package is an ordinary Julia package. Declare its dependencies in <code>Project.toml</code> and import them as usual.</p>
+<div class="callout callout-style-default callout-important callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Important</span>Write <code>@rcall</code> declarations literally at the top level
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>jlbind finds <code>@rcall</code> declarations by scanning the source files, not by running them, so write them literally at the top level of the module.</p>
+</div>
+</div>
+<p>A default in a declaration must be a literal number, string, <code>true</code>, <code>false</code> or <code>nothing</code>, which becomes <code>NULL</code> in R.</p>
+</section><section id="development-libraries" class="level2"><h2 class="anchored" data-anchor-id="development-libraries">Development libraries</h2>
+<p>By default, <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/build_library.html">build_library()</a></code> writes the library to <code>.jlbind/</code> in your package’s source directory. When you load the package with <code>devtools::load_all()</code>, jlbind uses this development library instead of the one created by <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../reference/install_library.html">install_library()</a></code>. Once <code>.jlbind/</code> exists, <code>devtools::load_all()</code> rebuilds it when your binding package’s files or your package’s version have changed since it was built.</p>
+<div class="callout callout-style-default callout-note callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Note</span>The development library is only used when your package loads first
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>A library that has loaded cannot be replaced, so the <code>.jlbind/</code> library is used only if your package is the first jlbind client loaded in the R session.</p>
+</div>
+</div>
+<p>If you need to use a library stored elsewhere, set the <code>JLBIND_LIBRARY</code> environment variable to its path before loading the package.</p>
+<p>You can also test against an unreleased version of a Julia dependency by providing a local checkout through <code>develop</code>:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/build_library.html">build_library</a></span>(<span class="at">develop =</span> <span class="st">"~/dev/SomePackage.jl"</span>)</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<div class="callout callout-style-default callout-tip callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Tip</span>Pin the dependency versions
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>Include a <code>Manifest.toml</code> next to the binding package’s <code>Project.toml</code> with the Julia dependency versions known to compile with your package. <a href="https://cran.r-project.org/web/packages/policies.html">CRAN’s policy</a> asks that downloaded libraries be a fixed version rather than the latest.</p>
+<p>The build uses the manifest of only the first client that has one (see <a href="using-clients.html#dependency-versions">Dependency versions</a>), so keep your <code>[compat]</code> bounds accurate too.</p>
+</div>
+</div>
+</section><section id="types" class="level2"><h2 class="anchored" data-anchor-id="types">Types</h2>
+<p><code>@rcall</code> converts each argument using <code>from_sexp()</code> and converts the return value using <code>to_sexp()</code>. The built-in conversions are:</p>
+<p><strong>Single values</strong></p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 32%">
+<col style="width: 32%">
+<col style="width: 34%">
+</colgroup>
+<thead><tr class="header">
+<th>Julia</th>
+<th>R argument</th>
+<th>R result</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>
+<code>String</code>, <code>Symbol</code>
+</td>
+<td>A single string</td>
+<td>A character vector of length one</td>
+</tr>
+<tr class="even">
+<td><code>Float64</code></td>
+<td>A single number</td>
+<td>A double</td>
+</tr>
+<tr class="odd">
+<td><code>Int64</code></td>
+<td>A single whole number</td>
+<td>A double</td>
+</tr>
+<tr class="even">
+<td><code>Int32</code></td>
+<td>A single whole number</td>
+<td>An integer</td>
+</tr>
+<tr class="odd">
+<td>
+<code>Int16</code>, <code>Int8</code>, <code>UInt16</code>
+</td>
+<td>A single whole number in range</td>
+<td>An integer</td>
+</tr>
+<tr class="even">
+<td><code>UInt32</code></td>
+<td>A single whole number in range</td>
+<td>A double</td>
+</tr>
+<tr class="odd">
+<td>
+<code>Float32</code>, <code>Float16</code>
+</td>
+<td>A single number in range</td>
+<td>A double</td>
+</tr>
+<tr class="even">
+<td><code>Bool</code></td>
+<td>
+<code>TRUE</code> or <code>FALSE</code>
+</td>
+<td>A logical</td>
+</tr>
+<tr class="odd">
+<td><code>ComplexF64</code></td>
+<td>A single complex number</td>
+<td>A complex</td>
+</tr>
+<tr class="even">
+<td><code>Date</code></td>
+<td>A single <code>Date</code>
+</td>
+<td>A <code>Date</code>
+</td>
+</tr>
+<tr class="odd">
+<td><code>DateTime</code></td>
+<td>A single <code>POSIXct</code>
+</td>
+<td>A <code>POSIXct</code> in UTC</td>
+</tr>
+<tr class="even">
+<td><code>Union{Missing,T}</code></td>
+<td>A value of type <code>T</code>, or <code>NA</code>
+</td>
+<td>A value of type <code>T</code>, or <code>NA</code>
+</td>
+</tr>
+<tr class="odd">
+<td><code>Union{Nothing,T}</code></td>
+<td>
+<code>NULL</code>, or a value of type <code>T</code>
+</td>
+<td>
+<code>NULL</code>, or a value of type <code>T</code>
+</td>
+</tr>
+<tr class="even">
+<td><code>Nothing</code></td>
+<td></td>
+<td><code>NULL</code></td>
+</tr>
+</tbody>
+</table>
+<p><strong>Vectors and arrays</strong></p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 33%">
+<col style="width: 38%">
+<col style="width: 28%">
+</colgroup>
+<thead><tr class="header">
+<th>Julia</th>
+<th>R argument</th>
+<th>R result</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>
+<code>Vector{String}</code>, <code>Vector{Symbol}</code>
+</td>
+<td>A character vector or factor</td>
+<td>A character vector</td>
+</tr>
+<tr class="even">
+<td>
+<code>Vector{Float64}</code>, <code>Vector{Int64}</code>
+</td>
+<td>A numeric vector</td>
+<td>A double vector</td>
+</tr>
+<tr class="odd">
+<td><code>Vector{Int32}</code></td>
+<td>A numeric vector of whole numbers</td>
+<td>An integer vector</td>
+</tr>
+<tr class="even">
+<td>Vectors of the smaller types above</td>
+<td>A numeric vector in range</td>
+<td>An integer or double vector</td>
+</tr>
+<tr class="odd">
+<td><code>Vector{Bool}</code></td>
+<td>A logical vector</td>
+<td>A logical vector</td>
+</tr>
+<tr class="even">
+<td><code>Vector{ComplexF64}</code></td>
+<td>A complex or numeric vector</td>
+<td>A complex vector</td>
+</tr>
+<tr class="odd">
+<td><code>Vector{UInt8}</code></td>
+<td>A raw vector</td>
+<td>A raw vector</td>
+</tr>
+<tr class="even">
+<td><code>Vector{Date}</code></td>
+<td>A <code>Date</code> vector</td>
+<td>A <code>Date</code> vector</td>
+</tr>
+<tr class="odd">
+<td><code>Vector{DateTime}</code></td>
+<td>A <code>POSIXct</code> vector</td>
+<td>A <code>POSIXct</code> vector in UTC</td>
+</tr>
+<tr class="even">
+<td><code>Vector{Union{Missing,T}}</code></td>
+<td>A vector of type <code>T</code>, which can have NA</td>
+<td>A vector of type <code>T</code> with NA</td>
+</tr>
+<tr class="odd">
+<td><code>RVector{T}</code></td>
+<td>A double, integer or raw vector</td>
+<td>The same vector</td>
+</tr>
+<tr class="even">
+<td>
+<code>Matrix{T}</code>, <code>Array{T,N}</code>
+</td>
+<td>A matrix or array of type <code>T</code>
+</td>
+<td>A matrix or array of type <code>T</code>
+</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Lists, data frames and references</strong></p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 35%">
+<col style="width: 35%">
+<col style="width: 29%">
+</colgroup>
+<thead><tr class="header">
+<th>Julia</th>
+<th>R argument</th>
+<th>R result</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>Other <code>Vector</code>s, <code>Tuple</code>s</td>
+<td>A list</td>
+<td>A list</td>
+</tr>
+<tr class="even">
+<td><code>NamedTuple</code></td>
+<td>A named list, such as a data frame</td>
+<td>A named list</td>
+</tr>
+<tr class="odd">
+<td><code>RDataFrame</code></td>
+<td>A data frame</td>
+<td>A data frame</td>
+</tr>
+<tr class="even">
+<td>
+<code>Dict{String,T}</code>, <code>Dict{Symbol,T}</code>
+</td>
+<td>A named list</td>
+<td>A named list, sorted by name</td>
+</tr>
+<tr class="odd">
+<td><code>RRef{T}</code></td>
+<td>A reference to a Julia object</td>
+<td>A reference to a Julia object</td>
+</tr>
+<tr class="even">
+<td><code>Vector{RRef{T}}</code></td>
+<td>A list of references</td>
+<td>A list of references</td>
+</tr>
+</tbody>
+</table>
+<section id="conversion-rules" class="level3"><h3 class="anchored" data-anchor-id="conversion-rules">Conversion rules</h3>
+<ul>
+<li>
+<strong>Missing values:</strong> <code>NA</code> is an error unless the type is <code>Union{Missing,T}</code> or <code>Vector{Union{Missing,T}}</code>, which turn <code>NA</code> into <code>missing</code> and back.</li>
+<li>
+<strong><code>NaN</code>:</strong> accepted only where <code>missing</code> is.</li>
+<li>
+<strong>Ranges:</strong> a number must fit its type, so an <code>Int16</code> argument rejects <code>40000</code>.</li>
+<li>
+<strong><code>Int64</code> results:</strong> these become doubles, since R’s integers have 32 bits. Return <code>Int32</code> for an R integer.</li>
+<li>
+<strong>Dates:</strong> to use <code>Date</code> or <code>DateTime</code>, add the <code>Dates</code> standard library to the binding package’s dependencies.</li>
+<li>
+<strong>Lists:</strong> if one element of a list can’t be converted, the error says which. For example, passing <code><a href="https://rdrr.io/r/base/list.html">list(c(1, 2), "a")</a></code> as a <code>Vector{Vector{Float64}}</code> gives the error <code>element 2: expected a numeric vector</code>.</li>
+</ul></section><section id="data-frames" class="level3"><h3 class="anchored" data-anchor-id="data-frames">Data frames</h3>
+<p>To take or return a data frame, wrap the columns in an <code>RDataFrame</code>. Its type lists the column names and the type of each column, so a type alias keeps signatures short:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> Sales <span class="op">=</span> RDataFrame{(<span class="op">:</span>group, <span class="op">:</span>amount),<span class="dt">Tuple</span>{<span class="dt">Vector</span>{<span class="dt">String</span>},<span class="dt">Vector</span>{<span class="dt">Float64</span>}}}</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> Summary <span class="op">=</span> RDataFrame{(<span class="op">:</span>group, <span class="op">:</span>mean),<span class="dt">Tuple</span>{<span class="dt">Vector</span>{<span class="dt">String</span>},<span class="dt">Vector</span>{<span class="dt">Float64</span>}}}</span>
+<span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">summarise</span>(df<span class="op">::</span><span class="dt">Sales</span>)</span>
+<span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a>    gs <span class="op">=</span> <span class="fu">sort</span>(<span class="fu">unique</span>(df.group))</span>
+<span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a>    means <span class="op">=</span> [<span class="fu">sum</span>(df.amount[df.group <span class="op">.==</span> g]) <span class="op">/</span> <span class="fu">count</span>(<span class="op">==</span>(g), df.group) for g <span class="kw">in</span> gs]</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="fu">RDataFrame</span>((group <span class="op">=</span> gs, mean <span class="op">=</span> means))</span>
+<span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">summarise</span>(df<span class="op">::</span><span class="dt">Sales</span>)<span class="op">::</span><span class="dt">Summary</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summarise</span>(<span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span>(<span class="at">group =</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"a"</span>), <span class="at">amount =</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>)))</span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   group mean</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1     a    2</span></span>
+<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2     b    2</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>An <code>RDataFrame</code> argument:</p>
+<ul>
+<li>Must be a data frame (a tibble works too) with exactly the declared columns, in any order. If the data frame has other columns, select the ones you need in the R wrapper: <code>summarise(df[c("group", "amount")])</code>.</li>
+<li>Has its columns as properties (<code>df.group</code>), and <code>NamedTuple(df)</code> returns them as a named tuple.</li>
+<li>Converts each column by the usual rules, so a factor column arrives as strings, and a <code>Vector{Union{Missing,Float64}}</code> column allows <code>NA</code>.</li>
+</ul>
+<p>Returning columns of different lengths is an error.</p>
+<p>If you don’t need a data frame on the Julia side, a <code>NamedTuple</code> argument also accepts one, as a named tuple of its columns. It must have exactly the names of its fields, in any order.</p>
+</section><section id="large-vectors" class="level3"><h3 class="anchored" data-anchor-id="large-vectors">Large vectors</h3>
+<p>Other conversions copy, so a function given a large vector it only reads can take an <code>RVector{Float64}</code> (or <code>RVector{Int32}</code>, <code>RVector{UInt8}</code>). That is an <code>AbstractVector</code> viewing R’s memory, without checking for <code>NA</code>. It is valid only until the call returns, so don’t store it.</p>
+</section><section id="your-own-types" class="level3"><h3 class="anchored" data-anchor-id="your-own-types">Your own types</h3>
+<p>A binding package can support additional types by defining methods for <code>JLBind.from_sexp(::Type{T}, x::SEXP)</code> and <code>JLBind.to_sexp(x::T)</code>. <code>JLBind</code> also provides helpers for building R objects directly, such as <code>JLBind.data_frame()</code> for a data frame whose columns are not known when the library is compiled. See the <a href="https://github.com/BjarkeHautop/jlbind/tree/main/inst/julia/JLBind/src"><code>JLBind</code> source</a> for the existing conversions and helpers.</p>
+</section><section id="julia-objects-in-r" class="level3"><h3 class="anchored" data-anchor-id="julia-objects-in-r">Julia objects in R</h3>
+<p>Sometimes an object is easier to keep in Julia than to convert into an R data structure. You can pass such objects by reference using <code>RRef{T}</code>. R receives an external pointer to the Julia object, allowing it to be reused across calls. The object is released when R garbage-collects the reference.</p>
+<p>For example, define a mutable Julia object and expose functions that operate on it (the <a href="https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/counterjl"><code>counterjl</code></a> test client is a complete version of this):</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb4"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="kw">mutable struct</span> Counter</span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>    n<span class="op">::</span><span class="dt">Int64</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-5"><a href="#cb4-5" aria-hidden="true" tabindex="-1"></a>JLBind.<span class="fu">r_class</span>(<span class="op">::</span><span class="dt">Type{Counter}</span>) <span class="op">=</span> <span class="st">"counter"</span></span>
+<span id="cb4-6"><a href="#cb4-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-7"><a href="#cb4-7" aria-hidden="true" tabindex="-1"></a><span class="fu">new_counter</span>(start<span class="op">::</span><span class="dt">Int64</span>) <span class="op">=</span> <span class="fu">Counter</span>(start)</span>
+<span id="cb4-8"><a href="#cb4-8" aria-hidden="true" tabindex="-1"></a><span class="fu">increment</span>(c<span class="op">::</span><span class="dt">Counter</span>, by<span class="op">::</span><span class="dt">Int64</span>) <span class="op">=</span> (c.n <span class="op">+=</span> by; c.n)</span>
+<span id="cb4-9"><a href="#cb4-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb4-10"><a href="#cb4-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">new_counter</span>(start<span class="op">::</span><span class="dt">Int64</span>)<span class="op">::</span><span class="dt">RRef{Counter}</span></span>
+<span id="cb4-11"><a href="#cb4-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">increment</span>(c<span class="op">::</span><span class="dt">RRef{Counter}</span>, by<span class="op">::</span><span class="dt">Int64</span>)<span class="op">::</span><span class="dt">Int64</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>From R, you can create a counter and update it across calls:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb5"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a>counter <span class="ot">&lt;-</span> <span class="fu">new_counter</span>(<span class="dv">0</span>)</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/class.html">class</a></span>(counter)</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] "counter"</span></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a><span class="fu">increment</span>(counter, <span class="dv">2</span>)</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 2</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p><code>r_class()</code> sets the R class of the external pointer, so your package can define methods such as <code><a href="https://rdrr.io/r/base/print.html">print()</a></code> for it. An argument declared as <code>RRef{Counter}</code> also checks that the reference points to a <code>Counter</code>, rather than accepting an arbitrary Julia object.</p>
+</section></section><section id="errors" class="level2"><h2 class="anchored" data-anchor-id="errors">Errors</h2>
+<p>If a function called through <code>@rcall</code> throws a Julia exception, jlbind turns it into an R error. The messages from <code>ArgumentError</code>, <code>ErrorException</code>, <code>DimensionMismatch</code>, <code>OverflowError</code>, and <code>AssertionError</code> are passed through. Other exceptions are summarized.</p>
+</section><section id="compilation-constraints-trimming" class="level2"><h2 class="anchored" data-anchor-id="compilation-constraints-trimming">Compilation constraints (trimming)</h2>
+<p>By default, jlbind compiles the shared library with <code>juliac --trim=safe</code>. This keeps the compiled image small by including only code reachable from the functions exposed through <code>@rcall</code>. It also requires calls to be resolvable at compile time.</p>
+<p>If your package cannot be compiled with trimming, add the following field to <code>DESCRIPTION</code>:</p>
+<pre class="text"><code>Config/jlbind/trim: false</code></pre>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+Warning
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>An untrimmed library includes the full Julia system image and is <em>much</em> larger, so avoid it if you can.</p>
+</div>
+</div>
+<section id="abstract-types" class="level3"><h3 class="anchored" data-anchor-id="abstract-types">Abstract types</h3>
+<p>With trimming, a common source of compilation errors is a function that accepts several concrete types through an abstract <code>RRef</code>. Suppose your binding package works with shapes:</p>
+<details><summary>
+Shape types and their areas
+</summary><div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">abstract type</span> Shape <span class="kw">end</span></span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Circle <span class="op">&lt;:</span><span class="dt"> Shape</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a>    radius<span class="op">::</span><span class="dt">Float64</span></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Square <span class="op">&lt;:</span><span class="dt"> Shape</span></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a>    side<span class="op">::</span><span class="dt">Float64</span></span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Rectangle <span class="op">&lt;:</span><span class="dt"> Shape</span></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a>    width<span class="op">::</span><span class="dt">Float64</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a>    height<span class="op">::</span><span class="dt">Float64</span></span>
+<span id="cb7-12"><a href="#cb7-12" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb7-13"><a href="#cb7-13" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Triangle <span class="op">&lt;:</span><span class="dt"> Shape</span></span>
+<span id="cb7-14"><a href="#cb7-14" aria-hidden="true" tabindex="-1"></a>    base<span class="op">::</span><span class="dt">Float64</span></span>
+<span id="cb7-15"><a href="#cb7-15" aria-hidden="true" tabindex="-1"></a>    height<span class="op">::</span><span class="dt">Float64</span></span>
+<span id="cb7-16"><a href="#cb7-16" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb7-17"><a href="#cb7-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-18"><a href="#cb7-18" aria-hidden="true" tabindex="-1"></a>JLBind.<span class="fu">r_class</span>(<span class="op">::</span><span class="dt">Type{&lt;:Shape}</span>) <span class="op">=</span> <span class="st">"shape"</span></span>
+<span id="cb7-19"><a href="#cb7-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-20"><a href="#cb7-20" aria-hidden="true" tabindex="-1"></a><span class="fu">area</span>(s<span class="op">::</span><span class="dt">Circle</span>) <span class="op">=</span> <span class="cn">pi</span> <span class="op">*</span> s.radius<span class="op">^</span><span class="fl">2</span></span>
+<span id="cb7-21"><a href="#cb7-21" aria-hidden="true" tabindex="-1"></a><span class="fu">area</span>(s<span class="op">::</span><span class="dt">Square</span>) <span class="op">=</span> s.side<span class="op">^</span><span class="fl">2</span></span>
+<span id="cb7-22"><a href="#cb7-22" aria-hidden="true" tabindex="-1"></a><span class="fu">area</span>(s<span class="op">::</span><span class="dt">Rectangle</span>) <span class="op">=</span> s.width <span class="op">*</span> s.height</span>
+<span id="cb7-23"><a href="#cb7-23" aria-hidden="true" tabindex="-1"></a><span class="fu">area</span>(s<span class="op">::</span><span class="dt">Triangle</span>) <span class="op">=</span> s.base <span class="op">*</span> s.height <span class="op">/</span> <span class="fl">2</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+</details><p>An entrypoint that takes an <code>RRef{Shape}</code> knows only that its argument is <em>some</em> <code>Shape</code>. If it simply calls <code>area(s)</code>, the compiler cannot tell which of the four methods that call reaches, and the build fails with an error such as:</p>
+<pre class="text"><code>Verifier error #1: unresolved call from statement area(s::Shape)::Any</code></pre>
+<p>One possible solution is to branch on the concrete types once, with <code>@nospecialize</code>, and to make the call inside each branch, where the type is known:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">with_shape</span>(f<span class="op">::</span><span class="dt">F</span>, <span class="pp">@nospecialize</span>(s<span class="op">::</span><span class="dt">Shape</span>)) <span class="kw">where</span> {F}</span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>    s isa Circle <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    s isa Square <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>    s isa Rectangle <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>    s isa Triangle <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">throw</span>(<span class="fu">ArgumentError</span>(<span class="st">"unknown shape"</span>))</span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a><span class="fu">circle</span>(radius<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span> <span class="fu">Circle</span>(radius)</span>
+<span id="cb9-10"><a href="#cb9-10" aria-hidden="true" tabindex="-1"></a><span class="fu">square</span>(side<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span> <span class="fu">Square</span>(side)</span>
+<span id="cb9-11"><a href="#cb9-11" aria-hidden="true" tabindex="-1"></a><span class="fu">rectangle</span>(width<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span> <span class="fu">Rectangle</span>(width, height)</span>
+<span id="cb9-12"><a href="#cb9-12" aria-hidden="true" tabindex="-1"></a><span class="fu">triangle</span>(base<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span> <span class="fu">Triangle</span>(base, height)</span>
+<span id="cb9-13"><a href="#cb9-13" aria-hidden="true" tabindex="-1"></a><span class="fu">shape_area</span>(<span class="pp">@nospecialize</span>(s<span class="op">::</span><span class="dt">Shape</span>)) <span class="op">=</span> <span class="fu">with_shape</span>(area, s)</span>
+<span id="cb9-14"><a href="#cb9-14" aria-hidden="true" tabindex="-1"></a><span class="fu">scaled_area</span>(<span class="pp">@nospecialize</span>(s<span class="op">::</span><span class="dt">Shape</span>), factor<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span></span>
+<span id="cb9-15"><a href="#cb9-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">with_shape</span>(x <span class="op">-&gt;</span> factor<span class="op">^</span><span class="fl">2</span> <span class="op">*</span> <span class="fu">area</span>(x), s)</span>
+<span id="cb9-16"><a href="#cb9-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-17"><a href="#cb9-17" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">circle</span>(radius<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
+<span id="cb9-18"><a href="#cb9-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">square</span>(side<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
+<span id="cb9-19"><a href="#cb9-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">rectangle</span>(width<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
+<span id="cb9-20"><a href="#cb9-20" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">triangle</span>(base<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
+<span id="cb9-21"><a href="#cb9-21" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">shape_area</span>(shape<span class="op">::</span><span class="dt">RRef{Shape}</span>)<span class="op">::</span><span class="dt">Float64</span></span>
+<span id="cb9-22"><a href="#cb9-22" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">scaled_area</span>(shape<span class="op">::</span><span class="dt">RRef{Shape}</span>, factor<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">Float64</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>Every shape can then be passed to the same generated R functions:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>shapes <span class="ot">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="fu">circle</span>(<span class="dv">1</span>), <span class="fu">square</span>(<span class="dv">2</span>), <span class="fu">rectangle</span>(<span class="dv">2</span>, <span class="dv">3</span>), <span class="fu">triangle</span>(<span class="dv">2</span>, <span class="dv">3</span>))</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span>(shapes, shape_area, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">numeric</a></span>(<span class="dv">1</span>))</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 3.141593 4.000000 6.000000 3.000000</span></span>
+<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="fu">scaled_area</span>(<span class="fu">square</span>(<span class="dv">2</span>), <span class="dv">3</span>)</span>
+<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 36</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>Without <code>@nospecialize</code>, Julia compiles a separate <code>with_shape</code> for each concrete shape, and the call into it can’t be resolved, for the same reason as <code>area(s)</code>. Functions that pass the shape on, such as <code>shape_area</code>, need it too (this small example happens to compile without it, since it is inlined).</p>
+<p>If a hierarchy has only a few types, some alternatives to <code>@nospecialize</code> are:</p>
+<ul>
+<li><p>Declare a separate entrypoint for each concrete type (<code>RRef{Circle}</code>,<code>RRef{Square}</code>, …) and choose between them in R.</p></li>
+<li><p>Use a small <code>Union</code> such as <code>RRef{Union{Circle,Square}}</code>, which Julia resolves by checking each member in turn.</p></li>
+</ul></section></section><div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>JuliaC can <em>privatize</em> a library, giving it its own copy of the Julia runtime, but jlbind doesn’t use this. Each client would then ship a bundle with its own runtime and compiled copy of Base: about 60 MB per client on Linux and 100 MB on Windows, even for a tiny client, where a shared library adds only each client’s own code. Each runtime would also have its own garbage-collected heap and threads in memory, and Julia objects couldn’t be passed between clients. Privatization also doesn’t work on Windows yet (<a href="https://github.com/JuliaLang/JuliaC.jl/pull/151">JuliaC.jl#151</a>).<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol></section></div></main><!-- /main --><script>
+(function () {
+  function contentLeft(main) {
+    // With margin content, <main> is a full-width grid; use the title.
+    if (main.classList.contains("page-full")) {
+      var heading = main.querySelector("h1");
+      if (heading) return heading.getBoundingClientRect().left;
+    }
+    return main.getBoundingClientRect().left;
+  }
+  // Where the body text starts depends on the page layout, so measure it.
+  // With a docked sidebar (`navbar: style: sidebar`), the title stays above
+  // the sidebar instead.
+  function alignNavbarToContent() {
+    var main = document.querySelector("#quarto-document-content");
+    var navContainer = document.querySelector(".navbar-container");
+    if (!main || !navContainer || document.body.classList.contains("docked")) {
+      return;
+    }
+    navContainer.style.paddingLeft = "";
+    var diff = contentLeft(main) -
+      navContainer.getBoundingClientRect().left;
+    navContainer.style.paddingLeft = Math.max(diff, 0) + "px";
+    // Where the navbar is crowded (just past its collapse breakpoint), give
+    // the padding back to a title that would otherwise be cut off.
+    var brand = navContainer.querySelector(".navbar-brand");
+    var overflow = brand ? brand.scrollWidth - brand.clientWidth : 0;
+    if (overflow > 0) {
+      navContainer.style.paddingLeft = Math.max(diff - overflow, 0) + "px";
+    }
+  }
+  // While previewing the site locally, reload the page when a rebuild changes
+  // it. It checks its own address, which needs nothing of the server.
+  function reloadWhenRebuilt() {
+    if (!/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) return;
+    var url = location.href.split("#")[0];
+    var page;
+    function check() {
+      if (document.hidden) {
+        setTimeout(check, 1000);
+        return;
+      }
+      fetch(url, { cache: "no-store" })
+        .then(function (response) {
+          return response.ok ? response.text() : page;
+        })
+        .then(function (text) {
+          if (page !== undefined && text !== page) {
+            location.reload();
+            return;
+          }
+          page = text;
+          setTimeout(check, 1000);
+        })
+        .catch(function () {}); // The server has stopped.
+    }
+    check();
+  }
+  // Wrap the version in the "<pkg> <version>" title so it can be styled.
+  function shrinkNavbarVersion() {
+    var title = document.querySelector(".navbar-title");
+    if (!title || title.querySelector(".navbar-version")) return;
+    var text = title.textContent;
+    var spaceIndex = text.indexOf(" ");
+    if (spaceIndex === -1) return;
+    title.textContent = text.slice(0, spaceIndex);
+    var version = document.createElement("small");
+    version.className = "navbar-version";
+    version.textContent = text.slice(spaceIndex + 1);
+    // A development or unreleased version's site (see dev_mode()) says so.
+    var mode = document.querySelector('meta[name="quartodown-dev-mode"]');
+    var tips = {
+      devel: "In-development version",
+      unreleased: "Unreleased version"
+    };
+    if (mode && tips[mode.content]) {
+      version.classList.add("navbar-version-dev");
+      version.title = tips[mode.content];
+    }
+    title.appendChild(document.createTextNode(" "));
+    title.appendChild(version);
+  }
+  // Next to the title, a switch between the released version's site and the
+  // development version's in its dev/ (see dev_mode()), showing both with the
+  // current one marked. The other links to the same page there, or to that
+  // site's home page if it lacks the page. The release build doesn't know
+  // whether there's a dev/ site, so it's looked for here. The answer is
+  // stored, so the switch shows at once on the next page instead of after the
+  // request, and checked again in the background.
+  function addVersionSwitch() {
+    var mode = document.querySelector('meta[name="quartodown-dev-mode"]');
+    var offset = document.querySelector('meta[name="quarto:offset"]');
+    var brand = document.querySelector(".navbar-brand-container");
+    if (!mode || !offset || !brand || !window.fetch) return;
+    if (mode.content !== "devel" && mode.content !== "release") return;
+    var onDev = mode.content === "devel";
+    var root = new URL(offset.content, window.location.href);
+    var other = new URL(onDev ? "../" : "dev/", root);
+    var page = window.location.pathname.slice(root.pathname.length);
+    var target = new URL(page || "index.html", other);
+    // Some servers send a missing page's request on to their 404 page.
+    function exists(url) {
+      return fetch(url, { method: "HEAD" }).then(function (response) {
+        return response.ok && !response.redirected;
+      }, function () {
+        return false;
+      });
+    }
+    var key = "quartodown-site:" + other.href;
+    function stored() {
+      try {
+        return window.localStorage.getItem(key) === "1";
+      } catch (e) {
+        return false;
+      }
+    }
+    function store(found) {
+      try {
+        if (found) {
+          window.localStorage.setItem(key, "1");
+        } else {
+          window.localStorage.removeItem(key);
+        }
+      } catch (e) {
+        // No localStorage: look for the site on each page.
+      }
+    }
+    var versions;
+    function show() {
+      if (versions) return;
+      var current = document.createElement("span");
+      current.setAttribute("aria-current", "true");
+      current.textContent = onDev ? "dev" : "release";
+      current.title = onDev ?
+        "You're viewing the development version's documentation" :
+        "You're viewing the released version's documentation";
+      var link = document.createElement("a");
+      link.href = target.href + window.location.hash;
+      link.textContent = onDev ? "release" : "dev";
+      link.title = onDev ?
+        "Switch to this page in the released version's documentation" :
+        "Switch to this page in the development version's documentation";
+      // Whether the other site has this page is only asked when it's needed.
+      link.addEventListener("click", function (e) {
+        if (e.ctrlKey || e.metaKey || e.shiftKey || e.button !== 0) return;
+        e.preventDefault();
+        var href = link.href;
+        exists(target.href).then(function (same) {
+          window.location.href = same ? href : other.href;
+        });
+      });
+      versions = document.createElement("div");
+      versions.className = "navbar-version-switch";
+      versions.setAttribute("role", "group");
+      versions.setAttribute("aria-label", "Documentation version");
+      versions.appendChild(onDev ? link : current);
+      versions.appendChild(onDev ? current : link);
+      brand.appendChild(versions);
+    }
+    if (stored()) show();
+    exists(other.href + "index.html").then(function (found) {
+      store(found);
+      if (found && !versions) {
+        show();
+        alignNavbarToContent();
+      } else if (!found && versions) {
+        versions.remove();
+        versions = null;
+        alignNavbarToContent();
+      }
+    });
+  }
+  // Leave `#>` output lines out of what the copy button copies. clipboard.js copies synchronously in its click handler, so a copy
+  // event during a copy-button click is its.
+  function stripOutputOnCopy() {
+    var fromButton = false;
+    window.addEventListener("click", function (e) {
+      if (!e.target.closest || !e.target.closest(".code-copy-button")) return;
+      fromButton = true;
+      setTimeout(function () { fromButton = false; }, 0);
+    }, true);
+    document.addEventListener("copy", function (e) {
+      if (!fromButton || !e.clipboardData) return;
+      // clipboard.js copies from a hidden <textarea>, whose selection
+      // window.getSelection() doesn't report in every browser.
+      var text = e.target instanceof HTMLTextAreaElement ?
+        e.target.value : String(window.getSelection());
+      var code = text.split("\n").filter(function (line) {
+        return !/^#>/.test(line);
+      }).join("\n");
+      if (code === text) return;
+      e.clipboardData.setData("text/plain", code);
+      e.preventDefault();
+    }, true);
+  }
+  // Shows the tip of a reference to the package's own topics, from the
+  // page's hidden `.quartodown-tip-payload` (see link_code_html()), in
+  // one `position: fixed` element, so code blocks' `overflow: auto` can't
+  // clip it.
+  function initTooltips() {
+    var payload = document.querySelector(".quartodown-tip-payload");
+    if (!payload) return;
+    var float = document.createElement("div");
+    float.className = "quartodown-tip-float";
+    float.setAttribute("role", "tooltip");
+    document.body.appendChild(float);
+    var hideTimer;
+    function place(el) {
+      var r = el.getBoundingClientRect();
+      var top = r.bottom + 6;
+      var left = r.left;
+      var maxLeft = window.innerWidth - float.offsetWidth - 8;
+      if (left > maxLeft) left = Math.max(8, maxLeft);
+      var maxTop = window.innerHeight - float.offsetHeight - 8;
+      if (top > maxTop) top = Math.max(8, r.top - float.offsetHeight - 6);
+      float.style.top = top + "px";
+      float.style.left = left + "px";
+    }
+    function show(el) {
+      var key = el.getAttribute("data-quartodown-tip");
+      var tip = payload.querySelector('[data-for="' + key + '"]');
+      if (!tip) return;
+      float.innerHTML = tip.innerHTML;
+      float.style.display = "block";
+      place(el);
+    }
+    function hide() { float.style.display = "none"; }
+    function cancelHide() { clearTimeout(hideTimer); }
+    function scheduleHide() { hideTimer = setTimeout(hide, 150); }
+    document.querySelectorAll("a.quartodown-tip-ref").forEach(function (el) {
+      el.addEventListener("mouseenter", function () { cancelHide(); show(el); });
+      el.addEventListener("mouseleave", scheduleHide);
+      el.addEventListener("focus", function () { show(el); });
+      el.addEventListener("blur", hide);
+    });
+    float.addEventListener("mouseenter", cancelHide);
+    float.addEventListener("mouseleave", scheduleHide);
+  }
+  stripOutputOnCopy();
+  // The payload comes after this script, at the end of the body.
+  document.addEventListener("DOMContentLoaded", initTooltips);
+  shrinkNavbarVersion();
+  addVersionSwitch();
+  alignNavbarToContent();
+  window.addEventListener("load", alignNavbarToContent);
+  window.addEventListener("resize", alignNavbarToContent);
+  reloadWhenRebuilt();
+})();
+</script><script id="quarto-html-after-body" type="application/javascript">
+  window.document.addEventListener("DOMContentLoaded", function (event) {
+    // Ensure there is a toggle, if there isn't float one in the top right
+    if (window.document.querySelector('.quarto-color-scheme-toggle') === null) {
+      const toggle = window.document.createElement('button');
+      toggle.type = "button";
+      toggle.setAttribute("role", "switch");
+      toggle.setAttribute("aria-checked", "false");
+      toggle.classList.add('top-right');
+      toggle.classList.add('quarto-color-scheme-toggle');
+      toggle.setAttribute("aria-label", "Toggle dark mode");
+      toggle.onclick = function() { try { window.quartoToggleColorScheme(); } catch {} return false; };
+      const i = window.document.createElement("i");
+      i.classList.add('bi');
+      toggle.appendChild(i);
+      // Put the toggle in a landmark of its own, so that landmark navigation
+      // can reach it.
+      //
+      // The container is always a fresh direct child of body, and the toggle is
+      // never moved into page furniture that the theme or the author controls.
+      // The toggle is positioned against the page, so any ancestor that
+      // establishes a containing block captures it: a positioned element or a
+      // grid for position: absolute, and transform, filter, will-change or
+      // contain for position: fixed. A direct child of body has none of these
+      // to inherit, and the shift when one appears is silent and visual.
+      //
+      // ARIA says a document should have at most one banner, and axe reports a
+      // duplicate whether or not the banners carry distinct labels. So use a
+      // header when the page has no banner yet, and a named region otherwise.
+      //
+      // A header is a banner wherever it sits, unless it is inside sectioning
+      // content, so this cannot just look at the children of body: a custom
+      // page layout wraps the title block header in a plain div. An explicit
+      // role="banner" always counts.
+      const sectioning = 'article, aside, main, nav, section, [role="article"], [role="complementary"], [role="main"], [role="navigation"], [role="region"]';
+      const hasBanner = Array.from(
+        window.document.querySelectorAll('header:not([role]), [role="banner"]')
+      ).some(function(el) {
+        return el.hasAttribute("role") || el.closest(sectioning) === null;
+      });
+      const container = window.document.createElement(hasBanner ? "div" : "header");
+      if (hasBanner) {
+        container.setAttribute("role", "region");
+        container.setAttribute("aria-label", "Toggle dark mode");
+      }
+      container.classList.add('quarto-color-scheme-toggle-container');
+      container.appendChild(toggle);
+      window.document.body.appendChild(container);
+    }
+    setColorSchemeToggle(hasAlternateSentinel())
+    const icon = "";
+    const anchorJS = new window.AnchorJS();
+    anchorJS.options = {
+      placement: 'right',
+      icon: icon
+    };
+    anchorJS.add('.anchored');
+    const isCodeAnnotation = (el) => {
+      for (const clz of el.classList) {
+        if (clz.startsWith('code-annotation-')) {                     
+          return true;
+        }
+      }
+      return false;
+    }
+    const onCopySuccess = function(e) {
+      // button target
+      const button = e.trigger;
+      // don't keep focus
+      button.blur();
+      // flash "checked"
+      button.classList.add('code-copy-button-checked');
+      var currentTitle = button.getAttribute("title");
+      button.setAttribute("title", "Copied!");
+      let tooltip;
+      if (window.bootstrap) {
+        button.setAttribute("data-bs-toggle", "tooltip");
+        button.setAttribute("data-bs-placement", "left");
+        button.setAttribute("data-bs-title", "Copied!");
+        tooltip = new bootstrap.Tooltip(button, 
+          { trigger: "manual", 
+            customClass: "code-copy-button-tooltip",
+            offset: [0, -8]});
+        tooltip.show();    
+      }
+      setTimeout(function() {
+        if (tooltip) {
+          tooltip.hide();
+          button.removeAttribute("data-bs-title");
+          button.removeAttribute("data-bs-toggle");
+          button.removeAttribute("data-bs-placement");
+        }
+        button.setAttribute("title", currentTitle);
+        button.classList.remove('code-copy-button-checked');
+      }, 1000);
+      // clear code selection
+      e.clearSelection();
+    }
+    const getTextToCopy = function(trigger) {
+      const outerScaffold = trigger.parentElement.cloneNode(true);
+      const codeEl = outerScaffold.querySelector('code');
+      for (const childEl of codeEl.children) {
+        if (isCodeAnnotation(childEl)) {
+          childEl.remove();
+        }
+      }
+      return codeEl.innerText;
+    }
+    const clipboard = new window.ClipboardJS('.code-copy-button:not([data-in-quarto-modal])', {
+      text: getTextToCopy
+    });
+    clipboard.on('success', onCopySuccess);
+    if (window.document.getElementById('quarto-embedded-source-code-modal')) {
+      const clipboardModal = new window.ClipboardJS('.code-copy-button[data-in-quarto-modal]', {
+        text: getTextToCopy,
+        container: window.document.getElementById('quarto-embedded-source-code-modal')
+      });
+      clipboardModal.on('success', onCopySuccess);
+    }
+      var localhostRegex = new RegExp(/^(?:http|https):\/\/localhost\:?[0-9]*\//);
+      var mailtoRegex = new RegExp(/^mailto:/);
+        var filterRegex = new RegExp("https:\/\/bjarkehautop\.github\.io\/jlbind");
+      var isInternal = (href) => {
+          return filterRegex.test(href) || localhostRegex.test(href) || mailtoRegex.test(href);
+      }
+      // Inspect non-navigation links and adorn them if external
+      window.quartoDecorateExternalLinks = function (root) {
+     var links = (root || window.document).querySelectorAll('a[href]:not(.nav-link):not(.navbar-brand):not(.toc-action):not(.sidebar-link):not(.sidebar-item-toggle):not(.pagination-link):not(.no-external):not([aria-hidden]):not(.dropdown-item):not(.quarto-navigation-tool):not(.about-link)');
+      for (var i=0; i<links.length; i++) {
+        const link = links[i];
+        if (!isInternal(link.href)) {
+          // undo the damage that might have been done by quarto-nav.js in the case of
+          // links that we want to consider external
+          if (link.dataset.originalHref !== undefined) {
+            link.href = link.dataset.originalHref;
+          }
+          if (!link.classList.contains('no-external-icon')) {
+          }
+        }
+      }
+      };
+      window.quartoDecorateExternalLinks(window.document);
+    // Esc closes the popup (WCAG 1.4.13) and focus leaving both trigger and
+    // popup closes it (WCAG 2.4.11); tippy handles neither for interactive popups.
+    const hideOnEscAndFocusOut = {
+      name: 'hideOnEscAndFocusOut',
+      defaultValue: true,
+      fn(instance) {
+        const dismiss = () => {
+          // A show scheduled by the trigger delay would otherwise reopen it
+          instance.clearDelayTimeouts();
+          instance.hide();
+        };
+        const onKeyDown = (event) => {
+          if (event.key !== 'Escape') {
+            return;
+          }
+          // Keep Esc from also reaching page handlers (e.g. reveal.js overview),
+          // except an open reveal.js slide menu, which Esc should close too.
+          // The menu handles keys only when its keyboard option is on.
+          const menuHandlesEsc = window.Reveal?.getPlugin?.('menu')?.isOpen() &&
+            window.Reveal.getConfig().menu?.keyboard !== false;
+          if (!menuHandlesEsc) {
+            event.stopPropagation();
+          }
+          if (instance.popper.contains(window.document.activeElement)) {
+            // Disabled while refocusing so the focus trigger does not reopen it
+            instance.disable();
+            instance.reference.focus();
+            instance.enable();
+          }
+          dismiss();
+        };
+        const onFocusOut = (event) => {
+          const target = event.relatedTarget;
+          if (target && !instance.reference.contains(target) &&
+              !instance.popper.contains(target)) {
+            dismiss();
+          }
+        };
+        // On the trigger too: a click trigger (code-annotations: select) has no
+        // blur handling. Attached for the instance's lifetime so leaving the
+        // trigger also cancels a show still pending on the trigger delay.
+        instance.reference.addEventListener('focusout', onFocusOut);
+        return {
+          onShow() {
+            window.document.addEventListener('keydown', onKeyDown, true);
+            instance.popper.addEventListener('focusout', onFocusOut);
+          },
+          onHide() {
+            window.document.removeEventListener('keydown', onKeyDown, true);
+            instance.popper.removeEventListener('focusout', onFocusOut);
+          },
+          onDestroy() {
+            instance.reference.removeEventListener('focusout', onFocusOut);
+          },
+        };
+      },
+    };
+    function tippyHover(el, contentFn, onTriggerFn, onUntriggerFn) {
+      const config = {
+        allowHTML: true,
+        maxWidth: 500,
+        delay: 100,
+        arrow: false,
+        appendTo: function(el) {
+            return el.parentElement;
+        },
+        interactive: true,
+        interactiveBorder: 10,
+        theme: 'quarto',
+        placement: 'bottom-start',
+        plugins: [hideOnEscAndFocusOut],
+      };
+      if (contentFn) {
+        config.content = contentFn;
+      }
+      if (onTriggerFn) {
+        config.onTrigger = onTriggerFn;
+      }
+      if (onUntriggerFn) {
+        config.onUntrigger = onUntriggerFn;
+      }
+      window.tippy(el, config); 
+    }
+    const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+    for (var i=0; i<noterefs.length; i++) {
+      const ref = noterefs[i];
+      tippyHover(ref, function() {
+        // use id or data attribute instead here
+        let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+        try { href = new URL(href).hash; } catch {}
+        const id = href.replace(/^#\/?/, "");
+        const note = window.document.getElementById(id);
+        if (note) {
+          return note.innerHTML;
+        } else {
+          return "";
+        }
+      });
+    }
+    const xrefs = window.document.querySelectorAll('a.quarto-xref');
+    const processXRef = (id, note) => {
+      // Strip column container classes
+      const stripColumnClz = (el) => {
+        el.classList.remove("page-full", "page-columns");
+        if (el.children) {
+          for (const child of el.children) {
+            stripColumnClz(child);
+          }
+        }
+      }
+      stripColumnClz(note)
+      if (id === null || id.startsWith('sec-')) {
+        // Special case sections, only their first couple elements
+        const container = document.createElement("div");
+        if (note.children && note.children.length > 2) {
+          container.appendChild(note.children[0].cloneNode(true));
+          for (let i = 1; i < note.children.length; i++) {
+            const child = note.children[i];
+            if (child.tagName === "P" && child.innerText === "") {
+              continue;
+            } else {
+              container.appendChild(child.cloneNode(true));
+              break;
+            }
+          }
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(container);
+          }
+          return container.innerHTML
+        } else {
+          if (window.Quarto?.typesetMath) {
+            window.Quarto.typesetMath(note);
+          }
+          return note.innerHTML;
+        }
+      } else {
+        // Remove any anchor links if they are present
+        const anchorLink = note.querySelector('a.anchorjs-link');
+        if (anchorLink) {
+          anchorLink.remove();
+        }
+        if (window.Quarto?.typesetMath) {
+          window.Quarto.typesetMath(note);
+        }
+        if (note.classList.contains("callout")) {
+          return note.outerHTML;
+        } else {
+          return note.innerHTML;
+        }
+      }
+    }
+    for (var i=0; i<xrefs.length; i++) {
+      const xref = xrefs[i];
+      tippyHover(xref, undefined, function(instance) {
+        instance.disable();
+        let url = xref.getAttribute('href');
+        let hash = undefined; 
+        if (url.startsWith('#')) {
+          hash = url;
+        } else {
+          try { hash = new URL(url).hash; } catch {}
+        }
+        if (hash) {
+          const id = hash.replace(/^#\/?/, "");
+          const note = window.document.getElementById(id);
+          if (note !== null) {
+            try {
+              const html = processXRef(id, note.cloneNode(true));
+              instance.setContent(html);
+            } finally {
+              instance.enable();
+              instance.show();
+            }
+          } else {
+            // See if we can fetch this
+            fetch(url.split('#')[0])
+            .then(res => res.text())
+            .then(html => {
+              const parser = new DOMParser();
+              const htmlDoc = parser.parseFromString(html, "text/html");
+              const note = htmlDoc.getElementById(id);
+              if (note !== null) {
+                const html = processXRef(id, note);
+                instance.setContent(html);
+              } 
+            }).finally(() => {
+              instance.enable();
+              instance.show();
+            });
+          }
+        } else {
+          // See if we can fetch a full url (with no hash to target)
+          // This is a special case and we should probably do some content thinning / targeting
+          fetch(url)
+          .then(res => res.text())
+          .then(html => {
+            const parser = new DOMParser();
+            const htmlDoc = parser.parseFromString(html, "text/html");
+            const note = htmlDoc.querySelector('main.content');
+            if (note !== null) {
+              // This should only happen for chapter cross references
+              // (since there is no id in the URL)
+              // remove the first header
+              if (note.children.length > 0 && note.children[0].tagName === "HEADER") {
+                note.children[0].remove();
+              }
+              const html = processXRef(null, note);
+              instance.setContent(html);
+            } 
+          }).finally(() => {
+            instance.enable();
+            instance.show();
+          });
+        }
+      }, function(instance) {
+      });
+    }
+        let selectedAnnoteEl;
+        const selectorForAnnotation = ( cell, annotation) => {
+          let cellAttr = 'data-code-cell="' + cell + '"';
+          let lineAttr = 'data-code-annotation="' +  annotation + '"';
+          const selector = 'span[' + cellAttr + '][' + lineAttr + ']';
+          return selector;
+        }
+        const selectCodeLines = (annoteEl) => {
+          const doc = window.document;
+          const targetCell = annoteEl.getAttribute("data-target-cell");
+          const targetAnnotation = annoteEl.getAttribute("data-target-annotation");
+          const annoteSpan = window.document.querySelector(selectorForAnnotation(targetCell, targetAnnotation));
+          const lines = annoteSpan.getAttribute("data-code-lines").split(",");
+          const lineIds = lines.map((line) => {
+            return targetCell + "-" + line;
+          })
+          // Each band is positioned against its own containing block, which is
+          // not the offsetParent of the lines, so place it from client rects.
+          const placeBand = (band, firstEl, lastEl, codeBlock) => {
+            const container = band.offsetParent;
+            if (container === null) {
+              return;
+            }
+            const containerRect = container.getBoundingClientRect();
+            // Reveal.js scales slides with a transform, so convert client
+            // pixels back to the CSS pixels of the container.
+            const scale = containerRect.height / container.offsetHeight || 1;
+            const firstRect = firstEl.getBoundingClientRect();
+            const lastRect = lastEl.getBoundingClientRect();
+            const top = (firstRect.top - containerRect.top) / scale - container.clientTop + container.scrollTop;
+            const height = (lastRect.bottom - firstRect.top) / scale;
+            band.style.top = top - 2 + "px";
+            band.style.height = height + 4 + "px";
+            if (codeBlock) {
+              // Without the copy button wrapper, the containing block is wider
+              // than the code block, so span the code block explicitly.
+              const blockRect = codeBlock.getBoundingClientRect();
+              band.style.left = (blockRect.left - containerRect.left) / scale - container.clientLeft + container.scrollLeft + "px";
+              band.style.width = blockRect.width / scale + "px";
+            }
+          };
+          if (lineIds.length > 0) {
+            const el = window.document.getElementById(lineIds[0]);
+            const lastEl = window.document.getElementById(lineIds[lineIds.length - 1]);
+            const parent = el.parentElement.parentElement;
+            // cook up a div (if necessary) and position it
+            let div = window.document.getElementById("code-annotation-line-highlight");
+            if (div === null) {
+              div = window.document.createElement("div");
+              div.setAttribute("id", "code-annotation-line-highlight");
+              div.style.position = 'absolute';
+              parent.appendChild(div);
+            }
+            placeBand(div, el, lastEl, parent.closest("div.sourceCode") || parent);
+            let gutterDiv = window.document.getElementById("code-annotation-line-highlight-gutter");
+            if (gutterDiv === null) {
+              gutterDiv = window.document.createElement("div");
+              gutterDiv.setAttribute("id", "code-annotation-line-highlight-gutter");
+              gutterDiv.style.position = 'absolute';
+              const codeCell = window.document.getElementById(targetCell);
+              const gutter = codeCell.querySelector('.code-annotation-gutter');
+              gutter.appendChild(gutterDiv);
+            }
+            placeBand(gutterDiv, el, lastEl);
+            selectedAnnoteEl = annoteEl;
+          }
+        };
+        const unselectCodeLines = () => {
+          const elementsIds = ["code-annotation-line-highlight", "code-annotation-line-highlight-gutter"];
+          elementsIds.forEach((elId) => {
+            const div = window.document.getElementById(elId);
+            if (div) {
+              div.remove();
+            }
+          });
+          selectedAnnoteEl = undefined;
+        };
+          // Handle positioning of the toggle
+      window.addEventListener(
+        "resize",
+        throttle(() => {
+          elRect = undefined;
+          if (selectedAnnoteEl) {
+            selectCodeLines(selectedAnnoteEl);
+          }
+        }, 10)
+      );
+      function throttle(fn, ms) {
+      let throttle = false;
+      let timer;
+        return (...args) => {
+          if(!throttle) { // first call gets through
+              fn.apply(this, args);
+              throttle = true;
+          } else { // all the others get throttled
+              if(timer) clearTimeout(timer); // cancel #2
+              timer = setTimeout(() => {
+                fn.apply(this, args);
+                timer = throttle = false;
+              }, ms);
+          }
+        };
+      }
+        // Attach click handler to the DT
+        const annoteDls = window.document.querySelectorAll('dt[data-target-cell]');
+        for (const annoteDlNode of annoteDls) {
+          annoteDlNode.addEventListener('click', (event) => {
+            const clickedEl = event.target;
+            if (clickedEl !== selectedAnnoteEl) {
+              unselectCodeLines();
+              const activeEl = window.document.querySelector('dt[data-target-cell].code-annotation-active');
+              if (activeEl) {
+                activeEl.classList.remove('code-annotation-active');
+              }
+              selectCodeLines(clickedEl);
+              clickedEl.classList.add('code-annotation-active');
+            } else {
+              // Unselect the line
+              unselectCodeLines();
+              clickedEl.classList.remove('code-annotation-active');
+            }
+          });
+        }
+    const findCites = (el) => {
+      const parentEl = el.parentElement;
+      if (parentEl) {
+        const cites = parentEl.dataset.cites;
+        if (cites) {
+          return {
+            el,
+            cites: cites.split(' ')
+          };
+        } else {
+          return findCites(el.parentElement)
+        }
+      } else {
+        return undefined;
+      }
+    };
+    var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+    for (var i=0; i<bibliorefs.length; i++) {
+      const ref = bibliorefs[i];
+      const citeInfo = findCites(ref);
+      if (citeInfo) {
+        tippyHover(citeInfo.el, function() {
+          var popup = window.document.createElement('div');
+          citeInfo.cites.forEach(function(cite) {
+            var citeDiv = window.document.createElement('div');
+            citeDiv.classList.add('hanging-indent');
+            citeDiv.classList.add('csl-entry');
+            var biblioDiv = window.document.getElementById('ref-' + cite);
+            if (biblioDiv) {
+              citeDiv.innerHTML = biblioDiv.innerHTML;
+            }
+            popup.appendChild(citeDiv);
+          });
+          return popup.innerHTML;
+        });
+      }
+    }
+  });
+  </script><script type="application/javascript">
+  window.quartoScrollableRegionsLabels = {"code":"Scrollable code","output":"Scrollable output"};
+  </script>
+</div> <!-- /content -->
+<footer class="footer"><div class="nav-footer">
+    <div class="nav-footer-left">
+<p>Developed by Bjarke Hautop Kristensen.</p>
+</div>   
+    <div class="nav-footer-center">
+       
+    </div>
+    <div class="nav-footer-right">
+<p>Site built with <a href="https://github.com/BjarkeHautop/quartodown">quartodown</a> and <a href="https://quarto.org/">Quarto</a>.</p>
+</div>
+  </div>
+</footer><div class="quartodown-tip-payload" hidden>
+<div data-for="t1">
+<code class="quartodown-tip-sig"><span class="fu">build_library</span>(
+  <span class="at">packages</span> <span class="at">=</span> <span class="st">"."</span>,
+  <span class="at">out</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">julia</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">versions</span> <span class="at">=</span> <span class="fu">c</span>(<span class="st">"manifest"</span>, <span class="st">"compat"</span>),
+  <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>
+)</code><span class="quartodown-tip-brief">Build a Julia library from specific packages</span>
+</div>
+<div data-for="t2">
+<code class="quartodown-tip-sig"><span class="fu">bind_client</span>(pkg)</code><span class="quartodown-tip-brief">Bind a package to the Julia library</span>
+</div>
+<div data-for="t3">
+<code class="quartodown-tip-sig"><span class="fu">install_library</span>(
+  <span class="at">packages</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">julia</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">ask</span> <span class="at">=</span> <span class="fu">interactive</span>(),
+  <span class="at">force</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">versions</span> <span class="at">=</span> <span class="fu">c</span>(<span class="st">"manifest"</span>, <span class="st">"compat"</span>),
+  <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>
+)</code><span class="quartodown-tip-brief">Build the Julia library</span>
+</div>
+</div>
+</body>
+</html>
