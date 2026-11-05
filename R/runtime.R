@@ -265,14 +265,18 @@
 # On Windows the library has no RUNPATH, so the directory of the Julia
 # runtime it links against (recorded by build.jl next to it, or in its bundle)
 # is put on the PATH, where Windows finds libjulia.dll and its dependencies.
+# JuliaC puts a bundle's DLLs in `bin/julia` with Julia >= 1.14, and in `bin`
+# before that.
 .add_julia_bindir <- function(path, windows = .Platform$OS.type == "windows") {
   if (!windows) {
     return(invisible(NULL))
   }
   record <- file.path(dirname(path), "julia_bindir")
-  bundled <- file.path(dirname(path), "jlbind-bundle", "bin")
-  if (dir.exists(bundled)) {
-    bindir <- normalizePath(bundled)
+  bin <- file.path(dirname(path), "jlbind-bundle", "bin")
+  bundled <- c(file.path(bin, "julia"), bin)
+  bundled <- bundled[file.exists(file.path(bundled, "libjulia.dll"))]
+  if (length(bundled)) {
+    bindir <- normalizePath(bundled[[1L]])
   } else if (file.exists(record)) {
     bindir <- normalizePath(
       readLines(record, warn = FALSE)[[1L]],
