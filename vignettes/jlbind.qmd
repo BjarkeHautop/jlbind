@@ -120,10 +120,24 @@ function, you can skip step 2.
 
 ## Export your functions
 
-To export or document a generated function, use a roxygen block on `NULL` with
-`@name shift` in another file. To add R code around a call, declare the Julia
-function with a `jl_` prefix, e.g. `@rcall jl_shift(...)`, and write `shift()`
-yourself.
+To export or document a generated function, write roxygen comments directly
+above its `@rcall`:
+
+```julia
+#' Shift a vector
+#'
+#' @param x A numeric vector.
+#' @param by The amount to shift by.
+#' @export
+@rcall shift(x::Vector{Float64}, by::Float64 = 1.0)::Vector{Float64}
+```
+
+`update_entrypoints()` copies them above `shift()` in `R/jlbind-wrappers.R`, so
+roxygen2 reads the function's signature from there. To share a help page, use
+`#' @rdname` above the `@rcall` and write the page itself in `R/`, on `NULL`.
+
+To add R code around a call, declare the Julia function with a `jl_` prefix,
+e.g. `@rcall jl_shift(...)`, and write `shift()` yourself, calling `jl_shift()`.
 
 ## Share your package
 

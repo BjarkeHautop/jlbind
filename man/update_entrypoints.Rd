@@ -11,8 +11,9 @@ update_entrypoints(path = ".")
 }
 \value{
 Invisibly, a data frame of the entrypoints with the columns \code{name},
-\code{nargs}, and the \code{formals}, \code{args} and \code{invisible} (whether it returns
-invisibly) of their R wrappers.
+\code{nargs}, and the \code{formals}, \code{args}, \code{invisible} (whether it returns
+invisibly) and \code{roxygen} (the comments above its \verb{@rcall}) of their R
+wrappers.
 }
 \description{
 Finds the \verb{@rcall} declarations in the package's Julia binding package and
@@ -31,9 +32,10 @@ becomes \code{shift <- function(x, by = 0.0) .Call(C_shift, x, by)}.
 
 Defaults must be literal numbers, strings, \code{true}, \code{false} or \code{nothing}
 (\code{NULL}). A function returning \code{Nothing} returns invisibly. To export or
-document a function, use a roxygen block on \code{NULL} with \verb{@name} in another
-file. To add R code around a call, declare the Julia function with a \code{jl_}
-prefix and write the R function yourself.
+document a function, write roxygen comments (\verb{#'}) directly above its
+\verb{@rcall}: they're copied above the R function, so roxygen2 sees its signature.
+To add R code around a call, declare the Julia function with a \code{jl_} prefix
+and write the R function yourself, calling the generated \code{jl_} function.
 }
 \examples{
 # A package set up with use_jlbind() in a temporary directory

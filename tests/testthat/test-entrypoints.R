@@ -27,7 +27,8 @@ test_that("comments, strings and character literals are ignored", {
       nargs = 2L,
       formals = "x, y",
       args = "x, y",
-      invisible = FALSE
+      invisible = FALSE,
+      roxygen = ""
     )
   )
   expect_null(.find_rcalls("x = 1"))
@@ -70,13 +71,75 @@ test_that("a function returning Nothing gets an invisible wrapper", {
     name = c("set", "get"),
     formals = c("x", ""),
     args = c("x", ""),
-    invisible = c(TRUE, FALSE)
+    invisible = c(TRUE, FALSE),
+    roxygen = c("", "")
   )
   expect_equal(
     tail(.wrappers(entries), 2L),
     c(
       "set <- function(x) invisible(.Call(C_set, x))",
       "get <- function() .Call(C_get)"
+    )
+  )
+})
+
+test_that("roxygen comments directly above a declaration are kept", {
+  src <- paste(
+    c(
+      "#' Above a one-line declaration",
+      "#' @export",
+      "@rcall a(x::Int64)::Int64",
+      "",
+      "    #' Indented, above a multi-line declaration",
+      "    @rcall b(",
+      "        x::Int64,",
+      "    )::Int64",
+      "@rcall none(x::Int64)::Int64",
+      "#' Separated by a blank line",
+      "",
+      "@rcall blank(x::Int64)::Int64",
+      "# An ordinary comment",
+      "@rcall plain(x::Int64)::Int64",
+      "#' Interrupted",
+      "# by an ordinary comment",
+      "@rcall interrupted(x::Int64)::Int64"
+    ),
+    collapse = "\n"
+  )
+  expect_equal(
+    .find_rcalls(src)$roxygen,
+    c(
+      "#' Above a one-line declaration\n#' @export",
+      "#' Indented, above a multi-line declaration",
+      "",
+      "",
+      "",
+      ""
+    )
+  )
+})
+
+test_that("roxygen comments are written above the R wrapper", {
+  entries <- data.frame(
+    name = c("plain", "documented", "a_rather_long_name"),
+    formals = c("x", "x", "first_argument, second_argument = NULL"),
+    args = c("x", "x", "first_argument, second_argument"),
+    invisible = FALSE,
+    roxygen = c("", "#' Title\n#' @export", "#' @rdname shared")
+  )
+  expect_equal(
+    .wrappers(entries)[-(1:2)],
+    c(
+      "plain <- function(x) .Call(C_plain, x)",
+      "",
+      "#' Title",
+      "#' @export",
+      "documented <- function(x) .Call(C_documented, x)",
+      "",
+      "#' @rdname shared",
+      "a_rather_long_name <- function(first_argument, second_argument = NULL) {",
+      "  .Call(C_a_rather_long_name, first_argument, second_argument)",
+      "}"
     )
   )
 })
@@ -161,7 +224,8 @@ test_that("long wrappers are split over lines", {
     name = "a_rather_long_name",
     formals = "first_argument, second_argument = NULL",
     args = "first_argument, second_argument",
-    invisible = FALSE
+    invisible = FALSE,
+    roxygen = ""
   )
   expect_equal(
     tail(.wrappers(entries), 3L),
