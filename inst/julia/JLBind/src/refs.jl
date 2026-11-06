@@ -30,6 +30,44 @@ e.g. `JLBind.r_class(::Type{<:Model}) = "mymodel"`; the default is
 """
 r_class(::Type) = "jlbind_ref"
 
+"""
+    r_saved_by(T) -> Union{String,Nothing}
+
+The name of the R package whose entrypoints return references to objects of type
+`T`, which can then be saved with `saveRDS()`, `save()` or `serialize()`, or
+`nothing` (the default) if they can't. R writes an external pointer as a null pointer, so a reference alone
+loses its object. Define a method, along with [`r_restore`](@ref), and an R
+function `.jlbind_saved_state(x)` in that package's `R/` code, with no need to
+export it, that returns plain R data, a list, to rebuild `x` from:
+
+```julia
+JLBind.r_saved_by(::Type{Model}) = "mypackage"
+JLBind.r_restore(::Type{Model}, state::SEXP) =
+    Model(from_sexp(NamedTuple{(:weights,),Tuple{Vector{Float64}}}, state).weights)
+```
+
+```r
+.jlbind_saved_state <- function(x) list(weights = model_weights(x))
+```
+
+Each reference then holds a small hook, an ALTREP vector, costing about 400 ns to
+create; `.jlbind_saved_state()` only runs if the reference is saved. Loading
+stores the state, and the first entrypoint that receives the reference rebuilds
+the object, in place, so every copy of the reference gets it. `saveRDS(version =
+2)` has no ALTREP support and writes no state.
+
+"""
+r_saved_by(::Type) = nothing
+
+"""
+    r_restore(T, state::SEXP) -> T
+
+Rebuild an object of type `T` from the list `.jlbind_saved_state()` returned;
+see [`r_saved_by`](@ref). It should check any version the state records, as the
+state may come from another version of the package.
+"""
+function r_restore end
+
 const OBJECTS = Dict{Int64,Any}()
 const NEXT_HANDLE = Ref{Int64}(0)
 
@@ -86,19 +124,84 @@ function _class_sexp(class::String)
     return c
 end
 
-function _ref_sexp(@nospecialize(x), class::String)
+function _finalizer()
     if _FINALIZER[] == C_NULL
         _FINALIZER[] = @cfunction(_finalize, Cvoid, (SEXP,))
     end
+    return _FINALIZER[]
+end
+
+function _register_finalizer(x::SEXP)
+    ccall(@R(R_RegisterCFinalizerEx), Cvoid, (SEXP, Ptr{Cvoid}, Cint), x, _finalizer(), 1)
+end
+
+# The attribute that holds a reference's hook, and after loading its state. An
+# attribute rather than the pointer's protected value, since identical() only
+# compares the addresses of external pointers, which are all null after loading,
+# but does compare attributes.
+const _STATE_SYMBOL = Ref{SEXP}(C_NULL)
+
+function _state_symbol()
+    if _STATE_SYMBOL[] == C_NULL
+        _STATE_SYMBOL[] = _install("jlbind_state")
+    end
+    return _STATE_SYMBOL[]
+end
+
+# The routine of the jlbind R package (src/state.c) making the hook of a reference.
+# Looked up when first needed, as binding a package must not start Julia. jlbind
+# is always loaded by then, as it is what loads this library.
+const _STATE_HOOK = Ref{Ptr{Cvoid}}(C_NULL)
+
+function _state_hook()
+    if _STATE_HOOK[] == C_NULL
+        _STATE_HOOK[] = ccall(
+            @R(R_GetCCallable), Ptr{Cvoid}, (Cstring, Cstring),
+            "jlbind", "jlbind_state_hook",
+        )
+    end
+    return _STATE_HOOK[]
+end
+
+function _ref_sexp(@nospecialize(x), class::String, package::Union{String,Nothing})
     h = _store(x)
     out = protect(ccall(
         @R(R_MakeExternalPtr), SEXP, (Ptr{Cvoid}, SEXP, SEXP),
         Ptr{Cvoid}(UInt(h)), _tag(), nil(),
     ))
-    ccall(@R(R_RegisterCFinalizerEx), Cvoid, (SEXP, Ptr{Cvoid}, Cint), out, _FINALIZER[], 1)
+    _register_finalizer(out)
+    if package !== nothing
+        hook = ccall(_state_hook(), SEXP, (SEXP, SEXP), out, _class_sexp(package))
+        set_attrib(out, _state_symbol(), hook)
+    end
     set_attrib(out, @r_global(R_ClassSymbol), _class_sexp(class))
     unprotect(1)
     return out
+end
+
+# A reference with no object: one R has just loaded, whose address is null.
+# Rebuilds the object from the saved state, if the type can be saved.
+function _restored(::Type{T}, x::SEXP, class::String)::T where {T}
+    saved = r_saved_by(T) !== nothing && _address(x) == 0 && _inherits(x, class)
+    state = saved ? get_attrib(x, _state_symbol()) : nil()
+    # The shim writes the state inside a list of length one.
+    if rtypeof(state) == VECSXP && rlength(state) == 1
+        obj = r_restore(T, vector_elt(state, 0))::T
+        ccall(
+            @R(R_SetExternalPtrAddr), Cvoid, (SEXP, Ptr{Cvoid}),
+            x, Ptr{Cvoid}(UInt(_store(obj))),
+        )
+        _register_finalizer(x)
+        return obj
+    end
+    saved && throw(ArgumentError(
+        "this `" * class * "` object was saved without its contents, probably " *
+        "with `saveRDS(version = 2)`, which can't store it",
+    ))
+    throw(ArgumentError(
+        "this `" * class * "` object no longer exists; objects do not " *
+        "survive saving and reloading, or a restart of R",
+    ))
 end
 
 function from_sexp(::Type{RRef{T}}, x::SEXP)::T where {T}
@@ -108,12 +211,7 @@ function from_sexp(::Type{RRef{T}}, x::SEXP)::T where {T}
         throw(ArgumentError("expected a `" * class * "` object"))
     end
     obj = get(OBJECTS, _address(x), nothing)
-    if obj === nothing
-        throw(ArgumentError(
-            "this `" * class * "` object no longer exists; objects do not " *
-            "survive saving and reloading, or a restart of R",
-        ))
-    end
+    obj === nothing && return _restored(T, x, class)
     obj isa T || throw(ArgumentError("expected a `" * class * "` object"))
     return obj
 end
@@ -125,13 +223,14 @@ function from_sexp(::Type{Vector{RRef{T}}}, x::SEXP) where {T}
 end
 
 # Converts the result of an entrypoint declared to return `R`.
-_result(::Type{RRef{T}}, x) where {T} = _ref_sexp(x::T, r_class(T))
+_result(::Type{RRef{T}}, x) where {T} = _ref_sexp(x::T, r_class(T), r_saved_by(T))
 
 function _result(::Type{Vector{RRef{T}}}, xs) where {T}
     class = r_class(T)
+    package = r_saved_by(T)
     out = protect(alloc(VECSXP, length(xs)))
     for (i, x) in enumerate(xs::AbstractVector{<:T})
-        set_vector_elt(out, i - 1, _ref_sexp(x, class))
+        set_vector_elt(out, i - 1, _ref_sexp(x, class, package))
     end
     unprotect(1)
     return out

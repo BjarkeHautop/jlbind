@@ -122,6 +122,12 @@ when jlbind calls the client's `jlbind_bind` routine. `src/Makevars` (from
 `.set_makevars()`) makes `jlbind.o` depend on `entrypoints.h`, since make would
 otherwise reuse a stale `jlbind.o` after `update_entrypoints()`.
 
+jlbind's own `src/state.c` has the ALTREP class that lets a reference be saved
+(see `r_saved_by` in `refs.jl`): R must find the class when loading a file,
+before or without the library, and keeping it out of the clients' shims means
+updating jlbind is enough to change it. JLBind finds its `jlbind_state_hook`
+with `R_GetCCallable()` when first needed, since binding must not start Julia.
+
 The test clients in `tests/clients/{hellojl,counterjl}` are scaffolded output:
 their `src/jlbind.c`, `src/entrypoints.h`, `src/Makevars` and `R/jlbind.R`
 correspond to `inst/templates/` and `update_entrypoints()`. When changing a

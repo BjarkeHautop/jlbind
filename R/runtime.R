@@ -477,3 +477,6 @@ check_bound <- function(pkg) {
     call. = FALSE
   )
 }
+
+#' @useDynLib jlbind, .registration = TRUE
+NULL

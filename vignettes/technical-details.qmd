@@ -221,6 +221,9 @@ until the call returns, so don't store it.
 
 ### Your own types
 
+`JLBind` is jlbind's own Julia package, which every binding package depends on,
+so write `JLBind.foo` as it is rather than with the name of your package.
+
 A binding package can support additional types by defining methods for
 `JLBind.from_sexp(::Type{T}, x::SEXP)` and `JLBind.to_sexp(x::T)`. `JLBind` also
 provides helpers for building R objects directly, such as `JLBind.data_frame()`
@@ -270,6 +273,43 @@ increment(counter, 2)
 methods such as `print()` for it. An argument declared as `RRef{Counter}` also
 checks that the reference points to a `Counter`, rather than accepting an
 arbitrary Julia object.
+
+### Saving Julia objects
+
+R writes an external pointer as a null pointer, so by default a reference does
+not survive `saveRDS()`, `save()`, `serialize()`, or being sent to a parallel
+worker; using it afterwards gives an error. To make a type savable, you need to
+do two things.
+
+In Julia, define `JLBind.r_saved_by()`, which names your R package, and
+`JLBind.r_restore()`, which rebuilds the object from the saved data:
+
+```julia
+JLBind.r_saved_by(::Type{Counter}) = "mypackage"
+JLBind.r_restore(::Type{Counter}, state::SEXP) =
+    Counter(from_sexp(NamedTuple{(:n,),Tuple{Int64}}, state).n)
+
+counter_value(c::Counter) = c.n
+
+@rcall counter_value(c::RRef{Counter})::Int64
+```
+
+In R, define `.jlbind_saved_state()`, which returns that data as a list of plain
+R values. It is internal, so don't export it. If your package has several
+savable types, branch on the class of `x`:
+
+```r
+.jlbind_saved_state <- function(x) {
+  list(n = counter_value(x))
+}
+```
+
+The first call that uses a loaded object rebuilds it, which needs the compiled
+library.
+
+`.jlbind_saved_state()` only runs when saving, through an ALTREP vector in the
+reference's `jlbind_state` attribute. Creating this vector adds about 400 ns to
+each new reference.
 
 ## Errors
 

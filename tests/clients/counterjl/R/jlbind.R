@@ -6,3 +6,8 @@
 
 #' @useDynLib counterjl, .registration = TRUE, .fixes = "C_"
 NULL
+
+# Plain R data to save a `point` as (see `r_saved_by` in JLBind).
+.jlbind_saved_state <- function(x) {
+  list(x = point_x(x))
+}

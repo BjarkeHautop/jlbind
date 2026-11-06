@@ -168,6 +168,31 @@ test_that("two clients share one compiled library", {
         total_bad = tryCatch(total(list(c1, 1)), error = conditionMessage),
         reloaded = tryCatch(increment(readRDS(f)), error = conditionMessage),
         live = live(),
+        saved = local({
+          p <- new_point(2.5)
+          file <- tempfile()
+          saveRDS(list(p = p, again = p, others = points(2)), file)
+          loaded <- readRDS(file)
+          other <- unserialize(serialize(new_point(7), NULL))
+          before <- live()
+          different <- !identical(loaded$p, other)
+          x <- point_x(loaded$p)
+          after <- live()
+          list(
+            different = different,
+            x = x,
+            again = point_x(loaded$again),
+            others = vapply(loaded$others, point_x, 1),
+            rebuilt_once = after - before,
+            resaved = point_x(unserialize(serialize(loaded$p, NULL))),
+            no_state = err(point_x(unserialize(serialize(
+              p,
+              NULL,
+              version = 2
+            )))),
+            as_counter = err(increment(loaded$p))
+          )
+        }),
         sitrep = local({
           utils::capture.output({
             report <- jlbind::jlbind_sitrep()
@@ -318,6 +343,14 @@ test_that("two clients share one compiled library", {
   expect_equal(res$total, 32)
   expect_equal(res$total_bad, "element 2: expected a `counter` object")
   expect_match(res$reloaded, "no longer exists")
+  expect_true(res$saved$different)
+  expect_equal(res$saved$x, 2.5)
+  expect_equal(res$saved$again, 2.5)
+  expect_equal(res$saved$others, c(1, 2))
+  expect_equal(res$saved$rebuilt_once, 1)
+  expect_equal(res$saved$resaved, 2.5)
+  expect_match(res$saved$no_state, "saved without its contents")
+  expect_equal(res$saved$as_counter, "expected a `counter` object")
   # c1, the last stored, and the three from counters() unless collected.
   expect_lte(res$live, 5)
   expect_equal(sort(res$sitrep$clients$package), c("counterjl", "hellojl"))
