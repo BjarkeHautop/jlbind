@@ -67,9 +67,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-174b53273fa95a7cc7088e76628606fb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-5f04c08b27b05406f02521ba300b9906.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -398,9 +398,9 @@ Path to the package sources.
 <p><code>R/jlbind-wrappers.R</code>, with an R function for each declaration that calls its routine. <code>@rcall shift(x::Vector{Float64}, by::Float64 = 0.0)::Float64</code> becomes <code>shift &lt;- function(x, by = 0.0) .Call(C_shift, x, by)</code>.</p>
 </li>
 </ul>
-<p>Defaults must be literal numbers, strings, <code>true</code>, <code>false</code> or <code>nothing</code> (<code>NULL</code>). A function returning <code>Nothing</code> returns invisibly. To export or document a function, use a roxygen block on <code>NULL</code> with <code>@name</code> in another file. To add R code around a call, declare the Julia function with a <code>jl_</code> prefix and write the R function yourself.</p>
+<p>Defaults must be literal numbers, strings, <code>true</code>, <code>false</code> or <code>nothing</code> (<code>NULL</code>). A function returning <code>Nothing</code> returns invisibly. To export or document a function, write roxygen comments (<code>#'</code>) directly above its <code>@rcall</code>: they’re copied above the R function, so roxygen2 sees its signature. To add R code around a call, declare the Julia function with a <code>jl_</code> prefix and write the R function yourself, calling the generated <code>jl_</code> function.</p>
 </section><section id="value" class="level2"><h2 class="anchored" data-anchor-id="value">Value</h2>
-<p>Invisibly, a data frame of the entrypoints with the columns <code>name</code>, <code>nargs</code>, and the <code>formals</code>, <code>args</code> and <code>invisible</code> (whether it returns invisibly) of their R wrappers.</p>
+<p>Invisibly, a data frame of the entrypoints with the columns <code>name</code>, <code>nargs</code>, and the <code>formals</code>, <code>args</code>, <code>invisible</code> (whether it returns invisibly) and <code>roxygen</code> (the comments above its <code>@rcall</code>) of their R wrappers.</p>
 </section><section id="examples" class="level2"><h2 class="anchored" data-anchor-id="examples">Examples</h2>
 <div class="cell">
 <div class="code-copy-outer-scaffold">
@@ -418,9 +418,9 @@ Path to the package sources.
 <span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span>(pkg, <span class="st">"DESCRIPTION"</span>)</span>
 <span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./use_jlbind.html">use_jlbind</a></span>(pkg)</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Created the binding package addpkgBindings in /tmp/RtmpZC4x0B/addpkg/inst/julia.</span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Wrote /tmp/RtmpZC4x0B/addpkg/src/entrypoints.h (1 entrypoints).</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Wrote /tmp/RtmpZC4x0B/addpkg/R/jlbind-wrappers.R.</span></span>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Created the binding package addpkgBindings in /tmp/RtmpTm6wXp/addpkg/inst/julia.</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Wrote /tmp/RtmpTm6wXp/addpkg/src/entrypoints.h (1 entrypoints).</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Wrote /tmp/RtmpTm6wXp/addpkg/R/jlbind-wrappers.R.</span></span>
 <span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Add an entrypoint to the binding package, before its closing `end`</span></span>
 <span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>file <span class="ot">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span>(pkg, <span class="st">"inst/julia/src/addpkgBindings.jl"</span>)</span>
@@ -438,8 +438,8 @@ Path to the package sources.
 <span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html">writeLines</a></span>(code, file)</span>
 <span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./update_entrypoints.html">update_entrypoints</a></span>(pkg)</span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Wrote /tmp/RtmpZC4x0B/addpkg/src/entrypoints.h (2 entrypoints).</span></span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Wrote /tmp/RtmpZC4x0B/addpkg/R/jlbind-wrappers.R.</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Wrote /tmp/RtmpTm6wXp/addpkg/src/entrypoints.h (2 entrypoints).</span></span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Wrote /tmp/RtmpTm6wXp/addpkg/R/jlbind-wrappers.R.</span></span>
 <span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html">writeLines</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/readLines.html">readLines</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span>(pkg, <span class="st">"R"</span>, <span class="st">"jlbind-wrappers.R"</span>)))</span>
 <span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # Generated by jlbind::update_entrypoints(): do not edit by hand</span></span>
 <span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
@@ -450,7 +450,12 @@ Path to the package sources.
 </div>
 
 
-</section></main><!-- /main --><script>
+</section></main><!-- /main --><style>
+.quartodown-theme-switching * {
+  transition: none !important;
+}
+</style>
+<script>
 (function () {
   function contentLeft(main) {
     // With margin content, <main> is a full-width grid; use the title.
@@ -688,7 +693,38 @@ Path to the package sources.
     float.addEventListener("mouseenter", cancelHide);
     float.addEventListener("mouseleave", scheduleHide);
   }
+  // Quarto swaps the theme stylesheets at once, but elements with a CSS
+  // transition (buttons, links) then fade to the new colors, lagging behind
+  // the page. Turn transitions off until the new stylesheet applies, which
+  // can take a frame or more: until the page background changes, or 30
+  // frames if it never does.
+  function switchThemeWithoutTransitions() {
+    var toggle = window.quartoToggleColorScheme;
+    if (typeof toggle !== "function") return;
+    window.quartoToggleColorScheme = function () {
+      var root = document.documentElement;
+      function background() {
+        return getComputedStyle(document.body).backgroundColor;
+      }
+      var before = background();
+      var frames = 0;
+      root.classList.add("quartodown-theme-switching");
+      var result = toggle.apply(this, arguments);
+      function settle() {
+        if (background() === before && ++frames < 30) {
+          requestAnimationFrame(settle);
+        } else {
+          requestAnimationFrame(function () {
+            root.classList.remove("quartodown-theme-switching");
+          });
+        }
+      }
+      requestAnimationFrame(settle);
+      return result;
+    };
+  }
   stripOutputOnCopy();
+  switchThemeWithoutTransitions();
   // The payload comes after this script, at the end of the body.
   document.addEventListener("DOMContentLoaded", initTooltips);
   shrinkNavbarVersion();

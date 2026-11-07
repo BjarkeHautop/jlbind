@@ -67,9 +67,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-174b53273fa95a7cc7088e76628606fb.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-71aa6d8bda029fdf3f77512994788c36.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-5f04c08b27b05406f02521ba300b9906.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -473,16 +473,27 @@ visitors who prefer it, before Quarto reads the stored choice.
 <p>A library that has loaded can’t be replaced, so restart R first. <code>devtools::load_all()</code> then rebuilds the library, since your Julia code changed.</p>
 <p>Repeat these steps as you develop. If you only change the body of a Julia function, you can skip step 2.</p>
 </section></section><section id="export-your-functions" class="level2"><h2 class="anchored" data-anchor-id="export-your-functions">Export your functions</h2>
-<p>To export or document a generated function, use a roxygen block on <code>NULL</code> with <code>@name shift</code> in another file. To add R code around a call, declare the Julia function with a <code>jl_</code> prefix, e.g. <code>@rcall jl_shift(...)</code>, and write <code>shift()</code> yourself.</p>
+<p>To export or document a generated function, write roxygen comments directly above its <code>@rcall</code>:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co">#' Shift a vector</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="co">#'</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param x A numeric vector.</span></span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a><span class="co">#' @param by The amount to shift by.</span></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="co">#' @export</span></span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">shift</span>(x<span class="op">::</span><span class="dt">Vector{Float64}</span>, by<span class="op">::</span><span class="dt">Float64 </span><span class="op">=</span> <span class="fl">1.0</span>)<span class="op">::</span><span class="dt">Vector{Float64}</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p><code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../reference/update_entrypoints.html">update_entrypoints()</a></code> copies them above <code>shift()</code> in <code>R/jlbind-wrappers.R</code>, so roxygen2 reads the function’s signature from there. To share a help page, use <code>#' @rdname</code> above the <code>@rcall</code> and write the page itself in <code>R/</code>, on <code>NULL</code>.</p>
+<p>To add R code around a call, declare the Julia function with a <code>jl_</code> prefix, e.g. <code>@rcall jl_shift(...)</code>, and write <code>shift()</code> yourself, calling <code>jl_shift()</code>.</p>
 </section><section id="share-your-package" class="level2"><h2 class="anchored" data-anchor-id="share-your-package">Share your package</h2>
 <p>An R process can load only one compiled Julia library, so jlbind compiles the Julia code of all installed clients into one library on each user’s machine. Tell your users, for example in your README, to run this after installing your package:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="../reference/install_library.html">install_library</a></span>()</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="../reference/install_library.html">install_library</a></span>()</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>Your package must also install and pass <code>R CMD check</code> without Julia, as on CRAN. In tests, skip anything that needs the library:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="fu">skip_if_not</span>(jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t5" href="../reference/is_bound.html">is_bound</a></span>(<span class="st">"mypkg"</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">skip_if_not</span>(jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t5" href="../reference/is_bound.html">is_bound</a></span>(<span class="st">"mypkg"</span>))</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>In examples, wrap such calls in <code>if (jlbind::is_bound("mypkg"))</code>. Then run <code><a class="quartodown-tip-ref" data-quartodown-tip="t6" href="../reference/use_jlbind_ci.html">jlbind::use_jlbind_ci()</a></code> to check your package both with and without Julia on GitHub Actions.</p>
@@ -494,7 +505,12 @@ visitors who prefer it, before Quarto reads the stored choice.
 <a href="using-clients.html">Using packages built on jlbind</a> describes what your users see, including threads and how clients share Julia dependencies.</li>
 <li>
 <a href="https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/hellojl"><code>hellojl</code></a> and <a href="https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/counterjl"><code>counterjl</code></a> are small, complete clients used in jlbind’s tests, and are good examples to learn from.</li>
-</ul></section></main><!-- /main --><script>
+</ul></section></main><!-- /main --><style>
+.quartodown-theme-switching * {
+  transition: none !important;
+}
+</style>
+<script>
 (function () {
   function contentLeft(main) {
     // With margin content, <main> is a full-width grid; use the title.
@@ -732,7 +748,38 @@ visitors who prefer it, before Quarto reads the stored choice.
     float.addEventListener("mouseenter", cancelHide);
     float.addEventListener("mouseleave", scheduleHide);
   }
+  // Quarto swaps the theme stylesheets at once, but elements with a CSS
+  // transition (buttons, links) then fade to the new colors, lagging behind
+  // the page. Turn transitions off until the new stylesheet applies, which
+  // can take a frame or more: until the page background changes, or 30
+  // frames if it never does.
+  function switchThemeWithoutTransitions() {
+    var toggle = window.quartoToggleColorScheme;
+    if (typeof toggle !== "function") return;
+    window.quartoToggleColorScheme = function () {
+      var root = document.documentElement;
+      function background() {
+        return getComputedStyle(document.body).backgroundColor;
+      }
+      var before = background();
+      var frames = 0;
+      root.classList.add("quartodown-theme-switching");
+      var result = toggle.apply(this, arguments);
+      function settle() {
+        if (background() === before && ++frames < 30) {
+          requestAnimationFrame(settle);
+        } else {
+          requestAnimationFrame(function () {
+            root.classList.remove("quartodown-theme-switching");
+          });
+        }
+      }
+      requestAnimationFrame(settle);
+      return result;
+    };
+  }
   stripOutputOnCopy();
+  switchThemeWithoutTransitions();
   // The payload comes after this script, at the end of the body.
   document.addEventListener("DOMContentLoaded", initTooltips);
   shrinkNavbarVersion();
