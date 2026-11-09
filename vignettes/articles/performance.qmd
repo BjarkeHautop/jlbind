@@ -120,8 +120,9 @@ results_table(startup_med)
 For jlbind, startup is loading the compiled library and binding the package's
 routines. JuliaCall and JuliaConnectoR start Julia, and compile each function
 the first time it is called. With a real Julia package instead of two one-line
-functions, compiling and loading the package typically take much longer than
-here.
+functions, the gap is usually larger: although Julia caches a package's
+precompiled code across sessions, each new session still loads it and compiles
+whatever the cache doesn't cover.
 
 ## Call overhead
 
