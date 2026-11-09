@@ -398,11 +398,9 @@ visitors who prefer it, before Quarto reads the stored choice.
 <li>
 <code>inst/julia/</code>, containing a Julia binding package named after the R package with a <code>Bindings</code> suffix (for example, <code>MyPkgBindings</code>), including an example function.</li>
 <li>
-<code>src/jlbind.c</code> and <code>src/entrypoints.h</code>, which register the native routines, and a rule in <code>src/Makevars</code> that recompiles <code>jlbind.c</code> whenever <code>entrypoints.h</code> changes.</li>
-<li>
 <code>R/jlbind-wrappers.R</code>, with an R function for each Julia function the binding package declares.</li>
 <li>
-<code>R/jlbind.R</code>, which calls <code>jlbind::<a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/bind_client.html">bind_client</a>()</code> from <code>.onLoad()</code> and includes the roxygen tag for <code>useDynLib()</code>.</li>
+<code>R/jlbind.R</code>, which calls <code>jlbind::<a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/bind_client.html">bind_client</a>()</code> from <code>.onLoad()</code>.</li>
 <li>The <code>Config/jlbind</code>, <code>Imports: jlbind</code> and <code>SystemRequirements: Julia (&gt;= 1.13)</code> fields in <code>DESCRIPTION</code>.</li>
 <li>A <code>.jlbind/</code> directory for development builds, added to <code>.Rbuildignore</code> and <code>.gitignore</code>.</li>
 </ul>

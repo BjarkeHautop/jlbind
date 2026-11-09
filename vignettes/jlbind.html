@@ -435,7 +435,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 </div>
 <p>This adds <code>shift()</code> to <code>R/jlbind-wrappers.R</code>:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>shift <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">by =</span> <span class="fl">1.0</span>) <span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html">.Call</a></span>(C_shift, x, by)</span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>shift <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">by =</span> <span class="fl">1.0</span>) <span class="fu"><a href="https://rdrr.io/r/base/CallExternal.html">.External</a></span>(.jlbind<span class="sc">$</span>.call, .jlbind<span class="sc">$</span>shift, x, by)</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <div class="callout callout-style-default callout-note callout-titled">
@@ -450,22 +450,17 @@ visitors who prefer it, before Quarto reads the stored choice.
 </div>
 <div id="callout-1" class="callout-1-contents callout-collapse collapse">
 <div class="callout-body-container callout-body">
-<p>It writes two files from the <code>@rcall</code> declarations, which you shouldn’t edit by hand:</p>
-<ul>
-<li>
-<code>R/jlbind-wrappers.R</code>, with an R function for each declaration, as above.</li>
-<li>
-<code>src/entrypoints.h</code>, which lists the native routines:</li>
-</ul>
+<p><code>R/jlbind-wrappers.R</code>, which you shouldn’t edit by hand, also lists the declarations:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb8"><pre class="sourceCode c code-with-copy"><code class="sourceCode c"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="pp">#define JLBIND_PREFIX </span><span class="st">"mypkgBindings_"</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="pp">#define JLBIND_ENTRIES </span><span class="op">\</span></span>
-<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a><span class="pp">    JLBIND_ENTRY</span><span class="op">(</span><span class="pp">hello</span><span class="op">,</span><span class="pp"> </span><span class="dv">1</span><span class="op">,</span><span class="pp"> </span><span class="op">(</span><span class="pp">SEXP a1</span><span class="op">),</span><span class="pp"> </span><span class="op">(</span><span class="pp">a1</span><span class="op">))</span><span class="pp"> </span><span class="op">\</span></span>
-<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="pp">    JLBIND_ENTRY</span><span class="op">(</span><span class="pp">shift</span><span class="op">,</span><span class="pp"> </span><span class="dv">2</span><span class="op">,</span><span class="pp"> </span><span class="op">(</span><span class="pp">SEXP a1</span><span class="op">,</span><span class="pp"> SEXP a2</span><span class="op">),</span><span class="pp"> </span><span class="op">(</span><span class="pp">a1</span><span class="op">,</span><span class="pp"> a2</span><span class="op">))</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>.jlbind_module <span class="ot">&lt;-</span> <span class="st">"mypkgBindings"</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>.jlbind_entries <span class="ot">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"hello"</span>,</span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="st">"shift"</span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>.jlbind <span class="ot">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/environment.html">new.env</a></span>(<span class="at">parent =</span> <span class="fu"><a href="https://rdrr.io/r/base/environment.html">emptyenv</a></span>())</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p><code>src/jlbind.c</code>, which <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/use_jlbind.html">use_jlbind</a>()</code> added, turns each entry into a routine for <code><a href="https://rdrr.io/r/base/CallExternal.html">.Call</a>()</code>, such as <code>C_shift</code>. That routine forwards to <code>mypkgBindings_shift_2</code>, the function <code>@rcall</code> exports from the compiled library. The name includes the number of arguments, so if the list and the library disagree, your package fails to bind instead of crashing.</p>
+<p>When your package loads, <code>jlbind::<a class="quartodown-tip-ref" data-quartodown-tip="t6" href="../reference/bind_client.html">bind_client</a>()</code> looks up each entry in the compiled library, <code>shift</code> as <code>mypkgBindings_shift</code>, the function <code>@rcall</code> exports, and puts it into <code>.jlbind</code>. Calls go through <code>.jlbind$.call</code>, a routine in jlbind that turns a Julia error into an R error. If the R functions are out of date with the Julia code, as when you change an <code>@rcall</code> without running <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../reference/update_entrypoints.html">update_entrypoints</a>()</code>, calling one with the wrong number of arguments gives an error.</p>
 </div>
 </div>
 </div>
@@ -496,7 +491,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">skip_if_not</span>(jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t5" href="../reference/is_bound.html">is_bound</a></span>(<span class="st">"mypkg"</span>))</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p>In examples, wrap such calls in <code>if (jlbind::is_bound("mypkg"))</code>. Then run <code>jlbind::<a class="quartodown-tip-ref" data-quartodown-tip="t6" href="../reference/use_jlbind_ci.html">use_jlbind_ci</a>()</code> to check your package both with and without Julia on GitHub Actions.</p>
+<p>In examples, wrap such calls in <code>if (jlbind::is_bound("mypkg"))</code>. Then run <code>jlbind::<a class="quartodown-tip-ref" data-quartodown-tip="t7" href="../reference/use_jlbind_ci.html">use_jlbind_ci</a>()</code> to check your package both with and without Julia on GitHub Actions.</p>
 </section><section id="next-steps" class="level2"><h2 class="anchored" data-anchor-id="next-steps">Next steps</h2>
 <ul>
 <li>
@@ -1360,6 +1355,9 @@ visitors who prefer it, before Quarto reads the stored choice.
 <code class="quartodown-tip-sig"><span class="fu">is_bound</span>(pkg)</code><span class="quartodown-tip-brief">Check whether a package is bound to the Julia library</span>
 </div>
 <div data-for="t6">
+<code class="quartodown-tip-sig"><span class="fu">bind_client</span>(pkg)</code><span class="quartodown-tip-brief">Bind a package to the Julia library</span>
+</div>
+<div data-for="t7">
 <code class="quartodown-tip-sig"><span class="fu">use_jlbind_ci</span>(<span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>, <span class="at">overwrite</span> <span class="at">=</span> <span class="cn">FALSE</span>)</code><span class="quartodown-tip-brief">Check a package with its Julia code on GitHub Actions</span>
 </div>
 </div>

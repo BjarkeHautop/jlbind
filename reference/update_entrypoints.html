@@ -375,7 +375,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <small class="dont-index">Source: <a href="https://github.com/BjarkeHautop/jlbind/blob/HEAD/R/scaffold.R"><code>R/scaffold.R</code></a></small>
 </p>
 <section id="description" class="level2"><h2 class="anchored" data-anchor-id="description">Description</h2>
-<p>Finds the <code>@rcall</code> declarations in the package’s Julia binding package and generates the code that lets R call them. Run this whenever you add or remove an <code>@rcall</code>, or change its arguments. It writes two files:</p>
+<p>Finds the <code>@rcall</code> declarations in the package’s Julia binding package and writes <code>R/jlbind-wrappers.R</code>, with an R function for each that calls the compiled Julia function. Run this whenever you add or remove an <code>@rcall</code>, or change its arguments. <code>@rcall shift(x::Vector{Float64}, by::Float64 = 0.0)::Float64</code> becomes <code>shift &lt;- function(x, by = 0.0) .External(.jlbind$.call, .jlbind$shift, x, by)</code>, where <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="./bind_client.html">bind_client</a>()</code> puts the compiled function into <code>.jlbind</code>.</p>
 </section><section id="usage" class="level2"><h2 class="anchored" data-anchor-id="usage">Usage</h2>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./update_entrypoints.html">update_entrypoints</a></span>(<span class="at">path =</span> <span class="st">"."</span>)</span></code></pre></div>
@@ -390,14 +390,6 @@ visitors who prefer it, before Quarto reads the stored choice.
 Path to the package sources.
 </td>
 </tr></tbody></table></section><section id="details" class="level2"><h2 class="anchored" data-anchor-id="details">Details</h2>
-<ul>
-<li>
-<p><code>src/entrypoints.h</code>, from which <code>src/jlbind.c</code> registers a routine <code>C_&lt;name&gt;</code> for each declaration.</p>
-</li>
-<li>
-<p><code>R/jlbind-wrappers.R</code>, with an R function for each declaration that calls its routine. <code>@rcall shift(x::Vector{Float64}, by::Float64 = 0.0)::Float64</code> becomes <code>shift &lt;- function(x, by = 0.0) .Call(C_shift, x, by)</code>.</p>
-</li>
-</ul>
 <p>Defaults must be literal numbers, strings, <code>true</code>, <code>false</code> or <code>nothing</code> (<code>NULL</code>). A function returning <code>Nothing</code> returns invisibly. To export or document a function, write roxygen comments (<code>#'</code>) directly above its <code>@rcall</code>: they’re copied above the R function, so roxygen2 sees its signature. To add R code around a call, declare the Julia function with a <code>jl_</code> prefix and write the R function yourself, calling the generated <code>jl_</code> function.</p>
 </section><section id="value" class="level2"><h2 class="anchored" data-anchor-id="value">Value</h2>
 <p>Invisibly, a data frame of the entrypoints with the columns <code>name</code>, <code>nargs</code>, and the <code>formals</code>, <code>args</code>, <code>invisible</code> (whether it returns invisibly) and <code>roxygen</code> (the comments above its <code>@rcall</code>) of their R wrappers.</p>
@@ -418,33 +410,41 @@ Path to the package sources.
 <span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span>(pkg, <span class="st">"DESCRIPTION"</span>)</span>
 <span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./use_jlbind.html">use_jlbind</a></span>(pkg)</span>
-<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Created the binding package addpkgBindings in /tmp/RtmpMHF6BE/addpkg/inst/julia.</span></span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Wrote /tmp/RtmpMHF6BE/addpkg/src/entrypoints.h (1 entrypoints).</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Wrote /tmp/RtmpMHF6BE/addpkg/R/jlbind-wrappers.R.</span></span>
-<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co"># Add an entrypoint to the binding package, before its closing `end`</span></span>
-<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>file <span class="ot">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span>(pkg, <span class="st">"inst/julia/src/addpkgBindings.jl"</span>)</span>
-<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>code <span class="ot">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readLines.html">readLines</a></span>(file)</span>
-<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>last <span class="ot">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span>(code <span class="sc">==</span> <span class="st">"end"</span>))</span>
-<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>code <span class="ot">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/append.html">append</a></span>(</span>
-<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  code,</span>
-<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>  <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(</span>
-<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    <span class="st">"add(x::Float64, y::Float64) = x + y"</span>,</span>
-<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    <span class="st">"@rcall add(x::Float64, y::Float64)::Float64"</span>,</span>
-<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>    <span class="st">""</span></span>
-<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>  ),</span>
-<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>  <span class="at">after =</span> last <span class="sc">-</span> <span class="dv">1</span>L</span>
-<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a>)</span>
-<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html">writeLines</a></span>(code, file)</span>
-<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./update_entrypoints.html">update_entrypoints</a></span>(pkg)</span>
-<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Wrote /tmp/RtmpMHF6BE/addpkg/src/entrypoints.h (2 entrypoints).</span></span>
-<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Wrote /tmp/RtmpMHF6BE/addpkg/R/jlbind-wrappers.R.</span></span>
-<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html">writeLines</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/readLines.html">readLines</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span>(pkg, <span class="st">"R"</span>, <span class="st">"jlbind-wrappers.R"</span>)))</span>
-<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # Generated by jlbind::update_entrypoints(): do not edit by hand</span></span>
-<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
-<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; hello &lt;- function(name) .Call(C_hello, name)</span></span>
-<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; add &lt;- function(x, y) .Call(C_add, x, y)</span></span></code></pre></div>
+<span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Created the binding package addpkgBindings in /tmp/Rtmpt1DmJQ/addpkg/inst/julia.</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Wrote /tmp/Rtmpt1DmJQ/addpkg/R/jlbind-wrappers.R (1 entrypoints).</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="co"># Add an entrypoint to the binding package, before its closing `end`</span></span>
+<span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a>file <span class="ot">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span>(pkg, <span class="st">"inst/julia/src/addpkgBindings.jl"</span>)</span>
+<span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a>code <span class="ot">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/readLines.html">readLines</a></span>(file)</span>
+<span id="cb2-21"><a href="#cb2-21" aria-hidden="true" tabindex="-1"></a>last <span class="ot">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/Extremes.html">max</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/which.html">which</a></span>(code <span class="sc">==</span> <span class="st">"end"</span>))</span>
+<span id="cb2-22"><a href="#cb2-22" aria-hidden="true" tabindex="-1"></a>code <span class="ot">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/append.html">append</a></span>(</span>
+<span id="cb2-23"><a href="#cb2-23" aria-hidden="true" tabindex="-1"></a>  code,</span>
+<span id="cb2-24"><a href="#cb2-24" aria-hidden="true" tabindex="-1"></a>  <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(</span>
+<span id="cb2-25"><a href="#cb2-25" aria-hidden="true" tabindex="-1"></a>    <span class="st">"add(x::Float64, y::Float64) = x + y"</span>,</span>
+<span id="cb2-26"><a href="#cb2-26" aria-hidden="true" tabindex="-1"></a>    <span class="st">"@rcall add(x::Float64, y::Float64)::Float64"</span>,</span>
+<span id="cb2-27"><a href="#cb2-27" aria-hidden="true" tabindex="-1"></a>    <span class="st">""</span></span>
+<span id="cb2-28"><a href="#cb2-28" aria-hidden="true" tabindex="-1"></a>  ),</span>
+<span id="cb2-29"><a href="#cb2-29" aria-hidden="true" tabindex="-1"></a>  <span class="at">after =</span> last <span class="sc">-</span> <span class="dv">1</span>L</span>
+<span id="cb2-30"><a href="#cb2-30" aria-hidden="true" tabindex="-1"></a>)</span>
+<span id="cb2-31"><a href="#cb2-31" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html">writeLines</a></span>(code, file)</span>
+<span id="cb2-32"><a href="#cb2-32" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-33"><a href="#cb2-33" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./update_entrypoints.html">update_entrypoints</a></span>(pkg)</span>
+<span id="cb2-34"><a href="#cb2-34" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Wrote /tmp/Rtmpt1DmJQ/addpkg/R/jlbind-wrappers.R (2 entrypoints).</span></span>
+<span id="cb2-35"><a href="#cb2-35" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/writeLines.html">writeLines</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/readLines.html">readLines</a></span>(<span class="fu"><a href="https://rdrr.io/r/base/file.path.html">file.path</a></span>(pkg, <span class="st">"R"</span>, <span class="st">"jlbind-wrappers.R"</span>)))</span>
+<span id="cb2-36"><a href="#cb2-36" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # Generated by jlbind::update_entrypoints(): do not edit by hand</span></span>
+<span id="cb2-37"><a href="#cb2-37" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-38"><a href="#cb2-38" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # The entrypoints of the Julia binding package, which</span></span>
+<span id="cb2-39"><a href="#cb2-39" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # jlbind::bind_client() looks up in the compiled library and puts into</span></span>
+<span id="cb2-40"><a href="#cb2-40" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; # `.jlbind` for the functions below.</span></span>
+<span id="cb2-41"><a href="#cb2-41" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; .jlbind_module &lt;- "addpkgBindings"</span></span>
+<span id="cb2-42"><a href="#cb2-42" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; .jlbind_entries &lt;- c(</span></span>
+<span id="cb2-43"><a href="#cb2-43" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   "hello",</span></span>
+<span id="cb2-44"><a href="#cb2-44" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   "add"</span></span>
+<span id="cb2-45"><a href="#cb2-45" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; )</span></span>
+<span id="cb2-46"><a href="#cb2-46" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; .jlbind &lt;- new.env(parent = emptyenv())</span></span>
+<span id="cb2-47"><a href="#cb2-47" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; </span></span>
+<span id="cb2-48"><a href="#cb2-48" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; hello &lt;- function(name) .External(.jlbind$.call, .jlbind$hello, name)</span></span>
+<span id="cb2-49"><a href="#cb2-49" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; add &lt;- function(x, y) .External(.jlbind$.call, .jlbind$add, x, y)</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 </div>
@@ -1275,6 +1275,9 @@ Path to the package sources.
 </div>
 <div data-for="t2">
 <code class="quartodown-tip-sig"><span class="fu">use_jlbind</span>(<span class="at">path</span> <span class="at">=</span> <span class="st">"."</span>, <span class="at">module</span> <span class="at">=</span> <span class="cn">NULL</span>, <span class="at">dir</span> <span class="at">=</span> <span class="st">"julia"</span>)</code><span class="quartodown-tip-brief">Set up a package to use jlbind</span>
+</div>
+<div data-for="t3">
+<code class="quartodown-tip-sig"><span class="fu">bind_client</span>(pkg)</code><span class="quartodown-tip-brief">Bind a package to the Julia library</span>
 </div>
 </div>
 </body>
