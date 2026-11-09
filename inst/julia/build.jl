@@ -29,6 +29,22 @@
 import Pkg
 import TOML
 
+# Pkg's output is captured and shown only if it fails other than by
+# conflicting [compat] bounds, which choose_clients() reports itself, so a
+# build prints its own progress and that of precompiling and compiling.
+# Precompiling waits until the dependencies are resolved, rather than running
+# for each attempt.
+ENV["JULIA_PKG_PRECOMPILE_AUTO"] = "0"
+function quietly(f)
+    io = IOBuffer()
+    try
+        f(io)
+    catch e
+        e isa Pkg.Resolve.ResolverError || write(stderr, take!(io))
+        rethrow()
+    end
+end
+
 const HERE = @__DIR__
 const OUT = abspath(ARGS[1])
 const UPDATE = "--update" in ARGS
@@ -142,7 +158,7 @@ function resolve(cs)
     base = UPDATE ? nothing : findfirst(c -> c.manifest !== nothing, cs)
     base = base === nothing ? nothing : cs[base]
     write_image(cs, base)
-    Pkg.activate(IMAGE)
+    quietly(io -> Pkg.activate(IMAGE; io))
     specs = [
         Pkg.PackageSpec(path = JLBIND);
         [Pkg.PackageSpec(path = c.path) for c in cs];
@@ -150,8 +166,10 @@ function resolve(cs)
     ]
     try
         # Keeps the manifest's versions where the compat bounds allow it.
-        Pkg.develop(specs)
-        Pkg.instantiate()
+        quietly() do io
+            Pkg.develop(specs; io)
+            Pkg.instantiate(; io)
+        end
     catch e
         # A manifest resolved with another Julia version can fail to
         # instantiate (e.g. on different standard library versions), so fall
@@ -160,8 +178,10 @@ function resolve(cs)
         @warn "Could not use the Manifest.toml of $(base.name); resolving " *
             "from the binding packages' [compat] bounds instead." exception = e
         rm(joinpath(IMAGE, "Manifest.toml"))
-        Pkg.develop(specs)
-        Pkg.instantiate()
+        quietly() do io
+            Pkg.develop(specs; io)
+            Pkg.instantiate(; io)
+        end
     end
     return base
 end
@@ -199,7 +219,9 @@ function choose_clients(clients)
     return kept, excluded
 end
 
+println("Resolving Julia dependencies...")
 clients, excluded = choose_clients(clients)
+Pkg.precompile()
 open(joinpath(OUT, "conflicts"), "w") do io
     for (name, with) in excluded
         println(io, name, "\t", join(with, ","))
@@ -225,8 +247,10 @@ end
 cp(joinpath(IMAGE, "Manifest.toml"), joinpath(OUT, "Manifest.toml"); force = true)
 
 # JuliaC gets its own environment, so it is never compiled into the library.
-Pkg.activate(; temp = true)
-Pkg.add(Pkg.PackageSpec(name = "JuliaC", version = "0.3"))
+quietly() do io
+    Pkg.activate(; temp = true, io)
+    Pkg.add(Pkg.PackageSpec(name = "JuliaC", version = "0.3"); io)
+end
 
 using JuliaC
 

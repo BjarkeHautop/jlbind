@@ -114,6 +114,8 @@ error.
 
 A library that has loaded can't be replaced, so restart R first.
 `devtools::load_all()` then rebuilds the library, since your Julia code changed.
+If you forget, `devtools::load_all()` warns that the development library is out
+of date and tell you to restart R.
 
 Repeat these steps as you develop. If you only change the body of a Julia
 function, you can skip step 2.
