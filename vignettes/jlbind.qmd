@@ -41,7 +41,9 @@ end
 ```
 
 `@rcall` declares a Julia function that R can call, along with its argument and
-return types.
+return types. Every argument and the return value need a type: the types decide
+how values are converted between R and Julia (see
+[Types](technical-details.qmd#types)).
 
 ## Try the example
 
