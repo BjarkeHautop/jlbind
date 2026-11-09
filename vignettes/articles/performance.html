@@ -443,7 +443,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 </table>
 </div>
 </div>
-<p>For jlbind, startup is loading the compiled library and binding the package’s routines. JuliaCall and JuliaConnectoR start Julia, and compile each function the first time it is called. With a real Julia package instead of two one-line functions, compiling and loading the package typically take much longer than here.</p>
+<p>For jlbind, startup is loading the compiled library and binding the package’s routines. JuliaCall and JuliaConnectoR start Julia, and compile each function the first time it is called. With a real Julia package instead of two one-line functions, the gap is usually larger: although Julia caches a package’s precompiled code across sessions, each new session still loads it and compiles whatever the cache doesn’t cover.</p>
 </section><section id="call-overhead" class="level2"><h2 class="anchored" data-anchor-id="call-overhead">Call overhead</h2>
 <div class="cell">
 <div class="cell-output-display">
