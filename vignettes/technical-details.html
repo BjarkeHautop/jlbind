@@ -349,7 +349,12 @@ visitors who prefer it, before Quarto reads the stored choice.
   <ul>
 <li><a href="#one-library-for-all-clients" id="toc-one-library-for-all-clients" class="nav-link active" data-scroll-target="#one-library-for-all-clients">One library for all clients</a></li>
   <li><a href="#what-use_jlbind-adds" id="toc-what-use_jlbind-adds" class="nav-link" data-scroll-target="#what-use_jlbind-adds">What <code>use_jlbind()</code> adds</a></li>
-  <li><a href="#writing-rcall-declarations" id="toc-writing-rcall-declarations" class="nav-link" data-scroll-target="#writing-rcall-declarations">Writing <code>@rcall</code> declarations</a></li>
+  <li>
+<a href="#writing-rcall-declarations" id="toc-writing-rcall-declarations" class="nav-link" data-scroll-target="#writing-rcall-declarations">Writing <code>@rcall</code> declarations</a>
+  <ul class="collapse">
+<li><a href="#default-values" id="toc-default-values" class="nav-link" data-scroll-target="#default-values">Default values</a></li>
+  </ul>
+</li>
   <li><a href="#development-libraries" id="toc-development-libraries" class="nav-link" data-scroll-target="#development-libraries">Development libraries</a></li>
   <li>
 <a href="#types" id="toc-types" class="nav-link" data-scroll-target="#types">Types</a>
@@ -437,8 +442,69 @@ visitors who prefer it, before Quarto reads the stored choice.
 <p>jlbind finds <code>@rcall</code> declarations by scanning the source files, not by running them, so write them literally at the top level of the module.</p>
 </div>
 </div>
-<p>A default in a declaration must be a literal number, string, <code>true</code>, <code>false</code> or <code>nothing</code>, which becomes <code>NULL</code> in R.</p>
-</section><section id="development-libraries" class="level2"><h2 class="anchored" data-anchor-id="development-libraries">Development libraries</h2>
+<section id="default-values" class="level3"><h3 class="anchored" data-anchor-id="default-values">Default values</h3>
+<p>A default in a declaration becomes the default of the generated R function. For example,</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb2"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">summarise</span>(x<span class="op">::</span><span class="dt">Vector{Float64}</span>, probs<span class="op">::</span><span class="dt">Vector{Float64} </span><span class="op">=</span> [<span class="fl">0.25</span>, <span class="fl">0.75</span>],</span>
+<span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a>                 na<span class="op">::</span><span class="dt">Union{Missing,Float64} </span><span class="op">=</span> <span class="cn">missing</span>)<span class="op">::</span><span class="dt">Vector{Float64}</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>generates</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>summarise <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">probs =</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">0.25</span>, <span class="fl">0.75</span>), <span class="at">na =</span> <span class="cn">NA</span>) ...</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>A default can be any of these:</p>
+<table class="caption-top table">
+<colgroup>
+<col style="width: 50%">
+<col style="width: 50%">
+</colgroup>
+<thead><tr class="header">
+<th>Julia default</th>
+<th>R default</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td>A literal number or string</td>
+<td>The same literal</td>
+</tr>
+<tr class="even">
+<td>
+<code>true</code>, <code>false</code>
+</td>
+<td>
+<code>TRUE</code>, <code>FALSE</code>
+</td>
+</tr>
+<tr class="odd">
+<td><code>missing</code></td>
+<td><code>NA</code></td>
+</tr>
+<tr class="even">
+<td><code>nothing</code></td>
+<td><code>NULL</code></td>
+</tr>
+<tr class="odd">
+<td>
+<code>[1, 2]</code>, <code>Float64[1, 2]</code>
+</td>
+<td><code><a href="https://rdrr.io/r/base/c.html">c</a>(1, 2)</code></td>
+</tr>
+<tr class="even">
+<td><code>["a", missing]</code></td>
+<td><code><a href="https://rdrr.io/r/base/c.html">c</a>("a", NA)</code></td>
+</tr>
+<tr class="odd">
+<td>
+<code>Float64[]</code>, <code>String[]</code>, …</td>
+<td>
+<code><a href="https://rdrr.io/r/base/numeric.html">numeric</a>(0)</code>, <code><a href="https://rdrr.io/r/base/character.html">character</a>(0)</code>, …</td>
+</tr>
+</tbody>
+</table>
+<p>An empty vector names its element type, as in <code>Int32[]</code> or <code>Bool[]</code>.</p>
+</section></section><section id="development-libraries" class="level2"><h2 class="anchored" data-anchor-id="development-libraries">Development libraries</h2>
 <p>By default, <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/build_library.html">build_library</a>()</code> writes the library to <code>.jlbind/</code> in your package’s source directory. When you load the package with <code>devtools::load_all()</code>, jlbind uses this development library instead of the one created by <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../reference/install_library.html">install_library</a>()</code>. Once <code>.jlbind/</code> exists, <code>devtools::load_all()</code> rebuilds it when your binding package’s files or your package’s version have changed since it was built.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
@@ -456,7 +522,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <p>If you need to use a library stored elsewhere, set the <code>JLBIND_LIBRARY</code> environment variable to its path before loading the package.</p>
 <p>You can also test against an unreleased version of a Julia dependency by providing a local checkout through <code>develop</code>:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/build_library.html">build_library</a></span>(<span class="at">develop =</span> <span class="st">"~/dev/SomePackage.jl"</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/build_library.html">build_library</a></span>(<span class="at">develop =</span> <span class="st">"~/dev/SomePackage.jl"</span>)</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <div class="callout callout-style-default callout-tip callout-titled">
@@ -724,23 +790,23 @@ visitors who prefer it, before Quarto reads the stored choice.
 </ul></section><section id="data-frames" class="level3"><h3 class="anchored" data-anchor-id="data-frames">Data frames</h3>
 <p>To take or return a data frame, wrap the columns in an <code>RDataFrame</code>. Its type lists the column names and the type of each column, so a type alias keeps signatures short:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> Sales <span class="op">=</span> RDataFrame{(<span class="op">:</span>group, <span class="op">:</span>amount),<span class="dt">Tuple</span>{<span class="dt">Vector</span>{<span class="dt">String</span>},<span class="dt">Vector</span>{<span class="dt">Float64</span>}}}</span>
-<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> Summary <span class="op">=</span> RDataFrame{(<span class="op">:</span>group, <span class="op">:</span>mean),<span class="dt">Tuple</span>{<span class="dt">Vector</span>{<span class="dt">String</span>},<span class="dt">Vector</span>{<span class="dt">Float64</span>}}}</span>
-<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-4"><a href="#cb3-4" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">summarise</span>(df<span class="op">::</span><span class="dt">Sales</span>)</span>
-<span id="cb3-5"><a href="#cb3-5" aria-hidden="true" tabindex="-1"></a>    gs <span class="op">=</span> <span class="fu">sort</span>(<span class="fu">unique</span>(df.group))</span>
-<span id="cb3-6"><a href="#cb3-6" aria-hidden="true" tabindex="-1"></a>    means <span class="op">=</span> [<span class="fu">sum</span>(df.amount[df.group <span class="op">.==</span> g]) <span class="op">/</span> <span class="fu">count</span>(<span class="op">==</span>(g), df.group) for g <span class="kw">in</span> gs]</span>
-<span id="cb3-7"><a href="#cb3-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="fu">RDataFrame</span>((group <span class="op">=</span> gs, mean <span class="op">=</span> means))</span>
-<span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb3-9"><a href="#cb3-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb3-10"><a href="#cb3-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">summarise</span>(df<span class="op">::</span><span class="dt">Sales</span>)<span class="op">::</span><span class="dt">Summary</span></span></code></pre></div>
+<div class="sourceCode" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> Sales <span class="op">=</span> RDataFrame{(<span class="op">:</span>group, <span class="op">:</span>amount),<span class="dt">Tuple</span>{<span class="dt">Vector</span>{<span class="dt">String</span>},<span class="dt">Vector</span>{<span class="dt">Float64</span>}}}</span>
+<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a><span class="kw">const</span> Summary <span class="op">=</span> RDataFrame{(<span class="op">:</span>group, <span class="op">:</span>mean),<span class="dt">Tuple</span>{<span class="dt">Vector</span>{<span class="dt">String</span>},<span class="dt">Vector</span>{<span class="dt">Float64</span>}}}</span>
+<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">summarise</span>(df<span class="op">::</span><span class="dt">Sales</span>)</span>
+<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>    gs <span class="op">=</span> <span class="fu">sort</span>(<span class="fu">unique</span>(df.group))</span>
+<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a>    means <span class="op">=</span> [<span class="fu">sum</span>(df.amount[df.group <span class="op">.==</span> g]) <span class="op">/</span> <span class="fu">count</span>(<span class="op">==</span>(g), df.group) for g <span class="kw">in</span> gs]</span>
+<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a>    <span class="cf">return</span> <span class="fu">RDataFrame</span>((group <span class="op">=</span> gs, mean <span class="op">=</span> means))</span>
+<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">summarise</span>(df<span class="op">::</span><span class="dt">Sales</span>)<span class="op">::</span><span class="dt">Summary</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summarise</span>(<span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span>(<span class="at">group =</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"a"</span>), <span class="at">amount =</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>)))</span>
-<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   group mean</span></span>
-<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1     a    2</span></span>
-<span id="cb4-4"><a href="#cb4-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2     b    2</span></span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summarise</span>(<span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span>(<span class="at">group =</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"a"</span>), <span class="at">amount =</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>)))</span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   group mean</span></span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1     a    2</span></span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2     b    2</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>An <code>RDataFrame</code> argument:</p>
@@ -760,27 +826,27 @@ visitors who prefer it, before Quarto reads the stored choice.
 <p>Sometimes an object is easier to keep in Julia than to convert into an R data structure. You can pass such objects by reference using <code>RRef{T}</code>. R receives an external pointer to the Julia object, allowing it to be reused across calls. The object is released when R garbage-collects the reference.</p>
 <p>For example, define a mutable Julia object and expose functions that operate on it (the <a href="https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/counterjl"><code>counterjl</code></a> test client is a complete version of this):</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb5"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="kw">mutable struct</span> Counter</span>
-<span id="cb5-2"><a href="#cb5-2" aria-hidden="true" tabindex="-1"></a>    n<span class="op">::</span><span class="dt">Int64</span></span>
-<span id="cb5-3"><a href="#cb5-3" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb5-4"><a href="#cb5-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-5"><a href="#cb5-5" aria-hidden="true" tabindex="-1"></a>JLBind.<span class="fu">r_class</span>(<span class="op">::</span><span class="dt">Type{Counter}</span>) <span class="op">=</span> <span class="st">"counter"</span></span>
-<span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-7"><a href="#cb5-7" aria-hidden="true" tabindex="-1"></a><span class="fu">new_counter</span>(start<span class="op">::</span><span class="dt">Int64</span>) <span class="op">=</span> <span class="fu">Counter</span>(start)</span>
-<span id="cb5-8"><a href="#cb5-8" aria-hidden="true" tabindex="-1"></a><span class="fu">increment</span>(c<span class="op">::</span><span class="dt">Counter</span>, by<span class="op">::</span><span class="dt">Int64</span>) <span class="op">=</span> (c.n <span class="op">+=</span> by; c.n)</span>
-<span id="cb5-9"><a href="#cb5-9" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb5-10"><a href="#cb5-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">new_counter</span>(start<span class="op">::</span><span class="dt">Int64</span>)<span class="op">::</span><span class="dt">RRef{Counter}</span></span>
-<span id="cb5-11"><a href="#cb5-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">increment</span>(c<span class="op">::</span><span class="dt">RRef{Counter}</span>, by<span class="op">::</span><span class="dt">Int64</span>)<span class="op">::</span><span class="dt">Int64</span></span></code></pre></div>
+<div class="sourceCode" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">mutable struct</span> Counter</span>
+<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>    n<span class="op">::</span><span class="dt">Int64</span></span>
+<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a>JLBind.<span class="fu">r_class</span>(<span class="op">::</span><span class="dt">Type{Counter}</span>) <span class="op">=</span> <span class="st">"counter"</span></span>
+<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="fu">new_counter</span>(start<span class="op">::</span><span class="dt">Int64</span>) <span class="op">=</span> <span class="fu">Counter</span>(start)</span>
+<span id="cb7-8"><a href="#cb7-8" aria-hidden="true" tabindex="-1"></a><span class="fu">increment</span>(c<span class="op">::</span><span class="dt">Counter</span>, by<span class="op">::</span><span class="dt">Int64</span>) <span class="op">=</span> (c.n <span class="op">+=</span> by; c.n)</span>
+<span id="cb7-9"><a href="#cb7-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb7-10"><a href="#cb7-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">new_counter</span>(start<span class="op">::</span><span class="dt">Int64</span>)<span class="op">::</span><span class="dt">RRef{Counter}</span></span>
+<span id="cb7-11"><a href="#cb7-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">increment</span>(c<span class="op">::</span><span class="dt">RRef{Counter}</span>, by<span class="op">::</span><span class="dt">Int64</span>)<span class="op">::</span><span class="dt">Int64</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>From R, you can create a counter and update it across calls:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>counter <span class="ot">&lt;-</span> <span class="fu">new_counter</span>(<span class="dv">0</span>)</span>
-<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/class.html">class</a></span>(counter)</span>
-<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] "counter"</span></span>
-<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a><span class="fu">increment</span>(counter, <span class="dv">2</span>)</span>
-<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 2</span></span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>counter <span class="ot">&lt;-</span> <span class="fu">new_counter</span>(<span class="dv">0</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/class.html">class</a></span>(counter)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] "counter"</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">increment</span>(counter, <span class="dv">2</span>)</span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 2</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p><code>r_class()</code> sets the R class of the external pointer, so your package can define methods such as <code><a href="https://rdrr.io/r/base/print.html">print</a>()</code> for it. An argument declared as <code>RRef{Counter}</code> also checks that the reference points to a <code>Counter</code>, rather than accepting an arbitrary Julia object.</p>
@@ -788,20 +854,20 @@ visitors who prefer it, before Quarto reads the stored choice.
 <p>R writes an external pointer as a null pointer, so by default a reference does not survive <code><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a>()</code>, <code><a href="https://rdrr.io/r/base/save.html">save</a>()</code>, <code><a href="https://rdrr.io/r/base/serialize.html">serialize</a>()</code>, or being sent to a parallel worker; using it afterwards gives an error. To make a type savable, you need to do two things.</p>
 <p>In Julia, define <code>JLBind.r_saved_by()</code>, which names your R package, and <code>JLBind.r_restore()</code>, which rebuilds the object from the saved data:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>JLBind.<span class="fu">r_saved_by</span>(<span class="op">::</span><span class="dt">Type{Counter}</span>) <span class="op">=</span> <span class="st">"mypackage"</span></span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>JLBind.<span class="fu">r_restore</span>(<span class="op">::</span><span class="dt">Type{Counter}</span>, state<span class="op">::</span><span class="dt">SEXP</span>) <span class="op">=</span></span>
-<span id="cb7-3"><a href="#cb7-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">Counter</span>(<span class="fu">from_sexp</span>(<span class="dt">NamedTuple</span>{(<span class="op">:</span>n,),<span class="dt">Tuple</span>{<span class="dt">Int64</span>}}, state).n)</span>
-<span id="cb7-4"><a href="#cb7-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-5"><a href="#cb7-5" aria-hidden="true" tabindex="-1"></a><span class="fu">counter_value</span>(c<span class="op">::</span><span class="dt">Counter</span>) <span class="op">=</span> c.n</span>
-<span id="cb7-6"><a href="#cb7-6" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb7-7"><a href="#cb7-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">counter_value</span>(c<span class="op">::</span><span class="dt">RRef{Counter}</span>)<span class="op">::</span><span class="dt">Int64</span></span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>JLBind.<span class="fu">r_saved_by</span>(<span class="op">::</span><span class="dt">Type{Counter}</span>) <span class="op">=</span> <span class="st">"mypackage"</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>JLBind.<span class="fu">r_restore</span>(<span class="op">::</span><span class="dt">Type{Counter}</span>, state<span class="op">::</span><span class="dt">SEXP</span>) <span class="op">=</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>    <span class="fu">Counter</span>(<span class="fu">from_sexp</span>(<span class="dt">NamedTuple</span>{(<span class="op">:</span>n,),<span class="dt">Tuple</span>{<span class="dt">Int64</span>}}, state).n)</span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a><span class="fu">counter_value</span>(c<span class="op">::</span><span class="dt">Counter</span>) <span class="op">=</span> c.n</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">counter_value</span>(c<span class="op">::</span><span class="dt">RRef{Counter}</span>)<span class="op">::</span><span class="dt">Int64</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>In R, define <code>.jlbind_saved_state()</code>, which returns that data as a list of plain R values. It is internal, so don’t export it. If your package has several savable types, branch on the class of <code>x</code>:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>.jlbind_saved_state <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="at">n =</span> <span class="fu">counter_value</span>(x))</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
+<div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>.jlbind_saved_state <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="at">n =</span> <span class="fu">counter_value</span>(x))</span>
+<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>The first call that uses a loaded object rebuilds it, which needs the compiled library.</p>
@@ -830,67 +896,67 @@ Warning
 <details><summary>
 Shape types and their areas
 </summary><div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb10"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a><span class="kw">abstract type</span> Shape <span class="kw">end</span></span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Circle <span class="op">&lt;:</span><span class="dt"> Shape</span></span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    radius<span class="op">::</span><span class="dt">Float64</span></span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Square <span class="op">&lt;:</span><span class="dt"> Shape</span></span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    side<span class="op">::</span><span class="dt">Float64</span></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Rectangle <span class="op">&lt;:</span><span class="dt"> Shape</span></span>
-<span id="cb10-10"><a href="#cb10-10" aria-hidden="true" tabindex="-1"></a>    width<span class="op">::</span><span class="dt">Float64</span></span>
-<span id="cb10-11"><a href="#cb10-11" aria-hidden="true" tabindex="-1"></a>    height<span class="op">::</span><span class="dt">Float64</span></span>
-<span id="cb10-12"><a href="#cb10-12" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb10-13"><a href="#cb10-13" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Triangle <span class="op">&lt;:</span><span class="dt"> Shape</span></span>
-<span id="cb10-14"><a href="#cb10-14" aria-hidden="true" tabindex="-1"></a>    base<span class="op">::</span><span class="dt">Float64</span></span>
-<span id="cb10-15"><a href="#cb10-15" aria-hidden="true" tabindex="-1"></a>    height<span class="op">::</span><span class="dt">Float64</span></span>
-<span id="cb10-16"><a href="#cb10-16" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb10-17"><a href="#cb10-17" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-18"><a href="#cb10-18" aria-hidden="true" tabindex="-1"></a>JLBind.<span class="fu">r_class</span>(<span class="op">::</span><span class="dt">Type{&lt;:Shape}</span>) <span class="op">=</span> <span class="st">"shape"</span></span>
-<span id="cb10-19"><a href="#cb10-19" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb10-20"><a href="#cb10-20" aria-hidden="true" tabindex="-1"></a><span class="fu">area</span>(s<span class="op">::</span><span class="dt">Circle</span>) <span class="op">=</span> <span class="cn">pi</span> <span class="op">*</span> s.radius<span class="op">^</span><span class="fl">2</span></span>
-<span id="cb10-21"><a href="#cb10-21" aria-hidden="true" tabindex="-1"></a><span class="fu">area</span>(s<span class="op">::</span><span class="dt">Square</span>) <span class="op">=</span> s.side<span class="op">^</span><span class="fl">2</span></span>
-<span id="cb10-22"><a href="#cb10-22" aria-hidden="true" tabindex="-1"></a><span class="fu">area</span>(s<span class="op">::</span><span class="dt">Rectangle</span>) <span class="op">=</span> s.width <span class="op">*</span> s.height</span>
-<span id="cb10-23"><a href="#cb10-23" aria-hidden="true" tabindex="-1"></a><span class="fu">area</span>(s<span class="op">::</span><span class="dt">Triangle</span>) <span class="op">=</span> s.base <span class="op">*</span> s.height <span class="op">/</span> <span class="fl">2</span></span></code></pre></div>
+<div class="sourceCode" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">abstract type</span> Shape <span class="kw">end</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Circle <span class="op">&lt;:</span><span class="dt"> Shape</span></span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    radius<span class="op">::</span><span class="dt">Float64</span></span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Square <span class="op">&lt;:</span><span class="dt"> Shape</span></span>
+<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a>    side<span class="op">::</span><span class="dt">Float64</span></span>
+<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Rectangle <span class="op">&lt;:</span><span class="dt"> Shape</span></span>
+<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a>    width<span class="op">::</span><span class="dt">Float64</span></span>
+<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a>    height<span class="op">::</span><span class="dt">Float64</span></span>
+<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="kw">struct</span> Triangle <span class="op">&lt;:</span><span class="dt"> Shape</span></span>
+<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a>    base<span class="op">::</span><span class="dt">Float64</span></span>
+<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    height<span class="op">::</span><span class="dt">Float64</span></span>
+<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a>JLBind.<span class="fu">r_class</span>(<span class="op">::</span><span class="dt">Type{&lt;:Shape}</span>) <span class="op">=</span> <span class="st">"shape"</span></span>
+<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a><span class="fu">area</span>(s<span class="op">::</span><span class="dt">Circle</span>) <span class="op">=</span> <span class="cn">pi</span> <span class="op">*</span> s.radius<span class="op">^</span><span class="fl">2</span></span>
+<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a><span class="fu">area</span>(s<span class="op">::</span><span class="dt">Square</span>) <span class="op">=</span> s.side<span class="op">^</span><span class="fl">2</span></span>
+<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a><span class="fu">area</span>(s<span class="op">::</span><span class="dt">Rectangle</span>) <span class="op">=</span> s.width <span class="op">*</span> s.height</span>
+<span id="cb12-23"><a href="#cb12-23" aria-hidden="true" tabindex="-1"></a><span class="fu">area</span>(s<span class="op">::</span><span class="dt">Triangle</span>) <span class="op">=</span> s.base <span class="op">*</span> s.height <span class="op">/</span> <span class="fl">2</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 </details><p>An entrypoint that takes an <code>RRef{Shape}</code> knows only that its argument is <em>some</em> <code>Shape</code>. If it simply calls <code>area(s)</code>, the compiler cannot tell which of the four methods that call reaches, and the build fails with an error such as:</p>
 <pre class="text"><code>Verifier error #1: unresolved call from statement area(s::Shape)::Any</code></pre>
 <p>One possible solution is to branch on the concrete types once, with <code>@nospecialize</code>, and to make the call inside each branch, where the type is known:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb12"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">with_shape</span>(f<span class="op">::</span><span class="dt">F</span>, <span class="pp">@nospecialize</span>(s<span class="op">::</span><span class="dt">Shape</span>)) <span class="kw">where</span> {F}</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>    s isa Circle <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>    s isa Square <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>    s isa Rectangle <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>    s isa Triangle <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">throw</span>(<span class="fu">ArgumentError</span>(<span class="st">"unknown shape"</span>))</span>
-<span id="cb12-7"><a href="#cb12-7" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb12-8"><a href="#cb12-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-9"><a href="#cb12-9" aria-hidden="true" tabindex="-1"></a><span class="fu">circle</span>(radius<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span> <span class="fu">Circle</span>(radius)</span>
-<span id="cb12-10"><a href="#cb12-10" aria-hidden="true" tabindex="-1"></a><span class="fu">square</span>(side<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span> <span class="fu">Square</span>(side)</span>
-<span id="cb12-11"><a href="#cb12-11" aria-hidden="true" tabindex="-1"></a><span class="fu">rectangle</span>(width<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span> <span class="fu">Rectangle</span>(width, height)</span>
-<span id="cb12-12"><a href="#cb12-12" aria-hidden="true" tabindex="-1"></a><span class="fu">triangle</span>(base<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span> <span class="fu">Triangle</span>(base, height)</span>
-<span id="cb12-13"><a href="#cb12-13" aria-hidden="true" tabindex="-1"></a><span class="fu">shape_area</span>(<span class="pp">@nospecialize</span>(s<span class="op">::</span><span class="dt">Shape</span>)) <span class="op">=</span> <span class="fu">with_shape</span>(area, s)</span>
-<span id="cb12-14"><a href="#cb12-14" aria-hidden="true" tabindex="-1"></a><span class="fu">scaled_area</span>(<span class="pp">@nospecialize</span>(s<span class="op">::</span><span class="dt">Shape</span>), factor<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span></span>
-<span id="cb12-15"><a href="#cb12-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">with_shape</span>(x <span class="op">-&gt;</span> factor<span class="op">^</span><span class="fl">2</span> <span class="op">*</span> <span class="fu">area</span>(x), s)</span>
-<span id="cb12-16"><a href="#cb12-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb12-17"><a href="#cb12-17" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">circle</span>(radius<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
-<span id="cb12-18"><a href="#cb12-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">square</span>(side<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
-<span id="cb12-19"><a href="#cb12-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">rectangle</span>(width<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
-<span id="cb12-20"><a href="#cb12-20" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">triangle</span>(base<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
-<span id="cb12-21"><a href="#cb12-21" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">shape_area</span>(shape<span class="op">::</span><span class="dt">RRef{Shape}</span>)<span class="op">::</span><span class="dt">Float64</span></span>
-<span id="cb12-22"><a href="#cb12-22" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">scaled_area</span>(shape<span class="op">::</span><span class="dt">RRef{Shape}</span>, factor<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">Float64</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">with_shape</span>(f<span class="op">::</span><span class="dt">F</span>, <span class="pp">@nospecialize</span>(s<span class="op">::</span><span class="dt">Shape</span>)) <span class="kw">where</span> {F}</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    s isa Circle <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    s isa Square <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    s isa Rectangle <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    s isa Triangle <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">throw</span>(<span class="fu">ArgumentError</span>(<span class="st">"unknown shape"</span>))</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="fu">circle</span>(radius<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span> <span class="fu">Circle</span>(radius)</span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="fu">square</span>(side<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span> <span class="fu">Square</span>(side)</span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="fu">rectangle</span>(width<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span> <span class="fu">Rectangle</span>(width, height)</span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="fu">triangle</span>(base<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span> <span class="fu">Triangle</span>(base, height)</span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="fu">shape_area</span>(<span class="pp">@nospecialize</span>(s<span class="op">::</span><span class="dt">Shape</span>)) <span class="op">=</span> <span class="fu">with_shape</span>(area, s)</span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="fu">scaled_area</span>(<span class="pp">@nospecialize</span>(s<span class="op">::</span><span class="dt">Shape</span>), factor<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">with_shape</span>(x <span class="op">-&gt;</span> factor<span class="op">^</span><span class="fl">2</span> <span class="op">*</span> <span class="fu">area</span>(x), s)</span>
+<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">circle</span>(radius<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
+<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">square</span>(side<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
+<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">rectangle</span>(width<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
+<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">triangle</span>(base<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
+<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">shape_area</span>(shape<span class="op">::</span><span class="dt">RRef{Shape}</span>)<span class="op">::</span><span class="dt">Float64</span></span>
+<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">scaled_area</span>(shape<span class="op">::</span><span class="dt">RRef{Shape}</span>, factor<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">Float64</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>Every shape can then be passed to the same generated R functions:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>shapes <span class="ot">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="fu">circle</span>(<span class="dv">1</span>), <span class="fu">square</span>(<span class="dv">2</span>), <span class="fu">rectangle</span>(<span class="dv">2</span>, <span class="dv">3</span>), <span class="fu">triangle</span>(<span class="dv">2</span>, <span class="dv">3</span>))</span>
-<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span>(shapes, shape_area, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">numeric</a></span>(<span class="dv">1</span>))</span>
-<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 3.141593 4.000000 6.000000 3.000000</span></span>
-<span id="cb13-4"><a href="#cb13-4" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb13-5"><a href="#cb13-5" aria-hidden="true" tabindex="-1"></a><span class="fu">scaled_area</span>(<span class="fu">square</span>(<span class="dv">2</span>), <span class="dv">3</span>)</span>
-<span id="cb13-6"><a href="#cb13-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 36</span></span></code></pre></div>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>shapes <span class="ot">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="fu">circle</span>(<span class="dv">1</span>), <span class="fu">square</span>(<span class="dv">2</span>), <span class="fu">rectangle</span>(<span class="dv">2</span>, <span class="dv">3</span>), <span class="fu">triangle</span>(<span class="dv">2</span>, <span class="dv">3</span>))</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span>(shapes, shape_area, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">numeric</a></span>(<span class="dv">1</span>))</span>
+<span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 3.141593 4.000000 6.000000 3.000000</span></span>
+<span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="fu">scaled_area</span>(<span class="fu">square</span>(<span class="dv">2</span>), <span class="dv">3</span>)</span>
+<span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 36</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>Without <code>@nospecialize</code>, Julia compiles a separate <code>with_shape</code> for each concrete shape, and the call into it can’t be resolved, for the same reason as <code>area(s)</code>. Functions that pass the shape on, such as <code>shape_area</code>, need it too (this small example happens to compile without it, since it is inlined).</p>
