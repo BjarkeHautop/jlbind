@@ -67,9 +67,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-5f04c08b27b05406f02521ba300b9906.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-a30fdb1d660ea9bb63b3f4fd7d6b7902.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -375,7 +375,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <small class="dont-index">Source: <a href="https://github.com/BjarkeHautop/jlbind/blob/HEAD/R/library.R"><code>R/library.R</code></a></small>
 </p>
 <section id="description" class="level2"><h2 class="anchored" data-anchor-id="description">Description</h2>
-<p>Deletes the library built by <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./install_library.html">install_library()</a></code>, with everything else jlbind stores in <code><a href="https://rdrr.io/r/tools/userdir.html">tools::R_user_dir("jlbind", "data")</a></code>. Packages that use jlbind can’t call their Julia code until you run <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./install_library.html">install_library()</a></code> again.</p>
+<p>Deletes the library built by <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./install_library.html">install_library</a>()</code>, with everything else jlbind stores in <code>tools::<a href="https://rdrr.io/r/tools/userdir.html">R_user_dir</a>("jlbind", "data")</code>. Packages that use jlbind can’t call their Julia code until you run <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./install_library.html">install_library</a>()</code> again.</p>
 </section><section id="usage" class="level2"><h2 class="anchored" data-anchor-id="usage">Usage</h2>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./remove_library.html">remove_library</a></span>(<span class="at">ask =</span> <span class="fu"><a href="https://rdrr.io/r/base/interactive.html">interactive</a></span>())</span></code></pre></div>
@@ -390,7 +390,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 If <code>TRUE</code>, ask before removing. Defaults to <a href="https://rdrr.io/r/base/interactive.html"><code>interactive()</code></a>.
 </td>
 </tr></tbody></table></section><section id="details" class="level2"><h2 class="anchored" data-anchor-id="details">Details</h2>
-<p>Libraries that <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="./build_library.html">build_library()</a></code> wrote elsewhere are left alone, as are the Julia packages that builds downloaded into Julia’s package depot; run <code>Pkg.gc()</code> in Julia to remove the ones nothing uses.</p>
+<p>Libraries that <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="./build_library.html">build_library</a>()</code> wrote elsewhere are left alone, as are the Julia packages that builds downloaded into Julia’s package depot; run <code>Pkg.gc()</code> in Julia to remove the ones nothing uses.</p>
 </section><section id="value" class="level2"><h2 class="anchored" data-anchor-id="value">Value</h2>
 <p><code>TRUE</code> if there was a library to remove, otherwise <code>FALSE</code>, invisibly.</p>
 </section><section id="examples" class="level2"><h2 class="anchored" data-anchor-id="examples">Examples</h2>

@@ -67,9 +67,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-5f04c08b27b05406f02521ba300b9906.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-a30fdb1d660ea9bb63b3f4fd7d6b7902.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -381,7 +381,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 </header><p class="source-note">
 <small class="dont-index">Source: <a href="https://github.com/BjarkeHautop/jlbind/blob/HEAD/vignettes/jlbind.qmd"><code>vignettes/jlbind.qmd</code></a></small>
 </p>
-<p>jlbind lets an R package call Julia code without starting a Julia session. The Julia code is compiled ahead of time into a shared library, and R calls it through native <code><a href="https://rdrr.io/r/base/CallExternal.html">.Call()</a></code> routines.</p>
+<p>jlbind lets an R package call Julia code without starting a Julia session. The Julia code is compiled ahead of time into a shared library, and R calls it through native <code><a href="https://rdrr.io/r/base/CallExternal.html">.Call</a>()</code> routines.</p>
 <p>You need <a href="https://julialang.org/install/">Julia</a> 1.13 or later, and <a href="https://devtools.r-lib.org/">devtools</a> for the development workflow below.</p>
 <p>We will refer to an R package that uses jlbind as a <em>client</em>.</p>
 <section id="set-up-your-package" class="level2"><h2 class="anchored" data-anchor-id="set-up-your-package">Set up your package</h2>
@@ -406,7 +406,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 </div>
 <p><code>@rcall</code> declares a Julia function that R can call, along with its argument and return types.</p>
 </section><section id="try-the-example" class="level2"><h2 class="anchored" data-anchor-id="try-the-example">Try the example</h2>
-<p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/use_jlbind.html">use_jlbind()</a></code> has already generated the R function for <code>hello()</code>, so all that’s left is to compile the Julia code and load your package:</p>
+<p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/use_jlbind.html">use_jlbind</a>()</code> has already generated the R function for <code>hello()</code>, so all that’s left is to compile the Julia code and load your package:</p>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/build_library.html">build_library</a></span>()</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>devtools<span class="sc">::</span><span class="fu">load_all</span>()</span></code></pre></div>
@@ -444,7 +444,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <i class="callout-icon"></i>
 </div>
 <div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Note</span>What <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../reference/update_entrypoints.html">update_entrypoints()</a></code> generates
+<span class="screen-reader-only">Note</span>What <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../reference/update_entrypoints.html">update_entrypoints</a>()</code> generates
 </div>
 <div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
 </div>
@@ -465,7 +465,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="pp">    JLBIND_ENTRY</span><span class="op">(</span><span class="pp">shift</span><span class="op">,</span><span class="pp"> </span><span class="dv">2</span><span class="op">,</span><span class="pp"> </span><span class="op">(</span><span class="pp">SEXP a1</span><span class="op">,</span><span class="pp"> SEXP a2</span><span class="op">),</span><span class="pp"> </span><span class="op">(</span><span class="pp">a1</span><span class="op">,</span><span class="pp"> a2</span><span class="op">))</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p><code>src/jlbind.c</code>, which <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/use_jlbind.html">use_jlbind()</a></code> added, turns each entry into a routine for <code><a href="https://rdrr.io/r/base/CallExternal.html">.Call()</a></code>, such as <code>C_shift</code>. That routine forwards to <code>mypkgBindings_shift_2</code>, the function <code>@rcall</code> exports from the compiled library. The name includes the number of arguments, so if the list and the library disagree, your package fails to bind instead of crashing.</p>
+<p><code>src/jlbind.c</code>, which <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/use_jlbind.html">use_jlbind</a>()</code> added, turns each entry into a routine for <code><a href="https://rdrr.io/r/base/CallExternal.html">.Call</a>()</code>, such as <code>C_shift</code>. That routine forwards to <code>mypkgBindings_shift_2</code>, the function <code>@rcall</code> exports from the compiled library. The name includes the number of arguments, so if the list and the library disagree, your package fails to bind instead of crashing.</p>
 </div>
 </div>
 </div>
@@ -483,7 +483,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">shift</span>(x<span class="op">::</span><span class="dt">Vector{Float64}</span>, by<span class="op">::</span><span class="dt">Float64 </span><span class="op">=</span> <span class="fl">1.0</span>)<span class="op">::</span><span class="dt">Vector{Float64}</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p><code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../reference/update_entrypoints.html">update_entrypoints()</a></code> copies them above <code>shift()</code> in <code>R/jlbind-wrappers.R</code>, so roxygen2 reads the function’s signature from there. To share a help page, use <code>#' @rdname</code> above the <code>@rcall</code> and write the page itself in <code>R/</code>, on <code>NULL</code>.</p>
+<p><code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../reference/update_entrypoints.html">update_entrypoints</a>()</code> copies them above <code>shift()</code> in <code>R/jlbind-wrappers.R</code>, so roxygen2 reads the function’s signature from there. To share a help page, use <code>#' @rdname</code> above the <code>@rcall</code> and write the page itself in <code>R/</code>, on <code>NULL</code>.</p>
 <p>To add R code around a call, declare the Julia function with a <code>jl_</code> prefix, e.g. <code>@rcall jl_shift(...)</code>, and write <code>shift()</code> yourself, calling <code>jl_shift()</code>.</p>
 </section><section id="share-your-package" class="level2"><h2 class="anchored" data-anchor-id="share-your-package">Share your package</h2>
 <p>An R process can load only one compiled Julia library, so jlbind compiles the Julia code of all installed clients into one library on each user’s machine. Tell your users, for example in your README, to run this after installing your package:</p>
@@ -496,7 +496,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">skip_if_not</span>(jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t5" href="../reference/is_bound.html">is_bound</a></span>(<span class="st">"mypkg"</span>))</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p>In examples, wrap such calls in <code>if (jlbind::is_bound("mypkg"))</code>. Then run <code><a class="quartodown-tip-ref" data-quartodown-tip="t6" href="../reference/use_jlbind_ci.html">jlbind::use_jlbind_ci()</a></code> to check your package both with and without Julia on GitHub Actions.</p>
+<p>In examples, wrap such calls in <code>if (jlbind::is_bound("mypkg"))</code>. Then run <code>jlbind::<a class="quartodown-tip-ref" data-quartodown-tip="t6" href="../reference/use_jlbind_ci.html">use_jlbind_ci</a>()</code> to check your package both with and without Julia on GitHub Actions.</p>
 </section><section id="next-steps" class="level2"><h2 class="anchored" data-anchor-id="next-steps">Next steps</h2>
 <ul>
 <li>

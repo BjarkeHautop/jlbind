@@ -67,9 +67,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../../site_libs/bootstrap/bootstrap.min.js"></script><link href="../../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../../site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../../site_libs/bootstrap/bootstrap-dark-5f04c08b27b05406f02521ba300b9906.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../../site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../../site_libs/bootstrap/bootstrap-dark-a30fdb1d660ea9bb63b3f4fd7d6b7902.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -372,7 +372,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 </header><p class="source-note">
 <small class="dont-index">Source: <a href="https://github.com/BjarkeHautop/jlbind/blob/HEAD/vignettes/articles/performance.qmd"><code>vignettes/articles/performance.qmd</code></a></small>
 </p>
-<p>jlbind calls Julia code that was compiled ahead of time, through one <code><a href="https://rdrr.io/r/base/CallExternal.html">.Call()</a></code> per function. The alternatives, <a href="https://github.com/JuliaInterop/JuliaCall">JuliaCall</a> and <a href="https://github.com/stefan-m-lenz/JuliaConnectoR">JuliaConnectoR</a>, run Julia itself: JuliaCall embeds a Julia session in the R process, and JuliaConnectoR starts one in a separate process and talks to it over a socket. This article compares the three on the same Julia functions.</p>
+<p>jlbind calls Julia code that was compiled ahead of time, through one <code><a href="https://rdrr.io/r/base/CallExternal.html">.Call</a>()</code> per function. The alternatives, <a href="https://github.com/JuliaInterop/JuliaCall">JuliaCall</a> and <a href="https://github.com/stefan-m-lenz/JuliaConnectoR">JuliaConnectoR</a>, run Julia itself: JuliaCall embeds a Julia session in the R process, and JuliaConnectoR starts one in a separate process and talks to it over a socket. This article compares the three on the same Julia functions.</p>
 <p>In short, on this machine, jlbind is ready to use 84 to 109 times sooner, and a call costs 0.702 µs rather than 8.76 µs (JuliaCall) or 207 µs (JuliaConnectoR).</p>
 <section id="the-benchmarks" class="level2"><h2 class="anchored" data-anchor-id="the-benchmarks">The benchmarks</h2>
 <p>The functions are those of <code>benchjl</code>, a minimal jlbind client kept next to the benchmark script:</p>
@@ -461,7 +461,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 </table>
 </div>
 </div>
-<p>A jlbind call is a <code><a href="https://rdrr.io/r/base/CallExternal.html">.Call()</a></code> into the compiled library, where the arguments are converted with R’s C API and the function is called directly. JuliaCall converts arguments and looks up the function at run time in the embedded session. JuliaConnectoR serializes the call to a separate Julia process and the result back, so each call costs a round trip.</p>
+<p>A jlbind call is a <code><a href="https://rdrr.io/r/base/CallExternal.html">.Call</a>()</code> into the compiled library, where the arguments are converted with R’s C API and the function is called directly. JuliaCall converts arguments and looks up the function at run time in the embedded session. JuliaConnectoR serializes the call to a separate Julia process and the result back, so each call costs a round trip.</p>
 </section><section id="data-transfer" class="level2"><h2 class="anchored" data-anchor-id="data-transfer">Data transfer</h2>
 <div class="cell">
 <div class="cell-output-display">

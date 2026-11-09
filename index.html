@@ -67,9 +67,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script><link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-5f04c08b27b05406f02521ba300b9906.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-a30fdb1d660ea9bb63b3f4fd7d6b7902.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -383,7 +383,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <p>This compiles the Julia code of every installed package that uses jlbind and may take a few minutes. Run it again whenever you install or update one of them.</p>
 <p>See <a href="https://bjarkehautop.github.io/jlbind/vignettes/using-clients.html">Using packages built on jlbind</a> for threads, troubleshooting and Julia dependency versions.</p>
 </section><section id="writing-a-package-that-uses-jlbind" class="level2"><h2 class="anchored" data-anchor-id="writing-a-package-that-uses-jlbind">Writing a package that uses jlbind</h2>
-<p>Set up a package with <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="reference/use_jlbind.html">jlbind::use_jlbind()</a></code>, then declare the Julia functions R can call in the generated binding package under <code>inst/julia/</code>:</p>
+<p>Set up a package with <code>jlbind::<a class="quartodown-tip-ref" data-quartodown-tip="t2" href="reference/use_jlbind.html">use_jlbind</a>()</code>, then declare the Julia functions R can call in the generated binding package under <code>inst/julia/</code>:</p>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb3"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="kw">module</span> MyPkgBindings</span>
 <span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a></span>
@@ -395,7 +395,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <span id="cb3-8"><a href="#cb3-8" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p>Run <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="reference/update_entrypoints.html">jlbind::update_entrypoints()</a></code>, which generates the R function <code>greet(name)</code> that calls it.</p>
+<p>Run <code>jlbind::<a class="quartodown-tip-ref" data-quartodown-tip="t3" href="reference/update_entrypoints.html">update_entrypoints</a>()</code>, which generates the R function <code>greet(name)</code> that calls it.</p>
 <p>See <a href="https://bjarkehautop.github.io/jlbind/vignettes/jlbind.html">Get started with jlbind</a> for a walkthrough, and <a href="https://bjarkehautop.github.io/jlbind/vignettes/technical-details.html">Technical details</a> for types, errors and compilation constraints.</p>
 </section><section id="contributing" class="level2"><h2 class="anchored" data-anchor-id="contributing">Contributing</h2>
 <p>Contributions of all kinds are very welcome! You may use LLMs, but please write issue and PR descriptions in your own words. If you submit a PR, you should understand the code you’re contributing.</p>

@@ -67,9 +67,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-5f04c08b27b05406f02521ba300b9906.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-385a762fe0287656d3ac6aff4f7f7651.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-a30fdb1d660ea9bb63b3f4fd7d6b7902.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-dfebb157b562ab802c491a652fa23640.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -402,11 +402,11 @@ visitors who prefer it, before Quarto reads the stored choice.
 <li>
 <code>R/jlbind-wrappers.R</code>, with an R function for each Julia function the binding package declares.</li>
 <li>
-<code>R/jlbind.R</code>, which calls <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/bind_client.html">jlbind::bind_client()</a></code> from <code>.onLoad()</code> and includes the roxygen tag for <code>useDynLib()</code>.</li>
+<code>R/jlbind.R</code>, which calls <code>jlbind::<a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/bind_client.html">bind_client</a>()</code> from <code>.onLoad()</code> and includes the roxygen tag for <code>useDynLib()</code>.</li>
 <li>The <code>Config/jlbind</code>, <code>Imports: jlbind</code> and <code>SystemRequirements: Julia (&gt;= 1.13)</code> fields in <code>DESCRIPTION</code>.</li>
 <li>A <code>.jlbind/</code> directory for development builds, added to <code>.Rbuildignore</code> and <code>.gitignore</code>.</li>
 </ul>
-<p>If your package already defines <code>.onLoad()</code>, add <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/bind_client.html">jlbind::bind_client(pkgname)</a></code> to the existing function yourself.</p>
+<p>If your package already defines <code>.onLoad()</code>, add <code>jlbind::<a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/bind_client.html">bind_client</a>(pkgname)</code> to the existing function yourself.</p>
 <div class="callout callout-style-default callout-important callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -437,7 +437,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 </div>
 <p>A default in a declaration must be a literal number, string, <code>true</code>, <code>false</code> or <code>nothing</code>, which becomes <code>NULL</code> in R.</p>
 </section><section id="development-libraries" class="level2"><h2 class="anchored" data-anchor-id="development-libraries">Development libraries</h2>
-<p>By default, <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/build_library.html">build_library()</a></code> writes the library to <code>.jlbind/</code> in your package’s source directory. When you load the package with <code>devtools::load_all()</code>, jlbind uses this development library instead of the one created by <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../reference/install_library.html">install_library()</a></code>. Once <code>.jlbind/</code> exists, <code>devtools::load_all()</code> rebuilds it when your binding package’s files or your package’s version have changed since it was built.</p>
+<p>By default, <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/build_library.html">build_library</a>()</code> writes the library to <code>.jlbind/</code> in your package’s source directory. When you load the package with <code>devtools::load_all()</code>, jlbind uses this development library instead of the one created by <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../reference/install_library.html">install_library</a>()</code>. Once <code>.jlbind/</code> exists, <code>devtools::load_all()</code> rebuilds it when your binding package’s files or your package’s version have changed since it was built.</p>
 <div class="callout callout-style-default callout-note callout-titled">
 <div class="callout-header d-flex align-content-center">
 <div class="callout-icon-container">
@@ -718,7 +718,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <li>
 <strong>Dates:</strong> to use <code>Date</code> or <code>DateTime</code>, add the <code>Dates</code> standard library to the binding package’s dependencies.</li>
 <li>
-<strong>Lists:</strong> if one element of a list can’t be converted, the error says which. For example, passing <code><a href="https://rdrr.io/r/base/list.html">list(c(1, 2), "a")</a></code> as a <code>Vector{Vector{Float64}}</code> gives the error <code>element 2: expected a numeric vector</code>.</li>
+<strong>Lists:</strong> if one element of a list can’t be converted, the error says which. For example, passing <code><a href="https://rdrr.io/r/base/list.html">list</a>(c(1, 2), "a")</code> as a <code>Vector{Vector{Float64}}</code> gives the error <code>element 2: expected a numeric vector</code>.</li>
 </ul></section><section id="data-frames" class="level3"><h3 class="anchored" data-anchor-id="data-frames">Data frames</h3>
 <p>To take or return a data frame, wrap the columns in an <code>RDataFrame</code>. Its type lists the column names and the type of each column, so a type alias keeps signatures short:</p>
 <div class="code-copy-outer-scaffold">
@@ -781,9 +781,9 @@ visitors who prefer it, before Quarto reads the stored choice.
 <span id="cb5-6"><a href="#cb5-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 2</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p><code>r_class()</code> sets the R class of the external pointer, so your package can define methods such as <code><a href="https://rdrr.io/r/base/print.html">print()</a></code> for it. An argument declared as <code>RRef{Counter}</code> also checks that the reference points to a <code>Counter</code>, rather than accepting an arbitrary Julia object.</p>
+<p><code>r_class()</code> sets the R class of the external pointer, so your package can define methods such as <code><a href="https://rdrr.io/r/base/print.html">print</a>()</code> for it. An argument declared as <code>RRef{Counter}</code> also checks that the reference points to a <code>Counter</code>, rather than accepting an arbitrary Julia object.</p>
 </section><section id="saving-julia-objects" class="level3"><h3 class="anchored" data-anchor-id="saving-julia-objects">Saving Julia objects</h3>
-<p>R writes an external pointer as a null pointer, so by default a reference does not survive <code><a href="https://rdrr.io/r/base/readRDS.html">saveRDS()</a></code>, <code><a href="https://rdrr.io/r/base/save.html">save()</a></code>, <code><a href="https://rdrr.io/r/base/serialize.html">serialize()</a></code>, or being sent to a parallel worker; using it afterwards gives an error. To make a type savable, you need to do two things.</p>
+<p>R writes an external pointer as a null pointer, so by default a reference does not survive <code><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a>()</code>, <code><a href="https://rdrr.io/r/base/save.html">save</a>()</code>, <code><a href="https://rdrr.io/r/base/serialize.html">serialize</a>()</code>, or being sent to a parallel worker; using it afterwards gives an error. To make a type savable, you need to do two things.</p>
 <p>In Julia, define <code>JLBind.r_saved_by()</code>, which names your R package, and <code>JLBind.r_restore()</code>, which rebuilds the object from the saved data:</p>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb6"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>JLBind.<span class="fu">r_saved_by</span>(<span class="op">::</span><span class="dt">Type{Counter}</span>) <span class="op">=</span> <span class="st">"mypackage"</span></span>
