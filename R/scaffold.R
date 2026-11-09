@@ -58,7 +58,12 @@ use_jlbind <- function(path = ".", module = NULL, dir = "julia") {
     if (!grepl("^[A-Za-z][A-Za-z0-9_]*$", module)) {
       stop("`module` must be a valid Julia package name.", call. = FALSE)
     }
-    vars <- list(package = pkg, module = module, uuid = .uuid3(module))
+    vars <- list(
+      package = pkg,
+      module = module,
+      uuid = .uuid3(module),
+      jlbind_rev = .jlbind_rev()
+    )
     dir.create(
       file.path(binding, "src"),
       recursive = TRUE,
@@ -576,6 +581,19 @@ update_entrypoints <- function(path = ".") {
   }
   if (changed) {
     write.dcf(desc, file, keep.white = colnames(desc))
+  }
+}
+
+# The git revision of jlbind whose JLBind a binding package's [sources] names,
+# so Pkg (and editors) can resolve the binding package's environment: the
+# release tag of the installed jlbind, or main for a development version.
+# Builds develop the installed copy of JLBind regardless.
+.jlbind_rev <- function(version = utils::packageVersion("jlbind")) {
+  version <- unclass(package_version(version))[[1L]]
+  if (length(version) > 3L && version[[4L]] >= 9000L) {
+    "main"
+  } else {
+    paste0("v", paste(version[1:3], collapse = "."))
   }
 }
 

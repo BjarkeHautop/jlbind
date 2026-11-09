@@ -54,8 +54,12 @@ unique across all jlbind clients. The default, the R package name with a
 
 ## Writing `@rcall` declarations
 
-The binding package is an ordinary Julia package. Declare its dependencies in
-`Project.toml` and import them as usual.
+The binding package is an ordinary Julia package. Add its dependencies with Pkg,
+from your package's directory, and import them as usual:
+
+```sh
+julia --project=inst/julia -e 'using Pkg; Pkg.add("SomePackage")'
+```
 
 ::: {.callout-important title="Write `@rcall` declarations literally at the top level"}
 jlbind finds `@rcall` declarations by scanning the source files, not by running

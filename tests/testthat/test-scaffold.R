@@ -32,6 +32,13 @@ test_that("use_jlbind() sets up a package", {
   expect_equal(readLines(file.path(pkg, ".Rbuildignore")), "^\\.jlbind$")
   expect_equal(readLines(file.path(pkg, ".gitignore")), ".jlbind/")
 
+  project <- readLines(file.path(pkg, "inst", "julia", "Project.toml"))
+  expect_true(any(grepl(
+    paste0('rev = "', .jlbind_rev(), '"'),
+    project[grepl("^JLBind = \\{url", project)],
+    fixed = TRUE
+  )))
+
   info <- .client_info(pkg)
   expect_equal(info$package, "my.pkg")
   expect_equal(info$module, "mypkgBindings")
@@ -142,4 +149,11 @@ test_that("a client's binding package must exist and be named", {
   writeLines('uuid = "x"', file.path(dir, "Project.toml"))
   expect_error(.binding_name(dir), "has no `name`")
   expect_true(.parse_trim(" Yes ", "x"))
+})
+
+test_that("[sources] names jlbind's release tag, or main in development", {
+  expect_equal(.jlbind_rev("0.2.1"), "v0.2.1")
+  expect_equal(.jlbind_rev("1.0.0.1"), "v1.0.0")
+  expect_equal(.jlbind_rev("0.0.0.9000"), "main")
+  expect_equal(.jlbind_rev("0.2.1.9001"), "main")
 })

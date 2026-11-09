@@ -8,5 +8,8 @@ version = "0.1.0"
 [deps]
 JLBind = "afbbfe3b-b84d-4508-8d61-b26819a6ee14"
 
+[sources]
+JLBind = {url = "https://github.com/BjarkeHautop/jlbind", subdir = "inst/julia/JLBind", rev = "{{jlbind_rev}}"}
+
 [compat]
 julia = "1.13"
