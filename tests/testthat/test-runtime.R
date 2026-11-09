@@ -203,12 +203,12 @@ test_that("bind_client() records why a client could not be bound", {
   .state$problems <- list()
 
   expect_error(check_bound("stats"), "has not asked to be bound")
-  # stats has registered routines, but no jlbind_bind.
+  # stats has no entrypoints.
   expect_false(bind_client("stats"))
   expect_false(is_bound("stats"))
-  expect_error(check_bound("stats"), "has no routine `jlbind_bind`")
+  expect_error(check_bound("stats"), "has no jlbind entrypoints")
 
-  # A bound client is bound again, as load_all() reloads its DLL.
+  # A bound client is bound again, as load_all() reloads its namespace.
   .state$bound <- "stats"
   expect_false(bind_client("stats"))
   expect_false(is_bound("stats"))
@@ -220,6 +220,45 @@ test_that("bind_client() records why a client could not be bound", {
   .state$bound <- character()
   .state$problem <- "No library."
   expect_error(check_bound("stats"), "No library.", fixed = TRUE)
+})
+
+test_that("jlbind_call() checks its entry", {
+  call <- jlbind_call$address
+  unbound <- .Call(jlbind_entries, NULL, "f", "demo")[[1L]]
+  expect_error(
+    .External(call, unbound, 1),
+    'library of demo is not available; run jlbind::check_bound("demo")',
+    fixed = TRUE
+  )
+  expect_error(.External(call, "f", 1), "Not a jlbind entrypoint")
+  # jlbind's own registered routines stand in for library symbols.
+  expect_error(
+    .Call(jlbind_entries, "jlbind", c("jlbind_entries", "nope"), "demo"),
+    "Symbol 'nope' not found"
+  )
+})
+
+test_that("bind_client() fills a client's entrypoints", {
+  local_state()
+  ns <- new.env()
+  ns$.jlbind_module <- "M"
+  ns$.jlbind_entries <- c("f", "g")
+  ns$.jlbind <- new.env(parent = emptyenv())
+  expect_null(.client_problem(ns, "demo"))
+  expect_match(.client_problem(new.env(), "demo"), "is missing")
+
+  .set_entries(ns, "demo", NULL)
+  expect_identical(ns$.jlbind$.call, jlbind_call$address)
+  expect_setequal(names(ns$.jlbind), c(".call", "f", "g"))
+  expect_error(
+    .External(ns$.jlbind$.call, ns$.jlbind$f, 1),
+    "library of demo is not available"
+  )
+  # Looked up as M_f and M_g, which jlbind's DLL does not have.
+  expect_error(
+    .set_entries(ns, "demo", list(name = "jlbind")),
+    "Symbol 'M_f' not found"
+  )
 })
 
 # Writes what build_library() records for a library in `dir` built from the

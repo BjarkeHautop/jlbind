@@ -87,12 +87,12 @@ Three layers, spread across R, Julia and C:
 - **`inst/julia/JLBind/`** — Julia package that clients' binding packages depend
   on: R C API via `ccall` (`rapi.jl`), `from_sexp`/`to_sexp` conversions
   (`convert.jl`), `RRef{T}` external-pointer registry (`refs.jl`), and the
-  `@rcall` macro (`rcall.jl`) that exports `<Module>_<f>_<nargs>` as a
-  `@ccallable`, returning errors as a `jlbind_error` character vector rather
-  than unwinding. The argument count in the name makes a client whose shim
-  disagrees with the library fail to bind rather than crash. `set_threads.c` is
-  compiled into the library and called via `.C`. JLBind is not registered:
-  builds `Pkg.develop` the copy shipped in the installed R package.
+  `@rcall` macro (`rcall.jl`) that exports `<Module>_<f>` as a `@ccallable` with
+  the signature `SEXP f(SEXP *args, int n)`, checking `n` against the
+  declaration and returning errors as a `jlbind_error` character vector rather
+  than unwinding. `set_threads.c` is compiled into the library and called from
+  `jlbind_set_threads()` in `src/call.c`. JLBind is not registered: builds
+  `Pkg.develop` the copy shipped in the installed R package.
 - **`inst/julia/build.jl`** — the compile step, invoked by the R side. It copies
   everything to writable scratch dirs, generates a `JLBindImage` package
   importing JLBind and every binding package, seeds dependencies from the first
@@ -112,26 +112,28 @@ Three layers, spread across R, Julia and C:
   each client that works before a library has loaded. `scaffold.R`:
   `use_jlbind()` and `update_entrypoints()`, which scans `@rcall` declarations
   (with comments/strings blanked, so they must be literal top-level `@rcall`s)
-  and writes `src/entrypoints.h`. `julia.R`: locating Julia.
+  and writes `R/jlbind-wrappers.R`. `julia.R`: locating Julia.
 
-Each client carries a generated C shim: `src/jlbind.c` (from
-`inst/templates/init.c`) plus `src/entrypoints.h` (an X-macro list of
-`JLBIND_ENTRY(name, nargs, params, args)`). The shim registers each routine
-itself and forwards to the combined library through function pointers resolved
-when jlbind calls the client's `jlbind_bind` routine. `src/Makevars` (from
-`.set_makevars()`) makes `jlbind.o` depend on `entrypoints.h`, since make would
-otherwise reuse a stale `jlbind.o` after `update_entrypoints()`.
+Clients are pure R packages, so a fix to how they call the library needs only a
+jlbind update. `R/jlbind-wrappers.R` defines `.jlbind_module`, `.jlbind_entries`
+(the entrypoint names) and an environment `.jlbind`; each wrapper is
+`.External(.jlbind$.call, .jlbind$<name>, args...)`. `bind_client()`
+(`.set_entries()`) fills `.jlbind` with external pointers to `<Module>_<name>`
+from `jlbind_entries()` in `src/call.c` (null ones while unbound, which give the
+"not available" error), and `.call` with the address of `jlbind_call()`, which
+passes the arguments as an array and raises a `jlbind_error` as an R error.
+`.call` is stored as the bare address, not a `NativeSymbolInfo`, because R CMD
+check flags a client's calls to another package's `NativeSymbolInfo`.
 
 jlbind's own `src/state.c` has the ALTREP class that lets a reference be saved
 (see `r_saved_by` in `refs.jl`): R must find the class when loading a file,
-before or without the library, and keeping it out of the clients' shims means
-updating jlbind is enough to change it. JLBind finds its `jlbind_state_hook`
-with `R_GetCCallable()` when first needed, since binding must not start Julia.
+before or without the library. JLBind finds its `jlbind_state_hook` with
+`R_GetCCallable()` when first needed, since binding must not start Julia.
 
 The test clients in `tests/clients/{hellojl,counterjl}` are scaffolded output:
-their `src/jlbind.c`, `src/entrypoints.h`, `src/Makevars` and `R/jlbind.R`
-correspond to `inst/templates/` and `update_entrypoints()`. When changing a
-template or the header generator, update the test clients to match.
+their `R/jlbind.R` and `R/jlbind-wrappers.R` correspond to `inst/templates/` and
+`update_entrypoints()`. When changing a template or the header generator, update
+the test clients to match.
 
 ## Constraints to keep in mind
 

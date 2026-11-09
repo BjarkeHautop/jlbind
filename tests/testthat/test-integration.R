@@ -57,7 +57,13 @@ test_that("two clients share one compiled library", {
         logical_raw = err(negate(as.raw(1))),
         logical_na = err(negate(NA)),
         bytes = err(greet(bytes)),
-        nul = err(with_nul("a"))
+        nul = err(with_nul("a")),
+        # A call that does not match the declaration, as from out-of-date
+        # wrappers.
+        nargs = local({
+          jl <- asNamespace("hellojl")$.jlbind
+          err(.External(jl$.call, jl$greet))
+        })
       )
       ints_vec <- 1:3
       conv <- list(
@@ -237,7 +243,8 @@ test_that("two clients share one compiled library", {
       logical_raw = "expected TRUE or FALSE",
       logical_na = "expected TRUE or FALSE, not NA",
       bytes = "expected text, not a string in \"bytes\" encoding",
-      nul = "cannot return a string containing NUL to R"
+      nul = "cannot return a string containing NUL to R",
+      nargs = "greet() takes 1 argument, but was given 0"
     )
   )
   conv <- res$conv
@@ -471,7 +478,7 @@ test_that("a bundled library can be moved and runs without Julia", {
   }
 })
 
-test_that("a client reloaded with pkgload::load_all() binds its new DLL", {
+test_that("a client reloaded with pkgload::load_all() is bound again", {
   skip_on_cran()
   skip_if_not(
     identical(Sys.getenv("JLBIND_TEST_BUILD"), "true"),
@@ -488,16 +495,13 @@ test_that("a client reloaded with pkgload::load_all() binds its new DLL", {
   suppressMessages(build_library(pkg, julia = julia))
   libpath <- local_install()
 
-  # pkgload loads a fresh copy of the client's DLL on each load_all() and
-  # leaves the old one loaded, so two DLLs named hellojl are loaded.
+  # Each load_all() makes a fresh namespace, whose entrypoints start unbound.
   res <- callr::r(
     function(pkg) {
       Sys.unsetenv("JLBIND_LIBRARY")
       pkgload::load_all(pkg, quiet = TRUE)
       pkgload::load_all(pkg, quiet = TRUE)
-      dlls <- Filter(function(d) d[["name"]] == "hellojl", getLoadedDLLs())
       list(
-        dlls = length(dlls),
         bound = jlbind::is_bound("hellojl"),
         greet = tryCatch(greet("R"), error = conditionMessage)
       )
@@ -508,7 +512,6 @@ test_that("a client reloaded with pkgload::load_all() binds its new DLL", {
     env = callr::rcmd_safe_env(),
     show = TRUE
   )
-  expect_gte(res$dlls, 1L)
   expect_true(res$bound)
   expect_equal(res$greet, "Hello, R!")
 })

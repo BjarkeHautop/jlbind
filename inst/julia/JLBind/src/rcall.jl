@@ -1,11 +1,11 @@
 """
     @rcall f(a::A, b::B, ...)::R
 
-Export the R entrypoint `<module>_f_<n>(a::SEXP, b::SEXP, ...)::SEXP`, where
-`<module>` is the name of the binding package the declaration is in and `<n>`
-the number of arguments. The count in the name means a client's C shim, which
-must pass exactly that many, finds no entrypoint in a library built from a
-declaration with another count, rather than one it would crash calling. It
+Export the R entrypoint `<module>_f(args::Ptr{SEXP}, n::Cint)::SEXP`, where
+`<module>` is the name of the binding package the declaration is in, and
+`args` points to the `n` arguments. Every entrypoint has this signature, so
+the jlbind R package calls them all the same way; one called with the wrong
+number of arguments returns an error. It
 converts each argument with `from_sexp(A, a)`, calls `f`, and converts the
 result with `to_sexp(::R)`; an argument or result type `RRef{T}` passes a
 Julia object by reference instead (see [`RRef`](@ref)). An argument can have a
@@ -17,14 +17,14 @@ is `@nospecialize`d in `f`'s signature.
 
 R must never unwind through Julia frames, so an entrypoint does not raise an R
 error: a Julia exception is returned as a character vector of class
-`jlbind_error`, which the client package's C shim raises once the call has
+`jlbind_error`, which the jlbind R package raises once the call has
 returned. The message of an `ArgumentError`, `ErrorException`,
 `DimensionMismatch`, `OverflowError` or `AssertionError` is passed on;
 any other exception is summarized, since rendering an arbitrary exception
 needs a call the compiler cannot resolve.
 
 The jlbind R package's `update_entrypoints()` reads these declarations to
-generate the client's C shim and R functions, so declare each entrypoint with a
+generate the client's R functions, so declare each entrypoint with a
 literal `@rcall` at the top level of the binding package's source files.
 """
 macro rcall(sig)
@@ -50,15 +50,20 @@ macro rcall(sig)
         push!(argtypes, a.args[2])
     end
     prefix = nameof(Base.moduleroot(__module__))
-    cname = Symbol(prefix, :_, fname, :_, length(argnames))
+    cname = Symbol(prefix, :_, fname)
+    nargs = length(argnames)
     from = GlobalRef(JLBind, :from_sexp)
-    params = [:($n::$SEXP) for n in argnames]
-    converted = [:($from($T, $n)) for (n, T) in zip(argnames, argtypes)]
+    args = gensym("args")
+    n = gensym("n")
+    converted = [:($from($T, unsafe_load($args, $i)))
+                 for (i, T) in enumerate(argtypes)]
     result = :($(GlobalRef(JLBind, :_result))($R, $fname($(converted...))))
     on_error = GlobalRef(JLBind, :_error_sexp)
+    wrong = "$fname() takes $nargs argument$(nargs == 1 ? "" : "s"), but was given "
     return esc(quote
-        Base.@ccallable function $cname($(params...))::$SEXP
+        Base.@ccallable function $cname($args::Ptr{$SEXP}, $n::Cint)::$SEXP
             try
+                $n == $nargs || throw(ArgumentError(string($wrong, $n)))
                 return $result
             catch e
                 return $on_error(e)

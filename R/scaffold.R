@@ -4,19 +4,14 @@
 #'
 #' * A Julia binding package in `inst/<dir>`, with one example function,
 #'   `hello()`. An existing binding package is left alone.
-#' * The C code that registers the package's routines: `src/jlbind.c` and
-#'   `src/entrypoints.h` (written by [update_entrypoints()]), and a rule in
-#'   `src/Makevars` (created if needed) that recompiles `jlbind.c` when
-#'   `entrypoints.h` changes.
-#' * `R/jlbind.R`, with an `.onLoad()` that calls [bind_client()], and the
-#'   roxygen tag for `useDynLib()`. If the package already has an `.onLoad()`,
-#'   add `jlbind::bind_client(pkgname)` to it yourself.
+#' * `R/jlbind-wrappers.R` (written by [update_entrypoints()]), with an R
+#'   function for each Julia function declared with `@rcall`.
+#' * `R/jlbind.R`, with an `.onLoad()` that calls [bind_client()]. If the
+#'   package already has an `.onLoad()`, add `jlbind::bind_client(pkgname)` to
+#'   it yourself.
 #' * The `Config/jlbind` and `Imports: jlbind` fields in `DESCRIPTION`.
 #' * `.jlbind/`, where [build_library()] writes a library for development, in
 #'   `.Rbuildignore` and `.gitignore`.
-#'
-#' * `R/jlbind-wrappers.R` (written by [update_entrypoints()]), with an R
-#'   function for each Julia function declared with `@rcall`.
 #'
 #' @param path Path to the package sources.
 #' @param module Name of the Julia binding package. Defaults to the package name
@@ -78,30 +73,6 @@ use_jlbind <- function(path = ".", module = NULL, dir = "julia") {
     message("Created the binding package ", module, " in ", binding, ".")
   }
 
-  src <- file.path(path, "src")
-  dir.create(src, showWarnings = FALSE)
-  others <- setdiff(list.files(src, "\\.(c|cpp|cc)$"), "jlbind.c")
-  for (f in others) {
-    if (any(grepl("R_init_", readLines(file.path(src, f), warn = FALSE)))) {
-      stop(
-        "src/",
-        f,
-        " registers the package's routines already; jlbind's src/jlbind.c ",
-        "needs to.",
-        call. = FALSE
-      )
-    }
-  }
-  .write_template(
-    "init.c",
-    file.path(src, "jlbind.c"),
-    list(package = pkg, init = gsub(".", "_", pkg, fixed = TRUE))
-  )
-  if (!file.exists(file.path(src, ".gitignore"))) {
-    writeLines(c("*.o", "*.so", "*.dll"), file.path(src, ".gitignore"))
-  }
-  .set_makevars(src)
-
   .set_description(desc_file, dir)
   update_entrypoints(path)
   .add_line(file.path(path, ".Rbuildignore"), "^\\.jlbind$")
@@ -120,32 +91,15 @@ use_jlbind <- function(path = ".", module = NULL, dir = "julia") {
     },
     TRUE
   ))
-  r_code <- .fill(.template("jlbind.R"), list(package = pkg))
+  r_file <- file.path(r_dir, "jlbind.R")
   if (has_onload) {
-    r_code <- r_code[-grep("onLoad|jlbind::bind|^\\}", r_code)]
     message(
       "The package has an .onLoad() already: call ",
       "`jlbind::bind_client(pkgname)` from it."
     )
   }
-  writeLines(r_code, file.path(r_dir, "jlbind.R"))
-
-  ns_file <- file.path(path, "NAMESPACE")
-  ns <- if (file.exists(ns_file)) {
-    readLines(ns_file, warn = FALSE)
-  } else {
-    character()
-  }
-  if (any(grepl("roxygen2", ns[1L]))) {
-    message("Run roxygen2::roxygenise() to add useDynLib() to the NAMESPACE.")
-  } else if (!any(grepl("^useDynLib", ns))) {
-    writeLines(
-      c(
-        ns,
-        paste0("useDynLib(", pkg, ", .registration = TRUE, .fixes = \"C_\")")
-      ),
-      ns_file
-    )
+  if (!has_onload) {
+    writeLines(.template("jlbind.R"), r_file)
   }
   invisible(path)
 }
@@ -199,15 +153,12 @@ use_jlbind_ci <- function(path = ".", overwrite = FALSE) {
 #' Update the list of Julia functions R can call
 #'
 #' Finds the `@rcall` declarations in the package's Julia binding package and
-#' generates the code that lets R call them. Run this whenever you add or remove
-#' an `@rcall`, or change its arguments.
-#' It writes two files:
-#'
-#' * `src/entrypoints.h`, from which `src/jlbind.c` registers a routine
-#'   `C_<name>` for each declaration.
-#' * `R/jlbind-wrappers.R`, with an R function for each declaration that calls
-#'   its routine. `@rcall shift(x::Vector{Float64}, by::Float64 = 0.0)::Float64`
-#'   becomes `shift <- function(x, by = 0.0) .Call(C_shift, x, by)`.
+#' writes `R/jlbind-wrappers.R`, with an R function for each that calls the
+#' compiled Julia function. Run this whenever you add or remove an `@rcall`, or
+#' change its arguments.
+#' `@rcall shift(x::Vector{Float64}, by::Float64 = 0.0)::Float64` becomes
+#' `shift <- function(x, by = 0.0) .External(.jlbind$.call, .jlbind$shift, x,
+#' by)`, where [bind_client()] puts the compiled function into `.jlbind`.
 #'
 #' Defaults must be literal numbers, strings, `true`, `false` or `nothing`
 #' (`NULL`). A function returning `Nothing` returns invisibly. To export or
@@ -293,77 +244,37 @@ update_entrypoints <- function(path = ".") {
       call. = FALSE
     )
   }
-  params <- vapply(
-    entries$nargs,
-    function(n) {
-      if (n == 0L) {
-        "(void)"
-      } else {
-        paste0("(", paste0("SEXP a", seq_len(n), collapse = ", "), ")")
-      }
-    },
-    ""
-  )
-  args <- vapply(
-    entries$nargs,
-    function(n) {
-      if (n == 0L) {
-        "()"
-      } else {
-        paste0("(", paste0("a", seq_len(n), collapse = ", "), ")")
-      }
-    },
-    ""
-  )
-  lines <- c(
-    "/*",
-    " * Generated by jlbind::update_entrypoints() from the @rcall declarations",
-    paste0(" * of the binding package ", info$module, "; do not edit by hand."),
-    " *",
-    " * JLBIND_ENTRY(name, number of arguments, parameters, arguments): each is",
-    " * registered as the .Call routine `C_<name>`, forwarding to the library's",
-    " * `<JLBIND_PREFIX><name>_<number of arguments>`.",
-    " */",
-    "",
-    paste0("#define JLBIND_PREFIX \"", info$module, "_\""),
-    "",
-    if (nrow(entries)) {
-      c(
-        "#define JLBIND_ENTRIES \\",
-        paste0(
-          "    JLBIND_ENTRY(",
-          entries$name,
-          ", ",
-          entries$nargs,
-          ", ",
-          params,
-          ", ",
-          args,
-          ")",
-          c(rep(" \\", nrow(entries) - 1L), "")
-        )
-      )
-    } else {
-      "#define JLBIND_ENTRIES"
-    }
-  )
   .write_if_changed(
-    lines,
-    file.path(path, "src", "entrypoints.h"),
+    .wrappers(entries, info$module),
+    file.path(path, "R", "jlbind-wrappers.R"),
     paste0(" (", nrow(entries), " entrypoints)")
-  )
-  .write_if_changed(
-    .wrappers(entries),
-    file.path(path, "R", "jlbind-wrappers.R")
   )
   invisible(entries)
 }
 
-# The R wrapper of each entrypoint, `f <- function(x, by = NULL)
-# .Call(C_f, x, by)`, below the roxygen comments of its declaration, for
-# R/jlbind-wrappers.R.
-.wrappers <- function(entries) {
-  header <- "# Generated by jlbind::update_entrypoints(): do not edit by hand"
+# R/jlbind-wrappers.R for the entrypoints of the binding package `module`:
+# what bind_client() needs to bind them (.client_vars), and the R wrapper of
+# each, `f <- function(x, by = NULL) .External(.jlbind$.call, .jlbind$f, x,
+# by)`, below the roxygen comments of its declaration.
+.wrappers <- function(entries, module) {
+  header <- c(
+    "# Generated by jlbind::update_entrypoints(): do not edit by hand",
+    "",
+    "# The entrypoints of the Julia binding package, which",
+    "# jlbind::bind_client() looks up in the compiled library and puts into",
+    "# `.jlbind` for the functions below.",
+    paste0(".jlbind_module <- \"", module, "\""),
+    if (nrow(entries)) {
+      c(
+        ".jlbind_entries <- c(",
+        paste0("  \"", entries$name, "\"", c(rep(",", nrow(entries) - 1L), "")),
+        ")"
+      )
+    } else {
+      ".jlbind_entries <- character()"
+    },
+    ".jlbind <- new.env(parent = emptyenv())"
+  )
   if (nrow(entries) == 0L) {
     return(header)
   }
@@ -372,7 +283,12 @@ update_entrypoints <- function(path = ".") {
     paste0(", ", entries$args),
     ""
   )
-  call <- paste0(".Call(C_", entries$name, call_args, ")")
+  call <- paste0(
+    ".External(.jlbind$.call, .jlbind$",
+    entries$name,
+    call_args,
+    ")"
+  )
   call <- ifelse(entries$invisible, paste0("invisible(", call, ")"), call)
   head <- paste0(entries$name, " <- function(", entries$formals, ")")
   one_line <- paste(head, call)
@@ -622,41 +538,6 @@ update_entrypoints <- function(path = ".") {
     i <- j
   }
   paste(ch, collapse = "")
-}
-
-# make rebuilds jlbind.o only when jlbind.c is newer, so after
-# update_entrypoints() rewrites entrypoints.h, an install from sources that
-# still hold a jlbind.o would leave the new routines out. This rule makes
-# jlbind.o depend on the header too.
-.makevars_rule <- "jlbind.o: entrypoints.h"
-
-# Adds .makevars_rule to src/Makevars (created if missing) and to an existing
-# Makevars.win or Makevars.ucrt, which Windows reads instead. R reads Makevars
-# before its own makefile, whose `all` target must stay the default, so
-# `all: $(SHLIB)` goes first in a Makevars that has no `all` target.
-.set_makevars <- function(src) {
-  files <- file.path(src, c("Makevars", "Makevars.win", "Makevars.ucrt"))
-  files <- files[c(TRUE, file.exists(files[-1L]))]
-  for (f in files) {
-    lines <- if (file.exists(f)) readLines(f, warn = FALSE)
-    if (.makevars_rule %in% lines) {
-      next
-    }
-    if (!any(grepl("^all[ \t]*:", lines))) {
-      lines <- c("all: $(SHLIB)", if (length(lines)) "", lines)
-    }
-    writeLines(
-      c(
-        lines,
-        "",
-        "# Added by jlbind::use_jlbind(): recompile jlbind.c whenever",
-        "# jlbind::update_entrypoints() rewrites the header it includes.",
-        .makevars_rule
-      ),
-      f
-    )
-  }
-  invisible(NULL)
 }
 
 # Adds the jlbind fields to a package's DESCRIPTION.

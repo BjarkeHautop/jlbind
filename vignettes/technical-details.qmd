@@ -35,13 +35,9 @@ that are never used in the same R session.
 - `inst/julia/`, containing a Julia binding package named after the R package
   with a `Bindings` suffix (for example, `MyPkgBindings`), including an example
   function.
-- `src/jlbind.c` and `src/entrypoints.h`, which register the native routines,
-  and a rule in `src/Makevars` that recompiles `jlbind.c` whenever
-  `entrypoints.h` changes.
 - `R/jlbind-wrappers.R`, with an R function for each Julia function the binding
   package declares.
-- `R/jlbind.R`, which calls `jlbind::bind_client()` from `.onLoad()` and
-  includes the roxygen tag for `useDynLib()`.
+- `R/jlbind.R`, which calls `jlbind::bind_client()` from `.onLoad()`.
 - The `Config/jlbind`, `Imports: jlbind` and
   `SystemRequirements: Julia (>= 1.13)` fields in `DESCRIPTION`.
 - A `.jlbind/` directory for development builds, added to `.Rbuildignore` and
