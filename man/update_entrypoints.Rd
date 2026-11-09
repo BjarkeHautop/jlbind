@@ -24,8 +24,9 @@ change its arguments.
 \code{shift <- function(x, by = 0.0) .External(.jlbind$.call, .jlbind$shift, x, by)}, where \code{\link[=bind_client]{bind_client()}} puts the compiled function into \code{.jlbind}.
 }
 \details{
-Defaults must be literal numbers, strings, \code{true}, \code{false} or \code{nothing}
-(\code{NULL}). A function returning \code{Nothing} returns invisibly. To export or
+Defaults must be literal numbers, strings, \code{true}, \code{false}, \code{missing} (\code{NA})
+or \code{nothing} (\code{NULL}), or vectors of these, such as \verb{[1, 2]} (\code{c(1, 2)}) or
+\code{Float64[]} (\code{numeric(0)}). A function returning \code{Nothing} returns invisibly. To export or
 document a function, write roxygen comments (\verb{#'}) directly above its
 \verb{@rcall}: they're copied above the R function, so roxygen2 sees its signature.
 To add R code around a call, declare the Julia function with a \code{jl_} prefix

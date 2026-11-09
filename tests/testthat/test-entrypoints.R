@@ -154,6 +154,29 @@ test_that("arguments must be typed, with R names and literal defaults", {
     "literal"
   )
   expect_error(.find_rcalls("@rcall f(x::Int64 = y)::Int64"), "literal")
+  for (bad in c("[]", "Foo[]", "[y]", "[nothing]", "[1 2]", "[1, 2][1]")) {
+    expect_error(
+      .find_rcalls(paste0("@rcall f(x::Vector{Int64} = ", bad, ")::Int64")),
+      "literal",
+      info = bad
+    )
+  }
+})
+
+test_that("missing and vector defaults are translated to R", {
+  src <- '
+    @rcall f(a::Union{Missing,Float64} = missing, b::Vector{Float64} = [1, -2.5])::SEXP
+    @rcall g(s::Vector{String} = ["a, b", "]", missing], t::Vector{Int32} = Int32[3])::SEXP
+    @rcall h(x::Vector{Float64} = Float64[], y::Vector{String} = String[], z::Vector{Bool} = Bool[ ])::SEXP
+  '
+  expect_equal(
+    .find_rcalls(src)$formals,
+    c(
+      "a = NA, b = c(1, -2.5)",
+      's = c("a, b", "]", NA), t = c(3)',
+      "x = numeric(0), y = character(0), z = logical(0)"
+    )
+  )
 })
 
 test_that("keyword arguments and unbalanced declarations are rejected", {

@@ -66,8 +66,35 @@ jlbind finds `@rcall` declarations by scanning the source files, not by running
 them, so write them literally at the top level of the module.
 :::
 
-A default in a declaration must be a literal number, string, `true`, `false` or
-`nothing`, which becomes `NULL` in R.
+### Default values
+
+A default in a declaration becomes the default of the generated R function. For
+example,
+
+```julia
+@rcall summarise(x::Vector{Float64}, probs::Vector{Float64} = [0.25, 0.75],
+                 na::Union{Missing,Float64} = missing)::Vector{Float64}
+```
+
+generates
+
+```r
+summarise <- function(x, probs = c(0.25, 0.75), na = NA) ...
+```
+
+A default can be any of these:
+
+  | Julia default                     | R default                         |
+  | --------------------------------- | --------------------------------- |
+  | A literal number or string        | The same literal                  |
+  | `true`, `false`                   | `TRUE`, `FALSE`                   |
+  | `missing`                         | `NA`                              |
+  | `nothing`                         | `NULL`                            |
+  | `[1, 2]`, `Float64[1, 2]`         | `c(1, 2)`                         |
+  | `["a", missing]`                  | `c("a", NA)`                      |
+  | `Float64[]`, `String[]`, ...      | `numeric(0)`, `character(0)`, ... |
+
+An empty vector names its element type, as in `Int32[]` or `Bool[]`.
 
 ## Development libraries
 

@@ -9,9 +9,11 @@ number of arguments returns an error. It
 converts each argument with `from_sexp(A, a)`, calls `f`, and converts the
 result with `to_sexp(::R)`; an argument or result type `RRef{T}` passes a
 Julia object by reference instead (see [`RRef`](@ref)). An argument can have a
-default, `a::A = 1`, a literal number, string, `true`, `false` or `nothing`:
-it becomes the default of the argument of the generated R function (`NULL` for
-`nothing`), which always passes every argument. The compiled library
+default, `a::A = 1`, a literal number, string, `true`, `false`, `missing` or
+`nothing`, or a vector of these such as `[1, 2]` or `Float64[]`: it becomes
+the default of the argument of the generated R function (`NA` for `missing`,
+`NULL` for `nothing`, `c(1, 2)` for `[1, 2]`, `numeric(0)` for `Float64[]`),
+which always passes every argument. The compiled library
 can only call `f` statically if each argument type it receives is concrete, or
 is `@nospecialize`d in `f`'s signature.
 
@@ -40,9 +42,10 @@ macro rcall(sig)
             # A default is used only by the generated R wrapper, which always
             # passes every argument.
             a, default = a.args
-            default isa Union{Number,String} || default === :nothing ||
+            _literal_default(default) ||
                 error("@rcall: the default of $a must be a literal number, " *
-                      "string, true, false or nothing")
+                      "string, true, false, missing or nothing, or a vector " *
+                      "of these such as [1, 2] or Float64[]")
         end
         Meta.isexpr(a, :(::)) && length(a.args) == 2 ||
             error("@rcall needs every argument typed: $a")
@@ -71,6 +74,20 @@ macro rcall(sig)
         end
     end)
 end
+
+# The defaults `@rcall` accepts, which the R package's `update_entrypoints()`
+# translates to R: a literal number, string, `true`, `false`, `missing` or
+# `nothing`, or a vector of these (other than `nothing`), `[1, 2]` or
+# `T[1, 2]`, where an empty one names its element type, `T[]`.
+const _DEFAULT_ELTYPES = (:String, :Symbol, :Float64, :Float32, :Float16,
+    :Int64, :UInt32, :Int32, :Int16, :Int8, :UInt16, :Bool, :ComplexF64, :UInt8)
+
+_scalar_default(x) = x isa Union{Number,String} || x === :missing
+_literal_default(x) =
+    _scalar_default(x) || x === :nothing ||
+    (Meta.isexpr(x, :vect) && !isempty(x.args) && all(_scalar_default, x.args)) ||
+    (Meta.isexpr(x, :ref) && x.args[1] in _DEFAULT_ELTYPES &&
+     all(_scalar_default, x.args[2:end]))
 
 function _error_sexp(@nospecialize(e))
     out = protect(to_sexp(_error_message(e)))

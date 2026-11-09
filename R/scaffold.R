@@ -165,8 +165,9 @@ use_jlbind_ci <- function(path = ".", overwrite = FALSE) {
 #' `shift <- function(x, by = 0.0) .External(.jlbind$.call, .jlbind$shift, x,
 #' by)`, where [bind_client()] puts the compiled function into `.jlbind`.
 #'
-#' Defaults must be literal numbers, strings, `true`, `false` or `nothing`
-#' (`NULL`). A function returning `Nothing` returns invisibly. To export or
+#' Defaults must be literal numbers, strings, `true`, `false`, `missing` (`NA`)
+#' or `nothing` (`NULL`), or vectors of these, such as `[1, 2]` (`c(1, 2)`) or
+#' `Float64[]` (`numeric(0)`). A function returning `Nothing` returns invisibly. To export or
 #' document a function, write roxygen comments (`#'`) directly above its
 #' `@rcall`: they're copied above the R function, so roxygen2 sees its signature.
 #' To add R code around a call, declare the Julia function with a `jl_` prefix
@@ -461,27 +462,107 @@ update_entrypoints <- function(path = ".") {
   list(name = name, default = default)
 }
 
-# The R literal for the Julia default `x`: a number, string, `true`, `false`
-# or `nothing`, the defaults `@rcall` accepts.
+# The R literal for the Julia default `x`, one of the defaults `@rcall`
+# accepts: a literal number, string, `true`, `false`, `missing` (`NA`) or
+# `nothing` (`NULL`), or a vector of these, `[1, 2]` or `T[1, 2]` (`c(1, 2)`),
+# where an empty one names its element type, `T[]`.
 .r_default <- function(x, where) {
-  number <- "^[+-]?([0-9]+\\.?[0-9]*|\\.[0-9]+)([eE][+-]?[0-9]+)?$"
-  string <- "^\"([^\"\\\\$]|\\\\[\\\\\"nt])*\"$"
-  if (x == "nothing") {
-    "NULL"
-  } else if (x == "true") {
-    "TRUE"
-  } else if (x == "false") {
-    "FALSE"
-  } else if (grepl(number, x) || grepl(string, x)) {
-    x
-  } else {
+  out <- .r_scalar_default(x)
+  if (is.na(out)) {
+    out <- .r_vector_default(x)
+  }
+  if (is.na(out)) {
     stop(
       where,
-      ": a default must be a literal number, string, `true`, `false` or ",
-      "`nothing`.",
+      ": a default must be a literal number, string, `true`, `false`, ",
+      "`missing` or `nothing`, or a vector of these such as `[1, 2]` or ",
+      "`Float64[]`.",
       call. = FALSE
     )
   }
+  out
+}
+
+.r_scalar_default <- function(x) {
+  number <- "^[+-]?([0-9]+\\.?[0-9]*|\\.[0-9]+)([eE][+-]?[0-9]+)?$"
+  string <- "^\"([^\"\\\\$]|\\\\[\\\\\"nt])*\"$"
+  literals <- c(
+    nothing = "NULL",
+    true = "TRUE",
+    false = "FALSE",
+    missing = "NA"
+  )
+  if (x %in% names(literals)) {
+    literals[[x]]
+  } else if (grepl(number, x) || grepl(string, x)) {
+    x
+  } else {
+    NA_character_
+  }
+}
+
+# The empty R vector for each element type `T[]` can name.
+.r_empty_vectors <- c(
+  String = "character(0)",
+  Symbol = "character(0)",
+  Float64 = "numeric(0)",
+  Float32 = "numeric(0)",
+  Float16 = "numeric(0)",
+  Int64 = "numeric(0)",
+  UInt32 = "numeric(0)",
+  Int32 = "integer(0)",
+  Int16 = "integer(0)",
+  Int8 = "integer(0)",
+  UInt16 = "integer(0)",
+  Bool = "logical(0)",
+  ComplexF64 = "complex(0)",
+  UInt8 = "raw(0)"
+)
+
+.r_vector_default <- function(x) {
+  parts <- regmatches(x, regexec("^([A-Za-z0-9]*)\\[(.*)\\]$", x))[[1L]]
+  if (length(parts) == 0L) {
+    return(NA_character_)
+  }
+  type <- parts[[2L]]
+  body <- trimws(parts[[3L]])
+  if (nzchar(type) && !type %in% names(.r_empty_vectors)) {
+    return(NA_character_)
+  }
+  if (!nzchar(body)) {
+    return(if (nzchar(type)) .r_empty_vectors[[type]] else NA_character_)
+  }
+  elements <- vapply(
+    .split_commas(body),
+    function(e) .r_scalar_default(trimws(e)),
+    ""
+  )
+  if (anyNA(elements) || any(elements == "NULL")) {
+    return(NA_character_)
+  }
+  paste0("c(", paste(elements, collapse = ", "), ")")
+}
+
+# `x` split at the commas outside string literals.
+.split_commas <- function(x) {
+  ch <- strsplit(x, "")[[1L]]
+  in_string <- FALSE
+  escaped <- FALSE
+  cuts <- integer()
+  for (i in seq_along(ch)) {
+    if (escaped) {
+      escaped <- FALSE
+    } else if (in_string && ch[[i]] == "\\") {
+      escaped <- TRUE
+    } else if (ch[[i]] == "\"") {
+      in_string <- !in_string
+    } else if (!in_string && ch[[i]] == ",") {
+      cuts <- c(cuts, i)
+    }
+  }
+  starts <- c(1L, cuts + 1L)
+  ends <- c(cuts - 1L, length(ch))
+  substring(x, starts, ends)
 }
 
 # Julia source with comments, strings and character literals blanked out
