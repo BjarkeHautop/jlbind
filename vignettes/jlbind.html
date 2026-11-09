@@ -404,7 +404,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p><code>@rcall</code> declares a Julia function that R can call, along with its argument and return types.</p>
+<p><code>@rcall</code> declares a Julia function that R can call, along with its argument and return types. Every argument and the return value need a type: the types decide how values are converted between R and Julia (see <a href="technical-details.html#types">Types</a>).</p>
 </section><section id="try-the-example" class="level2"><h2 class="anchored" data-anchor-id="try-the-example">Try the example</h2>
 <p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/use_jlbind.html">use_jlbind</a>()</code> has already generated the R function for <code>hello()</code>, so all that’s left is to compile the Julia code and load your package:</p>
 <div class="code-copy-outer-scaffold">
