@@ -465,7 +465,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 </div>
 </div>
 </section><section id="restart-r-and-load-your-package" class="level3"><h3 class="anchored" data-anchor-id="restart-r-and-load-your-package">3. Restart R and load your package</h3>
-<p>A library that has loaded can’t be replaced, so restart R first. <code>devtools::load_all()</code> then rebuilds the library, since your Julia code changed.</p>
+<p>A library that has loaded can’t be replaced, so restart R first. <code>devtools::load_all()</code> then rebuilds the library, since your Julia code changed. If you forget, <code>devtools::load_all()</code> warns that the development library is out of date and tell you to restart R.</p>
 <p>Repeat these steps as you develop. If you only change the body of a Julia function, you can skip step 2.</p>
 </section></section><section id="export-your-functions" class="level2"><h2 class="anchored" data-anchor-id="export-your-functions">Export your functions</h2>
 <p>To export or document a generated function, write roxygen comments directly above its <code>@rcall</code>:</p>
