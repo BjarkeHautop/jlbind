@@ -133,11 +133,11 @@ whatever the cache doesn't cover.
 results_table(greet_med)
 ```
 
-A jlbind call is a `.Call()` into the compiled library, where the arguments are
-converted with R's C API and the function is called directly. JuliaCall converts
-arguments and looks up the function at run time in the embedded session.
-JuliaConnectoR serializes the call to a separate Julia process and the result
-back, so each call costs a round trip.
+A jlbind call is an `.External()` call into jlbind's C code, which calls the
+compiled library directly, where the arguments are converted with R's C API.
+JuliaCall converts arguments and looks up the function at run time in the
+embedded session. JuliaConnectoR serializes the call to a separate Julia process
+and the result back, so each call costs a round trip.
 
 ## Data transfer
 

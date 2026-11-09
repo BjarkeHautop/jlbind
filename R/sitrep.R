@@ -120,12 +120,13 @@ jlbind_sitrep <- function(julia = NULL) {
   if (is.null(dll)) {
     return(NULL)
   }
-  count <- getNativeSymbolInfo("JLBind_object_count_0", dll)
-  objects <- .Call(count)
-  if (inherits(objects, "jlbind_error")) {
-    stop(objects[[1L]], call. = FALSE)
-  }
-  objects
+  count <- .Call(
+    jlbind_entries,
+    dll[["name"]],
+    "JLBind_object_count",
+    "jlbind"
+  )
+  .External(jlbind_call, count[[1L]])
 }
 
 .print_sitrep <- function(report) {

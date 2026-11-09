@@ -1,3 +1,2 @@
-useDynLib(benchjl, .registration = TRUE, .fixes = "C_")
 export(greet)
 export(shift)

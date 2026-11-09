@@ -9,7 +9,6 @@
 ^README\.Rmd$
 ^\.claude$
 ^\.vscode$
-^tests/clients/[^/]+/src/.*\.(o|so|dll|dylib)$
 ^\.github$
 ^docs$
 ^vignettes/\.quarto$

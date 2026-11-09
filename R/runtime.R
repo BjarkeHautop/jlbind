@@ -224,8 +224,7 @@
   if (threads == 1L) {
     return(invisible(NULL))
   }
-  f <- getNativeSymbolInfo("jlbind_set_julia_threads", dll)
-  status <- .C(f, threads = threads, status = 0L)$status
+  status <- .Call(jlbind_set_threads, dll[["name"]], threads)
   if (status != 0L) {
     warning(
       "Could not set ",
@@ -324,31 +323,22 @@
 bind_client <- function(pkg) {
   .state$requested <- union(.state$requested, pkg)
   .refresh_dev_library(pkg)
-  # A bound package is bound again: pkgload::load_all() reloads its DLL, whose
-  # function pointers then start out NULL.
+  # A bound package is bound again: pkgload::load_all() reloads its
+  # namespace, whose entrypoints then start out unbound.
   .state$bound <- setdiff(.state$bound, pkg)
-  if (!.load_library(pkg)) {
-    return(invisible(FALSE))
-  }
-  problem <- .bind_problem(pkg)
+  ns <- asNamespace(pkg)
+  problem <- .client_problem(ns, pkg)
   if (is.null(problem)) {
-    # The package's routines can only be looked up by registration, as the
-    # package forces symbols. The DLL is the one its namespace loaded, not one
-    # found by name: pkgload::load_all() loads a fresh copy of the DLL on each
-    # reload and leaves the old copies loaded, and binding one of those would
-    # leave the namespace's routines unbound.
-    dll <- getNamespaceInfo(pkg, "DLLs")[[pkg]]
-    info <- if (!is.null(dll)) getDLLRegisteredRoutines(dll)$.Call$jlbind_bind
-    res <- if (is.null(info)) {
-      simpleError(paste0(
-        "Package ",
-        pkg,
-        " has no routine `jlbind_bind`; its src/jlbind.c is missing or out ",
-        "of date (run jlbind::use_jlbind() on its sources)."
-      ))
-    } else {
-      tryCatch(.Call(info, .state$dll[["name"]]), error = identity)
+    # Until bound, its entrypoints are null, which give an error that points
+    # to check_bound().
+    .set_entries(ns, pkg, NULL)
+    if (!.load_library(pkg)) {
+      return(invisible(FALSE))
     }
+    problem <- .bind_problem(pkg)
+  }
+  if (is.null(problem)) {
+    res <- tryCatch(.set_entries(ns, pkg, .state$dll), error = identity)
     if (inherits(res, "error")) {
       problem <- paste(conditionMessage(res), .rebuild_hint(pkg))
     }
@@ -359,6 +349,47 @@ bind_client <- function(pkg) {
   }
   .state$bound <- union(.state$bound, pkg)
   invisible(TRUE)
+}
+
+# What a client's R/jlbind-wrappers.R (written by update_entrypoints())
+# defines in its namespace `ns`: the binding package's name, the names of its
+# entrypoints, and the environment the wrappers find them in.
+.client_vars <- c(".jlbind_module", ".jlbind_entries", ".jlbind")
+
+# Why the namespace `ns` of `pkg` cannot be bound, or NULL if it can.
+.client_problem <- function(ns, pkg) {
+  if (all(vapply(.client_vars, exists, TRUE, envir = ns, inherits = FALSE))) {
+    return(NULL)
+  }
+  paste0(
+    "Package ",
+    pkg,
+    " has no jlbind entrypoints; its R/jlbind-wrappers.R is missing (run ",
+    "jlbind::use_jlbind() on its sources)."
+  )
+}
+
+# Puts the entrypoints of `pkg` into its `.jlbind` environment, along with
+# `.call`, jlbind's routine that calls them (src/call.c). They are looked up
+# in the library `dll`, or are null with `dll` NULL. The routine is stored as
+# its address, as R CMD check reports a client's call to the NativeSymbolInfo
+# of another package. `.call` cannot be an entrypoint's name, which is a C
+# identifier.
+.set_entries <- function(ns, pkg, dll) {
+  entries <- ns$.jlbind_entries
+  symbols <- paste0(ns$.jlbind_module, "_", entries)
+  found <- .Call(
+    jlbind_entries,
+    if (!is.null(dll)) dll[["name"]],
+    symbols,
+    pkg
+  )
+  env <- ns$.jlbind
+  env$.call <- jlbind_call$address
+  for (i in seq_along(entries)) {
+    assign(entries[[i]], found[[i]], envir = env)
+  }
+  invisible(NULL)
 }
 
 # Why the loaded library cannot serve `pkg`, or NULL if it can. A library

@@ -1,4 +1,3 @@
-useDynLib(counterjl, .registration = TRUE, .fixes = "C_")
 export(new_counter)
 export(increment)
 export(counters)

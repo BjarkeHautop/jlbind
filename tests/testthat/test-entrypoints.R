@@ -69,16 +69,17 @@ test_that("a function returning Nothing gets an invisible wrapper", {
   )
   entries <- data.frame(
     name = c("set", "get"),
+    nargs = c(1L, 0L),
     formals = c("x", ""),
     args = c("x", ""),
     invisible = c(TRUE, FALSE),
     roxygen = c("", "")
   )
   expect_equal(
-    tail(.wrappers(entries), 2L),
+    tail(.wrappers(entries, "M"), 2L),
     c(
-      "set <- function(x) invisible(.Call(C_set, x))",
-      "get <- function() .Call(C_get)"
+      "set <- function(x) invisible(.External(.jlbind$.call, .jlbind$set, x))",
+      "get <- function() .External(.jlbind$.call, .jlbind$get)"
     )
   )
 })
@@ -122,23 +123,24 @@ test_that("roxygen comments directly above a declaration are kept", {
 test_that("roxygen comments are written above the R wrapper", {
   entries <- data.frame(
     name = c("plain", "documented", "a_rather_long_name"),
+    nargs = c(1L, 1L, 2L),
     formals = c("x", "x", "first_argument, second_argument = NULL"),
     args = c("x", "x", "first_argument, second_argument"),
     invisible = FALSE,
     roxygen = c("", "#' Title\n#' @export", "#' @rdname shared")
   )
   expect_equal(
-    .wrappers(entries)[-(1:2)],
+    tail(.wrappers(entries, "M"), 10L),
     c(
-      "plain <- function(x) .Call(C_plain, x)",
+      "plain <- function(x) .External(.jlbind$.call, .jlbind$plain, x)",
       "",
       "#' Title",
       "#' @export",
-      "documented <- function(x) .Call(C_documented, x)",
+      "documented <- function(x) .External(.jlbind$.call, .jlbind$documented, x)",
       "",
       "#' @rdname shared",
       "a_rather_long_name <- function(first_argument, second_argument = NULL) {",
-      "  .Call(C_a_rather_long_name, first_argument, second_argument)",
+      "  .External(.jlbind$.call, .jlbind$a_rather_long_name, first_argument, second_argument)",
       "}"
     )
   )
@@ -180,19 +182,19 @@ test_that("update_entrypoints() writes the header the shim includes", {
   expect_match(msgs, "2 entrypoints", all = FALSE)
   expect_match(msgs, "jlbind-wrappers.R", all = FALSE)
   expect_equal(entries$name, c("nothing_in", "two"))
-  header <- readLines(file.path(pkg, "src", "entrypoints.h"))
-  expect_true('#define JLBIND_PREFIX "DemoBindings_"' %in% header)
-  expect_true(
-    "    JLBIND_ENTRY(nothing_in, 0, (void), ()) \\" %in% header
-  )
-  expect_true(
-    "    JLBIND_ENTRY(two, 2, (SEXP a1, SEXP a2), (a1, a2))" %in% header
-  )
+  wrappers <- readLines(file.path(pkg, "R", "jlbind-wrappers.R"))
   expect_equal(
-    tail(readLines(file.path(pkg, "R", "jlbind-wrappers.R")), 2L),
+    wrappers[-(1:5)],
     c(
-      "nothing_in <- function() .Call(C_nothing_in)",
-      "two <- function(a, b) .Call(C_two, a, b)"
+      '.jlbind_module <- "DemoBindings"',
+      ".jlbind_entries <- c(",
+      '  "nothing_in",',
+      '  "two"',
+      ")",
+      ".jlbind <- new.env(parent = emptyenv())",
+      "",
+      "nothing_in <- function() .External(.jlbind$.call, .jlbind$nothing_in)",
+      "two <- function(a, b) .External(.jlbind$.call, .jlbind$two, a, b)"
     )
   )
   # Unchanged declarations leave the files alone.
@@ -213,25 +215,25 @@ test_that("a binding package without entrypoints gets an empty list", {
   unlink(file.path(pkg, "inst", "julia", "src"), recursive = TRUE)
   suppressMessages(entries <- update_entrypoints(pkg))
   expect_equal(nrow(entries), 0L)
-  header <- readLines(file.path(pkg, "src", "entrypoints.h"))
-  expect_true("#define JLBIND_ENTRIES" %in% header)
   wrappers <- readLines(file.path(pkg, "R", "jlbind-wrappers.R"))
+  expect_true(".jlbind_entries <- character()" %in% wrappers)
   expect_false(any(grepl("<- function", wrappers)))
 })
 
 test_that("long wrappers are split over lines", {
   entries <- data.frame(
     name = "a_rather_long_name",
+    nargs = 2L,
     formals = "first_argument, second_argument = NULL",
     args = "first_argument, second_argument",
     invisible = FALSE,
     roxygen = ""
   )
   expect_equal(
-    tail(.wrappers(entries), 3L),
+    tail(.wrappers(entries, "M"), 3L),
     c(
       "a_rather_long_name <- function(first_argument, second_argument = NULL) {",
-      "  .Call(C_a_rather_long_name, first_argument, second_argument)",
+      "  .External(.jlbind$.call, .jlbind$a_rather_long_name, first_argument, second_argument)",
       "}"
     )
   )

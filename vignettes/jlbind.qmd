@@ -85,29 +85,29 @@ jlbind::update_entrypoints()
 This adds `shift()` to `R/jlbind-wrappers.R`:
 
 ```r
-shift <- function(x, by = 1.0) .Call(C_shift, x, by)
+shift <- function(x, by = 1.0) .External(.jlbind$.call, .jlbind$shift, x, by)
 ```
 
 ::: {.callout-note collapse="true" title="What `update_entrypoints()` generates"}
-It writes two files from the `@rcall` declarations, which you shouldn't edit by
-hand:
+`R/jlbind-wrappers.R`, which you shouldn't edit by hand, also lists the
+declarations:
 
-- `R/jlbind-wrappers.R`, with an R function for each declaration, as above.
-- `src/entrypoints.h`, which lists the native routines:
-
-```c
-#define JLBIND_PREFIX "mypkgBindings_"
-
-#define JLBIND_ENTRIES \
-    JLBIND_ENTRY(hello, 1, (SEXP a1), (a1)) \
-    JLBIND_ENTRY(shift, 2, (SEXP a1, SEXP a2), (a1, a2))
+```r
+.jlbind_module <- "mypkgBindings"
+.jlbind_entries <- c(
+  "hello",
+  "shift"
+)
+.jlbind <- new.env(parent = emptyenv())
 ```
 
-`src/jlbind.c`, which `use_jlbind()` added, turns each entry into a routine for
-`.Call()`, such as `C_shift`. That routine forwards to `mypkgBindings_shift_2`,
-the function `@rcall` exports from the compiled library. The name includes the
-number of arguments, so if the list and the library disagree, your package fails
-to bind instead of crashing.
+When your package loads, `jlbind::bind_client()` looks up each entry in the
+compiled library, `shift` as `mypkgBindings_shift`, the function `@rcall`
+exports, and puts it into `.jlbind`. Calls go through `.jlbind$.call`, a routine
+in jlbind that turns a Julia error into an R error. If the R functions are out
+of date with the Julia code, as when you change an `@rcall` without running
+`update_entrypoints()`, calling one with the wrong number of arguments gives an
+error.
 :::
 
 ### 3. Restart R and load your package

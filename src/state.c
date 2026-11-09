@@ -7,9 +7,7 @@
  * JLBind rebuilds the object on first use.
  *
  * R looks the class up by name when reading a file, loading the package named
- * here, so the class must not be in the library, which may not be available. It
- * is here rather than in the clients' generated shims so that updating jlbind is
- * enough to change it.
+ * here, so the class must not be in the library, which may not be available.
  */
 
 #include <R.h>
@@ -56,11 +54,24 @@ static SEXP jlbind_state_hook(SEXP ref, SEXP package)
     return R_new_altrep(state_class, ref, package);
 }
 
+/* In call.c. */
+SEXP jlbind_entries(SEXP dll, SEXP symbols, SEXP package);
+SEXP jlbind_call(SEXP args);
+SEXP jlbind_set_threads(SEXP dll, SEXP threads);
+
+static const R_CallMethodDef call_methods[] = {
+    {"jlbind_entries", (DL_FUNC)&jlbind_entries, 3},
+    {"jlbind_set_threads", (DL_FUNC)&jlbind_set_threads, 2},
+    {NULL, NULL, 0}};
+
+static const R_ExternalMethodDef external_methods[] = {
+    {"jlbind_call", (DL_FUNC)&jlbind_call, -1},
+    {NULL, NULL, 0}};
+
 void R_init_jlbind(DllInfo *dll)
 {
-    R_registerRoutines(dll, NULL, NULL, NULL, NULL);
+    R_registerRoutines(dll, NULL, call_methods, NULL, external_methods);
     R_useDynamicSymbols(dll, FALSE);
-    R_forceSymbols(dll, TRUE);
 
     state_class = R_make_altinteger_class("jlbind_state", "jlbind", dll);
     R_set_altrep_Length_method(state_class, state_length);
