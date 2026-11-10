@@ -30,7 +30,7 @@ function for each Julia function declared with \verb{@rcall}.
 \item \code{R/jlbind.R}, with an \code{.onLoad()} that calls \code{\link[=bind_client]{bind_client()}}. If the
 package already has an \code{.onLoad()}, add \code{jlbind::bind_client(pkgname)} to
 it yourself.
-\item The \code{Config/jlbind} and \code{Imports: jlbind} fields in \code{DESCRIPTION}.
+\item The \code{Config/jlbind}, \code{Imports: jlbind} and \verb{SystemRequirements: Julia (>= 1.13)} fields in \code{DESCRIPTION}.
 \item \verb{.jlbind/}, where \code{\link[=build_library]{build_library()}} writes a library for development, in
 \code{.Rbuildignore} and \code{.gitignore}.
 }

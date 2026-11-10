@@ -2,7 +2,8 @@
     JLBind
 
 Write R entrypoints in Julia, for a library compiled with `juliac --trim=safe`
-that R loads with `dyn.load` and calls with `.Call`.
+that R loads with `dyn.load` and the jlbind R package calls through its
+`.External` routine.
 
 A client R package's binding package (`inst/julia/` by convention) declares its
 entrypoints with [`@rcall`](@ref), converting arguments and results with

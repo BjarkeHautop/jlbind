@@ -1,13 +1,18 @@
 # Times the numeric kernels (kernels.jl) in a library built from hellojl with
-# kernels.jl appended to HelloBindings.jl, calling them directly by symbol:
+# kernels.jl appended to HelloBindings.jl, calling them directly through
+# jlbind's .External routine:
 #     Rscript bench-numeric.R <jlbind.so> <out.csv>
 # Each time is the best of 5.
+jlbind <- asNamespace("jlbind")
 h <- dyn.load(commandArgs(TRUE)[1], local = TRUE, now = TRUE)
 H <- function(f, ...) {
-  .Call(
-    getNativeSymbolInfo(paste0("HelloBindings_", f, "_", ...length()), h),
-    ...
-  )
+  entry <- .Call(
+    jlbind$jlbind_entries,
+    h[["name"]],
+    paste0("HelloBindings_", f),
+    "hellojl"
+  )[[1L]]
+  .External(jlbind$jlbind_call, entry, ...)
 }
 best <- function(e, n = 5) min(replicate(n, system.time(eval(e))[["elapsed"]]))
 set.seed(1)

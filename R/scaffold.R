@@ -9,7 +9,8 @@
 #' * `R/jlbind.R`, with an `.onLoad()` that calls [bind_client()]. If the
 #'   package already has an `.onLoad()`, add `jlbind::bind_client(pkgname)` to
 #'   it yourself.
-#' * The `Config/jlbind` and `Imports: jlbind` fields in `DESCRIPTION`.
+#' * The `Config/jlbind`, `Imports: jlbind` and `SystemRequirements: Julia
+#'   (>= 1.13)` fields in `DESCRIPTION`.
 #' * `.jlbind/`, where [build_library()] writes a library for development, in
 #'   `.Rbuildignore` and `.gitignore`.
 #'
@@ -167,9 +168,10 @@ use_jlbind_ci <- function(path = ".", overwrite = FALSE) {
 #'
 #' Defaults must be literal numbers, strings, `true`, `false`, `missing` (`NA`)
 #' or `nothing` (`NULL`), or vectors of these, such as `[1, 2]` (`c(1, 2)`) or
-#' `Float64[]` (`numeric(0)`). A function returning `Nothing` returns invisibly. To export or
-#' document a function, write roxygen comments (`#'`) directly above its
-#' `@rcall`: they're copied above the R function, so roxygen2 sees its signature.
+#' `Float64[]` (`numeric(0)`). A function returning `Nothing` returns
+#' invisibly. To export or document a function, write roxygen comments (`#'`)
+#' directly above its `@rcall`: they're copied above the R function, so roxygen2
+#' sees its signature.
 #' To add R code around a call, declare the Julia function with a `jl_` prefix
 #' and write the R function yourself, calling the generated `jl_` function.
 #'

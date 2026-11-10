@@ -52,8 +52,8 @@ greet_med <- setNames(greet$median, greet$interface)[interfaces]
 shift <- calls[calls$task == "shift", ]
 ```
 
-jlbind calls Julia code that was compiled ahead of time, through one `.Call()`
-per function. The alternatives,
+jlbind calls Julia code that was compiled ahead of time, through one
+`.External()` per function. The alternatives,
 [JuliaCall](https://github.com/JuliaInterop/JuliaCall) and
 [JuliaConnectoR](https://github.com/stefan-m-lenz/JuliaConnectoR), run Julia
 itself: JuliaCall embeds a Julia session in the R process, and JuliaConnectoR

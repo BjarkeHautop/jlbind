@@ -152,7 +152,7 @@ value using `to_sexp()`. The built-in conversions are:
   | `DateTime`                     | A single `POSIXct`             | A `POSIXct` in UTC               |
   | `Union{Missing,T}`             | A value of type `T`, or `NA`   | A value of type `T`, or `NA`     |
   | `Union{Nothing,T}`             | `NULL`, or a value of type `T` | `NULL`, or a value of type `T`   |
-  | `Nothing`                      |                                | `NULL`                           |
+  | `Nothing`                      |                                | `NULL`, invisibly                |
 
 **Vectors and arrays**
 

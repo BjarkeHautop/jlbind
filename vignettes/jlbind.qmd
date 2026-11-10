@@ -8,7 +8,7 @@ vignette: >
 
 jlbind lets an R package call Julia code without starting a Julia session. The
 Julia code is compiled ahead of time into a shared library, and R calls it
-through native `.Call()` routines.
+through native `.External()` calls.
 
 You need [Julia](https://julialang.org/install/) 1.13 or later, and
 [devtools](https://devtools.r-lib.org/) for the development workflow below.
@@ -117,7 +117,7 @@ error.
 A library that has loaded can't be replaced, so restart R first.
 `devtools::load_all()` then rebuilds the library, since your Julia code changed.
 If you forget, `devtools::load_all()` warns that the development library is out
-of date and tell you to restart R.
+of date and tells you to restart R.
 
 Repeat these steps as you develop. If you only change the body of a Julia
 function, you can skip step 2.
