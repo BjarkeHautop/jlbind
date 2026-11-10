@@ -419,7 +419,7 @@ Directory under <code>inst/</code> for the binding package.
 <p><code>R/jlbind.R</code>, with an <code>.onLoad()</code> that calls <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="./bind_client.html">bind_client</a>()</code>. If the package already has an <code>.onLoad()</code>, add <code>jlbind::<a class="quartodown-tip-ref" data-quartodown-tip="t3" href="./bind_client.html">bind_client</a>(pkgname)</code> to it yourself.</p>
 </li>
 <li>
-<p>The <code>Config/jlbind</code> and <code>Imports: jlbind</code> fields in <code>DESCRIPTION</code>.</p>
+<p>The <code>Config/jlbind</code>, <code>Imports: jlbind</code> and <code>SystemRequirements: Julia (&gt;= 1.13)</code> fields in <code>DESCRIPTION</code>.</p>
 </li>
 <li>
 <p><code>.jlbind/</code>, where <code><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="./build_library.html">build_library</a>()</code> writes a library for development, in <code>.Rbuildignore</code> and <code>.gitignore</code>.</p>
@@ -444,8 +444,8 @@ Directory under <code>inst/</code> for the binding package.
 <span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a>)</span>
 <span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-15"><a href="#cb2-15" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./use_jlbind.html">use_jlbind</a></span>(pkg)</span>
-<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Created the binding package mypkgBindings in /tmp/RtmpBFmCmX/mypkg/inst/julia.</span></span>
-<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Wrote /tmp/RtmpBFmCmX/mypkg/R/jlbind-wrappers.R (1 entrypoints).</span></span>
+<span id="cb2-16"><a href="#cb2-16" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Created the binding package mypkgBindings in /tmp/RtmpTfIOqk/mypkg/inst/julia.</span></span>
+<span id="cb2-17"><a href="#cb2-17" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Wrote /tmp/RtmpTfIOqk/mypkg/R/jlbind-wrappers.R (1 entrypoints).</span></span>
 <span id="cb2-18"><a href="#cb2-18" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/list.files.html">list.files</a></span>(pkg, <span class="at">recursive =</span> <span class="cn">TRUE</span>)</span>
 <span id="cb2-19"><a href="#cb2-19" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] "DESCRIPTION"                     "inst/julia/Project.toml"        </span></span>
 <span id="cb2-20"><a href="#cb2-20" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [3] "inst/julia/src/mypkgBindings.jl" "R/jlbind-wrappers.R"            </span></span>
