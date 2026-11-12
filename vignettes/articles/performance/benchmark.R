@@ -17,8 +17,8 @@ sizes <- 10^(1:7)
 
 # The Julia definitions JuliaCall and JuliaConnectoR evaluate, matching benchjl.
 julia_defs <- '
-greet(name::String) = "Hello, " * name * "!"
-shift(x::Vector{Float64}, by::Float64) = x .+ by
+greet(name) = "Hello, " * name * "!"
+shift(x, by) = x .+ by
 '
 
 # Code for each interface: `setup` loads it and returns R functions `greet`

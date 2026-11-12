@@ -207,7 +207,7 @@ signatures short:
 const Sales = RDataFrame{(:group, :amount),Tuple{Vector{String},Vector{Float64}}}
 const Summary = RDataFrame{(:group, :mean),Tuple{Vector{String},Vector{Float64}}}
 
-function summarise(df::Sales)
+function summarise(df)
     gs = sort(unique(df.group))
     means = [sum(df.amount[df.group .== g]) / count(==(g), df.group) for g in gs]
     return RDataFrame((group = gs, mean = means))
@@ -278,8 +278,8 @@ end
 
 JLBind.r_class(::Type{Counter}) = "counter"
 
-new_counter(start::Int64) = Counter(start)
-increment(c::Counter, by::Int64) = (c.n += by; c.n)
+new_counter(start) = Counter(start)
+increment(c, by) = (c.n += by; c.n)
 
 @rcall new_counter(start::Int64)::RRef{Counter}
 @rcall increment(c::RRef{Counter}, by::Int64)::Int64
@@ -316,7 +316,7 @@ JLBind.r_saved_by(::Type{Counter}) = "mypackage"
 JLBind.r_restore(::Type{Counter}, state::SEXP) =
     Counter(from_sexp(NamedTuple{(:n,),Tuple{Int64}}, state).n)
 
-counter_value(c::Counter) = c.n
+counter_value(c) = c.n
 
 @rcall counter_value(c::RRef{Counter})::Int64
 ```
@@ -422,10 +422,10 @@ function with_shape(f::F, @nospecialize(s::Shape)) where {F}
     throw(ArgumentError("unknown shape"))
 end
 
-circle(radius::Float64) = Circle(radius)
-square(side::Float64) = Square(side)
-rectangle(width::Float64, height::Float64) = Rectangle(width, height)
-triangle(base::Float64, height::Float64) = Triangle(base, height)
+circle(radius) = Circle(radius)
+square(side) = Square(side)
+rectangle(width, height) = Rectangle(width, height)
+triangle(base, height) = Triangle(base, height)
 shape_area(@nospecialize(s::Shape)) = with_shape(area, s)
 scaled_area(@nospecialize(s::Shape), factor::Float64) =
     with_shape(x -> factor^2 * area(x), s)

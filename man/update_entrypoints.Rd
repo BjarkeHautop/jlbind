@@ -52,11 +52,11 @@ use_jlbind(pkg)
 # Add an entrypoint to the binding package, before its closing `end`
 file <- file.path(pkg, "inst/julia/src/addpkgBindings.jl")
 code <- readLines(file)
-last <- max(which(code == "end"))
+last <- max(grep("^end", code))
 code <- append(
   code,
   c(
-    "add(x::Float64, y::Float64) = x + y",
+    "add(x, y) = x + y",
     "@rcall add(x::Float64, y::Float64)::Float64",
     ""
   ),

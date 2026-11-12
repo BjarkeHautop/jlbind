@@ -201,11 +201,11 @@ use_jlbind_ci <- function(path = ".", overwrite = FALSE) {
 #' # Add an entrypoint to the binding package, before its closing `end`
 #' file <- file.path(pkg, "inst/julia/src/addpkgBindings.jl")
 #' code <- readLines(file)
-#' last <- max(which(code == "end"))
+#' last <- max(grep("^end", code))
 #' code <- append(
 #'   code,
 #'   c(
-#'     "add(x::Float64, y::Float64) = x + y",
+#'     "add(x, y) = x + y",
 #'     "@rcall add(x::Float64, y::Float64)::Float64",
 #'     ""
 #'   ),
@@ -572,10 +572,6 @@ update_entrypoints <- function(path = ".") {
 .julia_code <- function(src) {
   ch <- strsplit(src, "")[[1L]]
   n <- length(ch)
-  blank <- function(from, to) {
-    k <- seq.int(from, min(to, n))
-    ch[k[ch[k] != "\n"]] <<- " "
-  }
   at <- function(j, s) {
     k <- j + seq_len(nchar(s)) - 1L
     all(k <= n) && identical(paste(ch[k], collapse = ""), s)
@@ -622,7 +618,8 @@ update_entrypoints <- function(path = ".") {
       i <- i + 1L
       next
     }
-    blank(i, j - 1L)
+    k <- seq.int(i, min(j - 1L, n))
+    ch[k[ch[k] != "\n"]] <- " "
     i <- j
   }
   paste(ch, collapse = "")
@@ -631,19 +628,15 @@ update_entrypoints <- function(path = ".") {
 # Adds the jlbind fields to a package's DESCRIPTION.
 .set_description <- function(file, dir) {
   fields <- colnames(read.dcf(file))
-  desc <- read.dcf(file, keep.white = fields)
-  changed <- FALSE
-  set <- function(field, value) {
+  desc <- old <- read.dcf(file, keep.white = fields)
+  set <- function(desc, field, value) {
     if (!field %in% colnames(desc)) {
-      desc <<- cbind(desc, matrix(value, dimnames = list(NULL, field)))
-    } else if (!identical(unname(desc[, field]), value)) {
-      desc[, field] <<- value
-    } else {
-      return()
+      return(cbind(desc, matrix(value, dimnames = list(NULL, field))))
     }
-    changed <<- TRUE
+    desc[, field] <- value
+    desc
   }
-  set(.field, dir)
+  desc <- set(desc, .field, dir)
   imports <- if ("Imports" %in% fields) desc[, "Imports"] else NA
   deps <- if (is.na(imports)) {
     character()
@@ -651,18 +644,16 @@ update_entrypoints <- function(path = ".") {
     trimws(strsplit(imports, ",")[[1L]])
   }
   if (!any(sub("\\s*\\(.*", "", deps) == "jlbind")) {
-    set(
+    desc <- set(
+      desc,
       "Imports",
       if (is.na(imports)) "jlbind" else paste0(imports, ",\n    jlbind")
     )
   }
   if (!"SystemRequirements" %in% fields) {
-    set(
-      "SystemRequirements",
-      "Julia (>= 1.13)"
-    )
+    desc <- set(desc, "SystemRequirements", "Julia (>= 1.13)")
   }
-  if (changed) {
+  if (!identical(desc, old)) {
     write.dcf(desc, file, keep.white = colnames(desc))
   }
 }

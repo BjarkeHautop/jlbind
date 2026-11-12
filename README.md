@@ -58,10 +58,10 @@ module MyPkgBindings
 
 using JLBind
 
-greet(name::String) = "Hello, " * name * "!"
+greet(name) = "Hello, " * name * "!"
 @rcall greet(name::String)::String
 
-end
+end # module MyPkgBindings
 ```
 
 Run `jlbind::update_entrypoints()`, which generates the R function `greet(name)`
