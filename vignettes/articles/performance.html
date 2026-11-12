@@ -371,7 +371,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 </header><p class="source-note">
 <small class="dont-index">Source: <a href="https://github.com/BjarkeHautop/jlbind/blob/HEAD/vignettes/articles/performance.qmd"><code>vignettes/articles/performance.qmd</code></a></small>
 </p>
-<p>jlbind calls Julia code that was compiled ahead of time, through one <code><a href="https://rdrr.io/r/base/CallExternal.html">.External</a>()</code> per function. The alternatives, <a href="https://github.com/JuliaInterop/JuliaCall">JuliaCall</a> and <a href="https://github.com/stefan-m-lenz/JuliaConnectoR">JuliaConnectoR</a>, run Julia itself: JuliaCall embeds a Julia session in the R process, and JuliaConnectoR starts one in a separate process and talks to it over a socket. This article compares the three on the same Julia functions.</p>
+<p>jlbind calls Julia code that was compiled ahead of time, through one <code>.External()</code> per function. The alternatives, <a href="https://github.com/JuliaInterop/JuliaCall">JuliaCall</a> and <a href="https://github.com/stefan-m-lenz/JuliaConnectoR">JuliaConnectoR</a>, run Julia itself: JuliaCall embeds a Julia session in the R process, and JuliaConnectoR starts one in a separate process and talks to it over a socket. This article compares the three on the same Julia functions.</p>
 <p>In short, on this machine, jlbind is ready to use 112 to 147 times sooner, and a call costs 0.911 µs rather than 8.76 µs (JuliaCall) or 207 µs (JuliaConnectoR).</p>
 <section id="the-benchmarks" class="level2"><h2 class="anchored" data-anchor-id="the-benchmarks">The benchmarks</h2>
 <p>The functions are those of <code>benchjl</code>, a minimal jlbind client kept next to the benchmark script:</p>
@@ -460,7 +460,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 </table>
 </div>
 </div>
-<p>A jlbind call is an <code><a href="https://rdrr.io/r/base/CallExternal.html">.External</a>()</code> call into jlbind’s C code, which calls the compiled library directly, where the arguments are converted with R’s C API. JuliaCall converts arguments and looks up the function at run time in the embedded session. JuliaConnectoR serializes the call to a separate Julia process and the result back, so each call costs a round trip.</p>
+<p>A jlbind call is an <code>.External()</code> call into jlbind’s C code, which calls the compiled library directly, where the arguments are converted with R’s C API. JuliaCall converts arguments and looks up the function at run time in the embedded session. JuliaConnectoR serializes the call to a separate Julia process and the result back, so each call costs a round trip.</p>
 </section><section id="data-transfer" class="level2"><h2 class="anchored" data-anchor-id="data-transfer">Data transfer</h2>
 <div class="cell">
 <div class="cell-output-display">

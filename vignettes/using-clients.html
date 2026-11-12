@@ -387,7 +387,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <p>jlbind lets R packages call Julia code compiled ahead of time into a shared library, without a Julia session. This vignette explains how that library works and how to use an R package built with jlbind. To add Julia functions to your own R package, see <a href="jlbind.html">Get started with jlbind</a> and <a href="technical-details.html">Technical details</a>. For how jlbind compares with other ways of calling Julia from R, see <a href="https://bjarkehautop.github.io/jlbind/vignettes/articles/performance.html">Performance</a>.</p>
 <section id="how-it-works" class="level2"><h2 class="anchored" data-anchor-id="how-it-works">How it works</h2>
 <p>An R process can load only one compiled Julia library. Julia has one runtime per process, and that runtime uses a single compiled image. If two R packages loaded separate copies of the library, they could conflict and crash the R session.</p>
-<p>To avoid this, jlbind builds one shared library for each user, combining the Julia code of all installed R packages that use jlbind (<em>clients</em>). When you run <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/install_library.html">install_library</a>()</code>, jlbind finds the installed clients, compiles their binding packages into one library, and saves it under <code>tools::<a href="https://rdrr.io/r/tools/userdir.html">R_user_dir</a>("jlbind", "data")</code>. Loading a client loads that library and connects the client to it.</p>
+<p>To avoid this, jlbind builds one shared library for each user, combining the Julia code of all installed R packages that use jlbind (<em>clients</em>). When you run <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/install_library.html">install_library</a>()</code>, jlbind finds the installed clients, compiles their binding packages into one library, and saves it under <code>tools::R_user_dir("jlbind", "data")</code>. Loading a client loads that library and connects the client to it.</p>
 <p>A client can only be bound to a library built from the version of that client currently installed. If you update a package without rebuilding the library, its functions will report that the library needs to be rebuilt.</p>
 </section><section id="using-a-package-built-on-jlbind" class="level2"><h2 class="anchored" data-anchor-id="using-a-package-built-on-jlbind">Using a package built on jlbind</h2>
 <p>You need <a href="https://julialang.org/install/">Julia</a> 1.13 or later to build the shared library.</p>
@@ -441,7 +441,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <p>If a client’s <code>[compat]</code> bounds conflict with those of the clients listed before it by <code><a class="quartodown-tip-ref" data-quartodown-tip="t5" href="../reference/jlbind_clients.html">jlbind_clients</a>()</code>, it is left out of the build; <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/is_bound.html">check_bound</a>()</code> says which clients it conflicts with.</p>
 <p>You can control which clients are included by specifying them explicitly:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/install_library.html">install_library</a></span>(<span class="at">packages =</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"pkgA"</span>, <span class="st">"pkgC"</span>))</span></code></pre></div>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/install_library.html">install_library</a></span>(<span class="at">packages =</span> <span class="fu">c</span>(<span class="st">"pkgA"</span>, <span class="st">"pkgC"</span>))</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <div class="callout callout-style-default callout-important callout-titled">
@@ -466,8 +466,8 @@ visitors who prefer it, before Quarto reads the stored choice.
 <p>Then select one in an R session:</p>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># jlbind.dll on Windows, jlbind.dylib on macOS</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/Sys.setenv.html">Sys.setenv</a></span>(<span class="at">JLBIND_LIBRARY =</span> <span class="st">"~/jlbind/pkgA/jlbind.so"</span>)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/library.html">library</a></span>(pkgA)</span></code></pre></div>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">Sys.setenv</span>(<span class="at">JLBIND_LIBRARY =</span> <span class="st">"~/jlbind/pkgA/jlbind.so"</span>)</span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pkgA)</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 </div>
@@ -580,7 +580,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <p>The several targets measured here are those of Julia’s own system image, which keep numeric code fast across x86-64 CPUs:</p>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/install_library.html">install_library</a></span>(</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">cpu_target =</span> <span class="fu"><a href="https://rdrr.io/r/base/paste.html">paste</a></span>(</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">cpu_target =</span> <span class="fu">paste</span>(</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"generic"</span>,</span>
 <span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"sandybridge,-xsaveopt,clone_all"</span>,</span>
 <span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"haswell,-rdrnd,base(1)"</span>,</span>
@@ -601,7 +601,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <p>The library loads the runtime of the Julia that built it, so that Julia must stay installed. With <code>bundle = TRUE</code>, jlbind copies Julia’s runtime next to the library, using JuliaC’s <code>--bundle</code>, so that it runs without Julia:</p>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="../reference/build_library.html">build_library</a></span>(</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"pkgA"</span>, <span class="st">"pkgB"</span>),</span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">"pkgA"</span>, <span class="st">"pkgB"</span>),</span>
 <span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"~/jlbind/bundle"</span>,</span>
 <span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">cpu_target =</span> <span class="st">"generic"</span>,</span>
 <span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">bundle =</span> <span class="cn">TRUE</span></span>

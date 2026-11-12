@@ -397,7 +397,7 @@ Name of a package that uses jlbind.
 <div class="sourceCode cell-code" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="co"># Not bound, as no package named mypkg has been loaded</span></span>
 <span id="cb2-2"><a href="#cb2-2" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./is_bound.html">is_bound</a></span>(<span class="st">"mypkg"</span>)</span>
 <span id="cb2-3"><a href="#cb2-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] FALSE</span></span>
-<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/try.html">try</a></span>(<span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./is_bound.html">check_bound</a></span>(<span class="st">"mypkg"</span>))</span>
+<span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu">try</span>(<span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./is_bound.html">check_bound</a></span>(<span class="st">"mypkg"</span>))</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; Error : Package mypkg has not asked to be bound; is it loaded, and does it call jlbind::bind_client() from its .onLoad()?</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>

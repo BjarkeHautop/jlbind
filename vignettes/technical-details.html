@@ -450,7 +450,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 </div>
 <p>generates</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>summarise <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">probs =</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="fl">0.25</span>, <span class="fl">0.75</span>), <span class="at">na =</span> <span class="cn">NA</span>) ...</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>summarise <span class="ot">&lt;-</span> <span class="cf">function</span>(x, <span class="at">probs =</span> <span class="fu">c</span>(<span class="fl">0.25</span>, <span class="fl">0.75</span>), <span class="at">na =</span> <span class="cn">NA</span>) ...</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>A default can be any of these:</p>
@@ -488,17 +488,17 @@ visitors who prefer it, before Quarto reads the stored choice.
 <td>
 <code>[1, 2]</code>, <code>Float64[1, 2]</code>
 </td>
-<td><code><a href="https://rdrr.io/r/base/c.html">c</a>(1, 2)</code></td>
+<td><code>c(1, 2)</code></td>
 </tr>
 <tr class="even">
 <td><code>["a", missing]</code></td>
-<td><code><a href="https://rdrr.io/r/base/c.html">c</a>("a", NA)</code></td>
+<td><code>c("a", NA)</code></td>
 </tr>
 <tr class="odd">
 <td>
 <code>Float64[]</code>, <code>String[]</code>, …</td>
 <td>
-<code><a href="https://rdrr.io/r/base/numeric.html">numeric</a>(0)</code>, <code><a href="https://rdrr.io/r/base/character.html">character</a>(0)</code>, …</td>
+<code>numeric(0)</code>, <code>character(0)</code>, …</td>
 </tr>
 </tbody>
 </table>
@@ -786,7 +786,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <li>
 <strong>Dates:</strong> to use <code>Date</code> or <code>DateTime</code>, add the <code>Dates</code> standard library to the binding package’s dependencies.</li>
 <li>
-<strong>Lists:</strong> if one element of a list can’t be converted, the error says which. For example, passing <code><a href="https://rdrr.io/r/base/list.html">list</a>(c(1, 2), "a")</code> as a <code>Vector{Vector{Float64}}</code> gives the error <code>element 2: expected a numeric vector</code>.</li>
+<strong>Lists:</strong> if one element of a list can’t be converted, the error says which. For example, passing <code>list(c(1, 2), "a")</code> as a <code>Vector{Vector{Float64}}</code> gives the error <code>element 2: expected a numeric vector</code>.</li>
 </ul></section><section id="data-frames" class="level3"><h3 class="anchored" data-anchor-id="data-frames">Data frames</h3>
 <p>To take or return a data frame, wrap the columns in an <code>RDataFrame</code>. Its type lists the column names and the type of each column, so a type alias keeps signatures short:</p>
 <div class="code-copy-outer-scaffold">
@@ -803,7 +803,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summarise</span>(<span class="fu"><a href="https://rdrr.io/r/base/data.frame.html">data.frame</a></span>(<span class="at">group =</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"a"</span>), <span class="at">amount =</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>)))</span>
+<div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a><span class="fu">summarise</span>(<span class="fu">data.frame</span>(<span class="at">group =</span> <span class="fu">c</span>(<span class="st">"a"</span>, <span class="st">"b"</span>, <span class="st">"a"</span>), <span class="at">amount =</span> <span class="fu">c</span>(<span class="dv">1</span>, <span class="dv">2</span>, <span class="dv">3</span>)))</span>
 <span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt;   group mean</span></span>
 <span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 1     a    2</span></span>
 <span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; 2     b    2</span></span></code></pre></div>
@@ -842,16 +842,16 @@ visitors who prefer it, before Quarto reads the stored choice.
 <p>From R, you can create a counter and update it across calls:</p>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>counter <span class="ot">&lt;-</span> <span class="fu">new_counter</span>(<span class="dv">0</span>)</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/class.html">class</a></span>(counter)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">class</span>(counter)</span>
 <span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] "counter"</span></span>
 <span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a><span class="fu">increment</span>(counter, <span class="dv">2</span>)</span>
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 2</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p><code>r_class()</code> sets the R class of the external pointer, so your package can define methods such as <code><a href="https://rdrr.io/r/base/print.html">print</a>()</code> for it. An argument declared as <code>RRef{Counter}</code> also checks that the reference points to a <code>Counter</code>, rather than accepting an arbitrary Julia object.</p>
+<p><code>r_class()</code> sets the R class of the external pointer, so your package can define methods such as <code>print()</code> for it. An argument declared as <code>RRef{Counter}</code> also checks that the reference points to a <code>Counter</code>, rather than accepting an arbitrary Julia object.</p>
 </section><section id="saving-julia-objects" class="level3"><h3 class="anchored" data-anchor-id="saving-julia-objects">Saving Julia objects</h3>
-<p>R writes an external pointer as a null pointer, so by default a reference does not survive <code><a href="https://rdrr.io/r/base/readRDS.html">saveRDS</a>()</code>, <code><a href="https://rdrr.io/r/base/save.html">save</a>()</code>, <code><a href="https://rdrr.io/r/base/serialize.html">serialize</a>()</code>, or being sent to a parallel worker; using it afterwards gives an error. To make a type savable, you need to do two things.</p>
+<p>R writes an external pointer as a null pointer, so by default a reference does not survive <code>saveRDS()</code>, <code>save()</code>, <code>serialize()</code>, or being sent to a parallel worker; using it afterwards gives an error. To make a type savable, you need to do two things.</p>
 <p>In Julia, define <code>JLBind.r_saved_by()</code>, which names your R package, and <code>JLBind.r_restore()</code>, which rebuilds the object from the saved data:</p>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb9"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>JLBind.<span class="fu">r_saved_by</span>(<span class="op">::</span><span class="dt">Type{Counter}</span>) <span class="op">=</span> <span class="st">"mypackage"</span></span>
@@ -866,7 +866,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <p>In R, define <code>.jlbind_saved_state()</code>, which returns that data as a list of plain R values. It is internal, so don’t export it. If your package has several savable types, branch on the class of <code>x</code>:</p>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>.jlbind_saved_state <span class="ot">&lt;-</span> <span class="cf">function</span>(x) {</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="at">n =</span> <span class="fu">counter_value</span>(x))</span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">list</span>(<span class="at">n =</span> <span class="fu">counter_value</span>(x))</span>
 <span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>}</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
@@ -951,8 +951,8 @@ Shape types and their areas
 </div>
 <p>Every shape can then be passed to the same generated R functions:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>shapes <span class="ot">&lt;-</span> <span class="fu"><a href="https://rdrr.io/r/base/list.html">list</a></span>(<span class="fu">circle</span>(<span class="dv">1</span>), <span class="fu">square</span>(<span class="dv">2</span>), <span class="fu">rectangle</span>(<span class="dv">2</span>, <span class="dv">3</span>), <span class="fu">triangle</span>(<span class="dv">2</span>, <span class="dv">3</span>))</span>
-<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu"><a href="https://rdrr.io/r/base/lapply.html">vapply</a></span>(shapes, shape_area, <span class="fu"><a href="https://rdrr.io/r/base/numeric.html">numeric</a></span>(<span class="dv">1</span>))</span>
+<div class="sourceCode" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a>shapes <span class="ot">&lt;-</span> <span class="fu">list</span>(<span class="fu">circle</span>(<span class="dv">1</span>), <span class="fu">square</span>(<span class="dv">2</span>), <span class="fu">rectangle</span>(<span class="dv">2</span>, <span class="dv">3</span>), <span class="fu">triangle</span>(<span class="dv">2</span>, <span class="dv">3</span>))</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a><span class="fu">vapply</span>(shapes, shape_area, <span class="fu">numeric</span>(<span class="dv">1</span>))</span>
 <span id="cb15-3"><a href="#cb15-3" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 3.141593 4.000000 6.000000 3.000000</span></span>
 <span id="cb15-4"><a href="#cb15-4" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb15-5"><a href="#cb15-5" aria-hidden="true" tabindex="-1"></a><span class="fu">scaled_area</span>(<span class="fu">square</span>(<span class="dv">2</span>), <span class="dv">3</span>)</span>

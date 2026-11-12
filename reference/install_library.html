@@ -374,15 +374,15 @@ visitors who prefer it, before Quarto reads the stored choice.
 <small class="dont-index">Source: <a href="https://github.com/BjarkeHautop/jlbind/blob/HEAD/R/library.R"><code>R/library.R</code></a></small>
 </p>
 <section id="description" class="level2"><h2 class="anchored" data-anchor-id="description">Description</h2>
-<p>Compiles the Julia code of every installed package that uses jlbind into one shared library, stored in <code>tools::<a href="https://rdrr.io/r/tools/userdir.html">R_user_dir</a>("jlbind", "data")</code>. Run this after you install or update one of those packages. You need Julia 1.13 or later. The first build downloads and compiles the Julia dependencies, which can take a few minutes.</p>
+<p>Compiles the Julia code of every installed package that uses jlbind into one shared library, stored in <code>tools::R_user_dir("jlbind", "data")</code>. Run this after you install or update one of those packages. You need Julia 1.13 or later. The first build downloads and compiles the Julia dependencies, which can take a few minutes.</p>
 </section><section id="usage" class="level2"><h2 class="anchored" data-anchor-id="usage">Usage</h2>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./install_library.html">install_library</a></span>(</span>
 <span id="cb1-2"><a href="#cb1-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">packages =</span> <span class="cn">NULL</span>,</span>
 <span id="cb1-3"><a href="#cb1-3" aria-hidden="true" tabindex="-1"></a>  <span class="at">julia =</span> <span class="cn">NULL</span>,</span>
-<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">ask =</span> <span class="fu"><a href="https://rdrr.io/r/base/interactive.html">interactive</a></span>(),</span>
+<span id="cb1-4"><a href="#cb1-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">ask =</span> <span class="fu">interactive</span>(),</span>
 <span id="cb1-5"><a href="#cb1-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">force =</span> <span class="cn">FALSE</span>,</span>
-<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">versions =</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"manifest"</span>, <span class="st">"compat"</span>),</span>
+<span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">versions =</span> <span class="fu">c</span>(<span class="st">"manifest"</span>, <span class="st">"compat"</span>),</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">develop =</span> <span class="cn">NULL</span>,</span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">cpu_target =</span> <span class="cn">NULL</span>,</span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">julia_args =</span> <span class="cn">NULL</span>,</span>
@@ -413,7 +413,7 @@ Path to the <code>julia</code> executable. By default, the <code>JULIA</code> en
 <code>ask</code>
 </td>
 <td>
-If <code>TRUE</code>, ask before building. Defaults to <a href="https://rdrr.io/r/base/interactive.html"><code>interactive()</code></a>.
+If <code>TRUE</code>, ask before building. Defaults to <code>interactive()</code>.
 </td>
 </tr>
 <tr>
@@ -478,7 +478,7 @@ If <code>TRUE</code>, copy the Julia runtime next to the library, so that it run
 <span id="cb2-4"><a href="#cb2-4" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./install_library.html">install_library</a></span>(<span class="at">develop =</span> <span class="st">"~/dev/SomePackage.jl"</span>)</span>
 <span id="cb2-5"><a href="#cb2-5" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-6"><a href="#cb2-6" aria-hidden="true" tabindex="-1"></a><span class="co"># Only two of the installed packages</span></span>
-<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./install_library.html">install_library</a></span>(<span class="at">packages =</span> <span class="fu"><a href="https://rdrr.io/r/base/c.html">c</a></span>(<span class="st">"pkgA"</span>, <span class="st">"pkgB"</span>))</span>
+<span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./install_library.html">install_library</a></span>(<span class="at">packages =</span> <span class="fu">c</span>(<span class="st">"pkgA"</span>, <span class="st">"pkgB"</span>))</span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co"># For an R library shared by computers with different CPUs</span></span>
 <span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./install_library.html">install_library</a></span>(<span class="at">cpu_target =</span> <span class="st">"generic"</span>)</span></code></pre></div>
