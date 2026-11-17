@@ -1,73 +1,129 @@
 [
 {
-    "objectID": "vignettes/jlbind.html",
-    "href": "vignettes/jlbind.html",
-    "title": "Get started with jlbind",
+    "objectID": "vignettes/using-clients.html",
+    "href": "vignettes/using-clients.html",
+    "title": "Using packages built on jlbind",
     "section": "",
-    "text": "Source: vignettes/jlbind.qmd\njlbind lets an R package call Julia code without starting a Julia session. The Julia code is compiled ahead of time into a shared library, and R calls it through native .External() calls.\nYou need Julia 1.13 or later, and devtools for the development workflow below.\nWe will refer to an R package that uses jlbind as a client."
+    "text": "Source: vignettes/using-clients.qmd\njlbind lets R packages call Julia code compiled ahead of time into a shared library, without a Julia session. This vignette explains how that library works and how to use an R package built with jlbind. To add Julia functions to your own R package, see Get started with jlbind and Technical details. For how jlbind compares with other ways of calling Julia from R, see Performance."
   },
   {
-    "objectID": "vignettes/jlbind.html#set-up-your-package",
-    "href": "vignettes/jlbind.html#set-up-your-package",
-    "title": "Get started with jlbind",
-    "section": "Set up your package",
-    "text": "Set up your package\nFrom your R package’s directory, run:\njlbind::use_jlbind()\ndevtools::document()\nThis adds everything your package needs to talk to Julia, including a Julia binding package in inst/julia/. For a package called mypkg, its main file is inst/julia/src/mypkgBindings.jl, and it comes with one example function:\nmodule mypkgBindings\n\nusing JLBind\n\nhello(name) = \"Hello, \" * name * \", from Julia!\"\n\n@rcall hello(name::String)::String\n\nend # module mypkgBindings\n@rcall declares a Julia function that R can call, along with its argument and return types. Every argument and the return value need a type: the types decide how values are converted between R and Julia (see Types)."
+    "objectID": "vignettes/using-clients.html#how-it-works",
+    "href": "vignettes/using-clients.html#how-it-works",
+    "title": "Using packages built on jlbind",
+    "section": "How it works",
+    "text": "How it works\nAn R process can load only one compiled Julia library. Julia has one runtime per process, and that runtime uses a single compiled image. If two R packages loaded separate copies of the library, they could conflict and crash the R session.\nTo avoid this, jlbind builds one shared library for each user, combining the Julia code of all installed R packages that use jlbind (clients). When you run install_library(), jlbind finds the installed clients, compiles their binding packages into one library, and saves it under tools::R_user_dir(\"jlbind\", \"data\"). Loading a client loads that library and connects the client to it.\nA client can only be bound to a library built from the version of that client currently installed. If you update a package without rebuilding the library, its functions will report that the library needs to be rebuilt."
   },
   {
-    "objectID": "vignettes/jlbind.html#try-the-example",
-    "href": "vignettes/jlbind.html#try-the-example",
-    "title": "Get started with jlbind",
-    "section": "Try the example",
-    "text": "Try the example\nuse_jlbind() has already generated the R function for hello(), so all that’s left is to compile the Julia code and load your package:\njlbind::build_library()\ndevtools::load_all()\nThe first build downloads and compiles Julia dependencies, so it may take a few minutes. Then call it like any R function:\nhello(\"world\")\n#&gt; [1] \"Hello, world, from Julia!\""
+    "objectID": "vignettes/using-clients.html#using-a-package-built-on-jlbind",
+    "href": "vignettes/using-clients.html#using-a-package-built-on-jlbind",
+    "title": "Using packages built on jlbind",
+    "section": "Using a package built on jlbind",
+    "text": "Using a package built on jlbind\nYou need Julia 1.13 or later to build the shared library.\nAfter installing or updating an R package that uses jlbind, run:\njlbind::install_library()\nThe first build downloads and compiles the required Julia dependencies, so it may take a few minutes.\n\n\n\n\n\n\nNoteRestart R after rebuilding a library that is already loaded\n\n\n\nJulia cannot be restarted within an R session. If the old library has already been loaded, rebuilding it on disk does not replace the copy in memory. Restart R to use the new library.\n\n\n\nIf something doesn’t work correctly\nIf a package that uses jlbind doesn’t work, first check its status:\njlbind::check_bound(\"somepkg\")\nThe most common causes are that the shared library hasn’t been built yet, or that the package was updated after the last build. For a full report, run:\njlbind::jlbind_sitrep()\nIt shows the Julia that install_library() would use (with its version, and whether it came from JULIA or the PATH), the library and what it was built from, each installed package that uses jlbind and whether the library is current for it, and the thread count. It works whether or not a library has loaded, and returns the same information invisibly as a list.\nIf the Julia installation used for the build has been removed or replaced, for example by a juliaup update, rebuild the library. install_library() rebuilds it when the Julia version differs from the one it was built with. If the version is the same, use force = TRUE:\njlbind::install_library(force = TRUE)\nYou can select the Julia installation to use by setting the JULIA environment variable or by passing julia = to install_library().\nThe library is compiled for the building machine’s CPU, and jlbind won’t load it on another. If one R library is used from computers with different CPUs, see Build options.\n\n\nThreads\nJulia runs with one thread by default. To use multiple threads, set JULIA_NUM_THREADS before loading the first package that uses jlbind, for example in your .Renviron file:\nJULIA_NUM_THREADS=auto # or a number, such as 4\nThe thread count is fixed when the library is loaded, so restart R after changing it.\n\n\nDependency versions\nAll clients share a single set of Julia dependencies. By default, the build starts from the versions in the Manifest.toml of the first client that has one, and keeps them for the other clients where their [compat] bounds allow. Pass versions = \"compat\" to ignore the manifests and let Julia’s resolver choose versions from the clients’ [compat] bounds alone.\nIf a client’s [compat] bounds conflict with those of the clients listed before it by jlbind_clients(), it is left out of the build; check_bound() says which clients it conflicts with.\nYou can control which clients are included by specifying them explicitly:\njlbind::install_library(packages = c(\"pkgA\", \"pkgC\"))\n\n\n\n\n\n\nImportantClients with incompatible dependencies cannot share a library\n\n\n\n\n\nIf you need both clients but never need them in the same R session, build a separate library for each. Set JLBIND_LIBRARY before loading the client to select the library for that session.\nFor example, build the two libraries:\njlbind::build_library(\"pkgA\", \"~/jlbind/pkgA\")\njlbind::build_library(\"pkgB\", \"~/jlbind/pkgB\")\nThen select one in an R session:\n# jlbind.dll on Windows, jlbind.dylib on macOS\nSys.setenv(JLBIND_LIBRARY = \"~/jlbind/pkgA/jlbind.so\")\nlibrary(pkgA)"
   },
   {
-    "objectID": "vignettes/jlbind.html#add-your-own-function",
-    "href": "vignettes/jlbind.html#add-your-own-function",
-    "title": "Get started with jlbind",
-    "section": "Add your own function",
-    "text": "Add your own function\nAdding a function takes three steps.\n\n1. Declare it in Julia\nInside the module in the binding package, write the function and declare it with @rcall. Defaults in the declaration become R defaults:\nshift(x, by) = x .+ by\n\n@rcall shift(x::Vector{Float64}, by::Float64 = 1.0)::Vector{Float64}\n\n\n2. Generate its R function\njlbind::update_entrypoints()\nThis adds shift() to R/jlbind-wrappers.R:\nshift &lt;- function(x, by = 1.0) .External(.jlbind$.call, .jlbind$shift, x, by)\n\n\n\n\n\n\nNoteWhat update_entrypoints() generates\n\n\n\n\n\nR/jlbind-wrappers.R, which you shouldn’t edit by hand, also lists the declarations:\n.jlbind_module &lt;- \"mypkgBindings\"\n.jlbind_entries &lt;- c(\n  \"hello\",\n  \"shift\"\n)\n.jlbind &lt;- new.env(parent = emptyenv())\nWhen your package loads, jlbind::bind_client() looks up each entry in the compiled library, shift as mypkgBindings_shift, the function @rcall exports, and puts it into .jlbind. Calls go through .jlbind$.call, a routine in jlbind that turns a Julia error into an R error. If the R functions are out of date with the Julia code, as when you change an @rcall without running update_entrypoints(), calling one with the wrong number of arguments gives an error.\n\n\n\n\n\n3. Restart R and load your package\nA library that has loaded can’t be replaced, so restart R first. devtools::load_all() then rebuilds the library, since your Julia code changed. If you forget, devtools::load_all() warns that the development library is out of date and tells you to restart R.\nRepeat these steps as you develop. If you only change the body of a Julia function, you can skip step 2."
+    "objectID": "vignettes/using-clients.html#build-options",
+    "href": "vignettes/using-clients.html#build-options",
+    "title": "Using packages built on jlbind",
+    "section": "Build options",
+    "text": "Build options\njlbind compiles the library with these options, which keep it small and fast. Most users don’t need to change them.\n\n\n\nOption\nWhat it does\nHow to change it\n\n\n\n\n--output-lib\nBuilds a shared library\nFixed\n\n\n--compile-ccallable\nExports the clients’ functions\nFixed\n\n\n--trim=safe\nRemoves code that can’t be reached\nOne client setting Config/jlbind/trim: false turns it off for the whole library, which makes it much larger\n\n\n--cpu-target=native\nCompiles for this computer’s CPU\ncpu_target or JULIA_CPU_TARGET\n\n\n-g0\nLeaves out debug info\njulia_args or JLBIND_JULIA_ARGS\n\n\n\nWhen trimming, JuliaC also passes --experimental, --strip-ir and --strip-metadata.\n\nCPU target\nUse cpu_target if one R library is used from computers with different CPUs, such as cluster nodes sharing a home directory:\njlbind::install_library(cpu_target = \"generic\")\nThis table compares the options on an x86-64 Linux computer (AMD Zen 4) with Julia 1.14. Library size is the compiled library file for CausalStructures.jl, a package of graph algorithms; the Julia runtime it loads adds about 6 MB. Run times are relative to \"native\", so 2× takes twice as long. Graph code is CausalStructures.jl, and the other columns are small numeric kernels. Results will differ for other packages and computers. The benchmark code is in the jlbind repository.\n\n\n\n\n\n\n\n\n\n\n\ncpu_target\nRuns on\nLibrary size\nGraph code\nSIMD loops\nexp/sin\n\n\n\n\n\"native\" (default)\nThis CPU model\n8.9 MB\n1×\n1×\n1×\n\n\n\"generic\"\nAny CPU\n8.8 MB\n1×\n1.7–2.8×\n1.1×\n\n\nSeveral targets\nThe CPUs you list\n21 MB\n1.0–1.1×\n1.0–1.1×\n0.9×\n\n\n\"generic;native,clone_all\"\nThis CPU model\n13.7 MB\n1×\n1×\n2.1×\n\n\n\nSorting and a scalar ODE solver took about the same time with all of them.\nThe several targets measured here are those of Julia’s own system image, which keep numeric code fast across x86-64 CPUs:\njlbind::install_library(\n  cpu_target = paste(\n    \"generic\",\n    \"sandybridge,-xsaveopt,clone_all\",\n    \"haswell,-rdrnd,base(1)\",\n    \"x86-64-v4,-rdrnd,base(1)\",\n    sep = \";\"\n  )\n)\nBuild options count towards whether the library is up to date, so calling install_library() without them rebuilds the library with the defaults. To keep a target for every build, set JULIA_CPU_TARGET, for example in your .Renviron file:\nJULIA_CPU_TARGET=generic\n\n\nJulia arguments\nFor advanced use, julia_args passes extra options to Julia when it compiles the library, such as \"-O3\", or \"-g1\" to keep the debug info that jlbind removes with -g0. You can also set them in JLBIND_JULIA_ARGS, separated by spaces. They can’t change the options jlbind relies on: --trim, --output-* and --compile-ccallable.\n\n\nLibraries for people without Julia\nThe library loads the runtime of the Julia that built it, so that Julia must stay installed. With bundle = TRUE, jlbind copies Julia’s runtime next to the library, using JuliaC’s --bundle, so that it runs without Julia:\njlbind::build_library(\n  c(\"pkgA\", \"pkgB\"),\n  \"~/jlbind/bundle\",\n  cpu_target = \"generic\",\n  bundle = TRUE\n)\nGive them the whole directory, built on the same operating system and CPU architecture as theirs. Then they should set JLBIND_LIBRARY to the library in it before loading them.\nThe size depends on how much of the runtime you keep. Julia’s whole runtime includes libraries that many packages never use, such as OpenBLAS. These sizes are for the whole directory, with cpu_target = \"generic\" on the computer above, for CausalStructures.jl and for a tiny package:\n\n\n\nLibrary\nCausalStructures.jl\nTiny package\n\n\n\n\nNot bundled (needs Julia)\n8.8 MB\n2.0 MB\n\n\nBundled\n87 MB\n68 MB\n\n\nBundled and removed by hand\n15 MB\n8.9 MB\n\n\n\nTo get the last row, delete jlbind-bundle/share, and everything in jlbind-bundle/lib and jlbind-bundle/lib/julia except libjulia, libjulia-internal, libunwind, libz, libzstd, libatomic, libgcc_s and libopenlibm, then run strip on the library. jlbind doesn’t do this for you, because a package can need more of them; one using LinearAlgebra needs OpenBLAS, for example. Test every package after removing anything."
   },
   {
-    "objectID": "vignettes/jlbind.html#export-your-functions",
-    "href": "vignettes/jlbind.html#export-your-functions",
-    "title": "Get started with jlbind",
-    "section": "Export your functions",
-    "text": "Export your functions\nTo export or document a generated function, write roxygen comments directly above its @rcall:\n#' Shift a vector\n#'\n#' @param x A numeric vector.\n#' @param by The amount to shift by.\n#' @export\n@rcall shift(x::Vector{Float64}, by::Float64 = 1.0)::Vector{Float64}\nupdate_entrypoints() copies them above shift() in R/jlbind-wrappers.R, so roxygen2 reads the function’s signature from there. To share a help page, use #' @rdname above the @rcall and write the page itself in R/, on NULL.\nTo add R code around a call, declare the Julia function with a jl_ prefix, e.g. @rcall jl_shift(...), and write shift() yourself, calling jl_shift()."
-  },
-  {
-    "objectID": "vignettes/jlbind.html#share-your-package",
-    "href": "vignettes/jlbind.html#share-your-package",
-    "title": "Get started with jlbind",
-    "section": "Share your package",
-    "text": "Share your package\nAn R process can load only one compiled Julia library, so jlbind compiles the Julia code of all installed clients into one library on each user’s machine. Tell your users, for example in your README, to run this after installing your package:\njlbind::install_library()\nYour package must also install and pass R CMD check without Julia, as on CRAN. In tests, skip anything that needs the library:\nskip_if_not(jlbind::is_bound(\"mypkg\"))\nIn examples, wrap such calls in if (jlbind::is_bound(\"mypkg\")). Then run jlbind::use_jlbind_ci() to check your package both with and without Julia on GitHub Actions."
-  },
-  {
-    "objectID": "vignettes/jlbind.html#next-steps",
-    "href": "vignettes/jlbind.html#next-steps",
-    "title": "Get started with jlbind",
-    "section": "Next steps",
-    "text": "Next steps\n\nTechnical details covers what you’ll likely need next: the types R and Julia can exchange, keeping Julia objects in R, errors, the compilation constraints on your Julia code, and development libraries, including how to pin Julia dependency versions.\nUsing packages built on jlbind describes what your users see, including threads and how clients share Julia dependencies.\nhellojl and counterjl are small, complete clients used in jlbind’s tests, and are good examples to learn from."
-  },
-  {
-    "objectID": "authors.html",
-    "href": "authors.html",
-    "title": "Authors and Citation",
+    "objectID": "reference/bind_client.html",
+    "href": "reference/bind_client.html",
+    "title": "Bind a package to the Julia library",
     "section": "",
-    "text": "Bjarke Hautop Kristensen. Author, maintainer."
+    "text": "Source: R/runtime.R"
   },
   {
-    "objectID": "authors.html#authors",
-    "href": "authors.html#authors",
-    "title": "Authors and Citation",
+    "objectID": "reference/bind_client.html#description",
+    "href": "reference/bind_client.html#description",
+    "title": "Bind a package to the Julia library",
+    "section": "Description",
+    "text": "Description\nCall this from the .onLoad() of a package that uses jlbind; use_jlbind() sets that up. The first call loads the compiled library, and each call binds one package’s routines to it. If the library is missing or was built from another version of the package, the package isn’t bound and its functions give an error; check_bound() says why."
+  },
+  {
+    "objectID": "reference/bind_client.html#usage",
+    "href": "reference/bind_client.html#usage",
+    "title": "Bind a package to the Julia library",
+    "section": "Usage",
+    "text": "Usage\nbind_client(pkg)"
+  },
+  {
+    "objectID": "reference/bind_client.html#arguments",
+    "href": "reference/bind_client.html#arguments",
+    "title": "Bind a package to the Julia library",
+    "section": "Arguments",
+    "text": "Arguments\n\n\n\npkg\n\n\nThe package name."
+  },
+  {
+    "objectID": "reference/bind_client.html#details",
+    "href": "reference/bind_client.html#details",
+    "title": "Bind a package to the Julia library",
+    "section": "Details",
+    "text": "Details\nThe library is the one from install_library(), unless JLBIND_LIBRARY names another, or the first package bound was loaded with pkgload::load_all() and has one from build_library(). That library is rebuilt as the package loads if it is out of date with the package’s sources, as when its Julia code has changed. A library that has already loaded cannot be replaced, so after a change, restart R.\nTo run Julia with more threads, set JULIA_NUM_THREADS (a number or \"auto\") before loading the first package that uses jlbind."
+  },
+  {
+    "objectID": "reference/bind_client.html#value",
+    "href": "reference/bind_client.html#value",
+    "title": "Bind a package to the Julia library",
+    "section": "Value",
+    "text": "Value\nInvisibly, TRUE if the package is bound and FALSE if not."
+  },
+  {
+    "objectID": "reference/bind_client.html#examples",
+    "href": "reference/bind_client.html#examples",
+    "title": "Bind a package to the Julia library",
+    "section": "Examples",
+    "text": "Examples\n# In a package's R/jlbind.R, as use_jlbind() writes it\n.onLoad &lt;- function(libname, pkgname) {\n  jlbind::bind_client(pkgname)\n}"
+  },
+  {
+    "objectID": "reference/update_entrypoints.html",
+    "href": "reference/update_entrypoints.html",
+    "title": "Update the list of Julia functions R can call",
     "section": "",
-    "text": "Bjarke Hautop Kristensen. Author, maintainer."
+    "text": "Source: R/scaffold.R"
   },
   {
-    "objectID": "authors.html#citation",
-    "href": "authors.html#citation",
-    "title": "Authors and Citation",
-    "section": "Citation",
-    "text": "Citation\n\nSource: DESCRIPTION\n\n\nKristensen B (2026). jlbind: Bind R Packages to Compiled Julia Code. R package version 0.0.0.9000, https://github.com/BjarkeHautop/jlbind.\n\n@Manual{,\n  title = {jlbind: Bind R Packages to Compiled Julia Code},\n  author = {Bjarke Hautop Kristensen},\n  year = {2026},\n  note = {R package version 0.0.0.9000},\n  url = {https://github.com/BjarkeHautop/jlbind},\n}"
+    "objectID": "reference/update_entrypoints.html#description",
+    "href": "reference/update_entrypoints.html#description",
+    "title": "Update the list of Julia functions R can call",
+    "section": "Description",
+    "text": "Description\nFinds the @rcall declarations in the package’s Julia binding package and writes R/jlbind-wrappers.R, with an R function for each that calls the compiled Julia function. Run this whenever you add or remove an @rcall, or change its arguments. @rcall shift(x::Vector{Float64}, by::Float64 = 0.0)::Float64 becomes shift &lt;- function(x, by = 0.0) .External(.jlbind$.call, .jlbind$shift, x, by), where bind_client() puts the compiled function into .jlbind."
+  },
+  {
+    "objectID": "reference/update_entrypoints.html#usage",
+    "href": "reference/update_entrypoints.html#usage",
+    "title": "Update the list of Julia functions R can call",
+    "section": "Usage",
+    "text": "Usage\nupdate_entrypoints(path = \".\")"
+  },
+  {
+    "objectID": "reference/update_entrypoints.html#arguments",
+    "href": "reference/update_entrypoints.html#arguments",
+    "title": "Update the list of Julia functions R can call",
+    "section": "Arguments",
+    "text": "Arguments\n\n\n\npath\n\n\nPath to the package sources."
+  },
+  {
+    "objectID": "reference/update_entrypoints.html#details",
+    "href": "reference/update_entrypoints.html#details",
+    "title": "Update the list of Julia functions R can call",
+    "section": "Details",
+    "text": "Details\nDefaults must be literal numbers, strings, true, false, missing (NA) or nothing (NULL), or vectors of these, such as [1, 2] (c(1, 2)) or Float64[] (numeric(0)). A function returning Nothing returns invisibly. To export or document a function, write roxygen comments (#') directly above its @rcall: they’re copied above the R function, so roxygen2 sees its signature. To add R code around a call, declare the Julia function with a jl_ prefix and write the R function yourself, calling the generated jl_ function."
+  },
+  {
+    "objectID": "reference/update_entrypoints.html#value",
+    "href": "reference/update_entrypoints.html#value",
+    "title": "Update the list of Julia functions R can call",
+    "section": "Value",
+    "text": "Value\nInvisibly, a data frame of the entrypoints with the columns name, nargs, and the formals, args, invisible (whether it returns invisibly) and roxygen (the comments above its @rcall) of their R wrappers."
+  },
+  {
+    "objectID": "reference/update_entrypoints.html#examples",
+    "href": "reference/update_entrypoints.html#examples",
+    "title": "Update the list of Julia functions R can call",
+    "section": "Examples",
+    "text": "Examples\n\n# A package set up with use_jlbind() in a temporary directory\npkg &lt;- file.path(tempdir(), \"addpkg\")\ndir.create(pkg)\nwriteLines(\n  c(\n    \"Package: addpkg\",\n    \"Title: Demo\",\n    \"Version: 0.1.0\",\n    \"Description: Demo.\",\n    \"License: MIT\"\n  ),\n  file.path(pkg, \"DESCRIPTION\")\n)\nuse_jlbind(pkg)\n#&gt; Created the binding package addpkgBindings in /tmp/Rtmp4gjKFY/addpkg/inst/julia.\n#&gt; Wrote /tmp/Rtmp4gjKFY/addpkg/R/jlbind-wrappers.R (1 entrypoints).\n\n# Add an entrypoint to the binding package, before its closing `end`\nfile &lt;- file.path(pkg, \"inst/julia/src/addpkgBindings.jl\")\ncode &lt;- readLines(file)\nlast &lt;- max(grep(\"^end\", code))\ncode &lt;- append(\n  code,\n  c(\n    \"add(x, y) = x + y\",\n    \"@rcall add(x::Float64, y::Float64)::Float64\",\n    \"\"\n  ),\n  after = last - 1L\n)\nwriteLines(code, file)\n\nupdate_entrypoints(pkg)\n#&gt; Wrote /tmp/Rtmp4gjKFY/addpkg/R/jlbind-wrappers.R (2 entrypoints).\nwriteLines(readLines(file.path(pkg, \"R\", \"jlbind-wrappers.R\")))\n#&gt; # Generated by jlbind::update_entrypoints(): do not edit by hand\n#&gt; \n#&gt; # The entrypoints of the Julia binding package, which\n#&gt; # jlbind::bind_client() looks up in the compiled library and puts into\n#&gt; # `.jlbind` for the functions below.\n#&gt; .jlbind_module &lt;- \"addpkgBindings\"\n#&gt; .jlbind_entries &lt;- c(\n#&gt;   \"hello\",\n#&gt;   \"add\"\n#&gt; )\n#&gt; .jlbind &lt;- new.env(parent = emptyenv())\n#&gt; \n#&gt; hello &lt;- function(name) .External(.jlbind$.call, .jlbind$hello, name)\n#&gt; add &lt;- function(x, y) .External(.jlbind$.call, .jlbind$add, x, y)"
   },
   {
     "objectID": "reference/is_bound.html",
@@ -110,6 +166,160 @@
     "title": "Check whether a package is bound to the Julia library",
     "section": "Examples",
     "text": "Examples\n\n# Not bound, as no package named mypkg has been loaded\nis_bound(\"mypkg\")\n#&gt; [1] FALSE\ntry(check_bound(\"mypkg\"))\n#&gt; Error : Package mypkg has not asked to be bound; is it loaded, and does it call jlbind::bind_client() from its .onLoad()?"
+  },
+  {
+    "objectID": "reference/remove_library.html",
+    "href": "reference/remove_library.html",
+    "title": "Remove the Julia library",
+    "section": "",
+    "text": "Source: R/library.R"
+  },
+  {
+    "objectID": "reference/remove_library.html#description",
+    "href": "reference/remove_library.html#description",
+    "title": "Remove the Julia library",
+    "section": "Description",
+    "text": "Description\nDeletes the library built by install_library(), with everything else jlbind stores in tools::R_user_dir(\"jlbind\", \"data\"). Packages that use jlbind can’t call their Julia code until you run install_library() again."
+  },
+  {
+    "objectID": "reference/remove_library.html#usage",
+    "href": "reference/remove_library.html#usage",
+    "title": "Remove the Julia library",
+    "section": "Usage",
+    "text": "Usage\nremove_library(ask = interactive())"
+  },
+  {
+    "objectID": "reference/remove_library.html#arguments",
+    "href": "reference/remove_library.html#arguments",
+    "title": "Remove the Julia library",
+    "section": "Arguments",
+    "text": "Arguments\n\n\n\nask\n\n\nIf TRUE, ask before removing. Defaults to interactive()."
+  },
+  {
+    "objectID": "reference/remove_library.html#details",
+    "href": "reference/remove_library.html#details",
+    "title": "Remove the Julia library",
+    "section": "Details",
+    "text": "Details\nLibraries that build_library() wrote elsewhere are left alone, as are the Julia packages that builds downloaded into Julia’s package depot; run Pkg.gc() in Julia to remove the ones nothing uses."
+  },
+  {
+    "objectID": "reference/remove_library.html#value",
+    "href": "reference/remove_library.html#value",
+    "title": "Remove the Julia library",
+    "section": "Value",
+    "text": "Value\nTRUE if there was a library to remove, otherwise FALSE, invisibly."
+  },
+  {
+    "objectID": "reference/remove_library.html#examples",
+    "href": "reference/remove_library.html#examples",
+    "title": "Remove the Julia library",
+    "section": "Examples",
+    "text": "Examples\nremove_library()"
+  },
+{
+    "objectID": "vignettes/articles/jlbind-reference.html",
+    "href": "vignettes/articles/jlbind-reference.html",
+    "title": "JLBind reference",
+    "section": "",
+    "text": "Source: vignettes/articles/jlbind-reference.qmd\nJLBind is the Julia package your binding package uses to talk to R. using JLBind gives you @rcall, @narrow, from_sexp, to_sexp, SEXP, RRef, RVector and RDataFrame; use the rest as JLBind.name."
+  },
+  {
+    "objectID": "vignettes/articles/jlbind-reference.html#declaring-entrypoints",
+    "href": "vignettes/articles/jlbind-reference.html#declaring-entrypoints",
+    "title": "JLBind reference",
+    "section": "Declaring entrypoints",
+    "text": "Declaring entrypoints\n\n@rcall\n@rcall f(arg::T, ...)::R\nMake f callable from R. jlbind::update_entrypoints() writes a matching R function for each @rcall.\ngreet(name) = \"Hello, \" * name * \"!\"\n\n@rcall greet(name::String)::String\nEvery argument and the return value need a type, which decides how they are converted (see from_sexp and to_sexp). Use RRef{T} to give R a Julia object by reference. An argument of type Union{Nothing,T} accepts NULL, and Union{Missing,T} accepts NA.\nAn argument can have a default, which the R function gets too: a number, string, true, false, missing (NA), nothing (NULL), or a vector of these such as [1, 2].\nIf f throws, R gets an error. The message of an ArgumentError, error() and a few other common exceptions is passed on; others get a generic message.\nWrite each @rcall at the top level of a file, as update_entrypoints() reads the source."
+  },
+  {
+    "objectID": "vignettes/articles/jlbind-reference.html#converting-values",
+    "href": "vignettes/articles/jlbind-reference.html#converting-values",
+    "title": "JLBind reference",
+    "section": "Converting values",
+    "text": "Converting values\n@rcall converts arguments and return values with these.\n\nfrom_sexp\nfrom_sexp(T, x::SEXP) -&gt; T\nConvert the R object x to a T, or throw an ArgumentError saying what was expected. @rcall converts every argument with it; add a method to accept a type of your own.\nIt supports:\n\nString and Symbol (from a string or factor), Bool, Float64, Int64, Int32, ComplexF64, Date, DateTime and the smaller number types, and vectors of all of these;\nUnion{Missing,T} and Vector{Union{Missing,T}}, which allow NA;\nUnion{Nothing,T}, which allows NULL;\nMatrix{T} and Array{T,N}, from an R matrix or array;\nother Vectors, Tuples, NamedTuples and Dict{String,T}, from a list;\nRVector{T}, RDataFrame, and SEXP, which is passed as is.\n\n\n\nto_sexp\nto_sexp(x) -&gt; SEXP\nConvert x to an R object. @rcall converts every return value with it; add a method to return a type of your own.\nIt supports the types from_sexp does, plus nothing (NULL) and missing (NA). An Int64 becomes a double, since R’s integers have 32 bits: return an Int32 for an R integer.\n\n\nRVector\nRVector{T}\nA read-only view of the data of an R vector, without a copy: RVector{Float64} for a double vector, RVector{Int32} for an integer vector and RVector{UInt8} for a raw vector. Use it for a large vector you only read.\nNA is not checked for, and the view is only valid during the call, so don’t keep it. Returning it returns the R vector it views.\n\n\nRDataFrame\nRDataFrame(columns::NamedTuple)\nA data frame, converted to and from an R data.frame (or tibble). Its columns are df.x and so on. As an argument, the data frame must have exactly these columns, in any order.\nconst Sales = RDataFrame{(:group, :amount),Tuple{Vector{String},Vector{Float64}}}\n\ntotal(df) = sum(df.amount)\n\n@rcall total(df::Sales)::Float64"
+  },
+  {
+    "objectID": "vignettes/articles/jlbind-reference.html#julia-objects-in-r",
+    "href": "vignettes/articles/jlbind-reference.html#julia-objects-in-r",
+    "title": "JLBind reference",
+    "section": "Julia objects in R",
+    "text": "Julia objects in R\n\nRRef\nRRef{T}\nA Julia object that R holds by reference, for objects that are easier to keep in Julia than to convert:\nnew_counter(start) = Counter(start)\nincrement(c, by) = (c.n += by; c.n)\n\n@rcall new_counter(start::Int64)::RRef{Counter}\n@rcall increment(c::RRef{Counter}, by::Int64)::Int64\nR gets an object of class r_class(T) that it can pass back to any entrypoint taking an RRef{T}, and a Vector{RRef{T}} is a list of them. The Julia object is freed once R no longer uses it. A reference that is saved and loaded again has lost its object, unless the type supports saving (see r_saved_by).\nIf T is abstract, take the argument with @nospecialize and call methods on it with @narrow.\n\n\nr_class\nr_class(T) -&gt; String\nThe R class of references to Ts, \"jlbind_ref\" by default. Define a method to give them a class of their own, for methods such as print():\nJLBind.r_class(::Type{Model}) = \"mymodel\"\n\n\nr_saved_by\nr_saved_by(T) -&gt; Union{String,Nothing}\nReturn your package’s name to let references to Ts be saved with saveRDS() and the like. By default they can’t be: a reference that is saved and loaded again has lost its object.\nSaving also needs an r_restore method, and an R function .jlbind_saved_state(x) in your package (it need not be exported) that returns a list to rebuild the object from:\nJLBind.r_saved_by(::Type{Model}) = \"mypackage\"\nJLBind.r_restore(::Type{Model}, state::SEXP) =\n    Model(from_sexp(NamedTuple{(:weights,),Tuple{Vector{Float64}}}, state).weights)\n.jlbind_saved_state &lt;- function(x) list(weights = model_weights(x))\nThe object is rebuilt the first time a loaded reference is used. Supporting saving adds about 400 ns to creating each reference, and saveRDS(version = 2) can’t save one.\n\n\nr_restore\nr_restore(T, state::SEXP) -&gt; T\nRebuild a T from the list .jlbind_saved_state() returned when it was saved (see r_saved_by). The list may come from an older version of your package, so check any version it records.\n\n\nobject_count\nobject_count() -&gt; Int64\nHow many Julia objects R holds references to, to check that they are freed."
+  },
+  {
+    "objectID": "vignettes/articles/jlbind-reference.html#trimming",
+    "href": "vignettes/articles/jlbind-reference.html#trimming",
+    "title": "JLBind reference",
+    "section": "Trimming",
+    "text": "Trimming\n\n@narrow\n@narrow x (A, B, ...) expr [otherwise]\nEvaluate expr with x known to be an A, a B, and so on, whichever it is. If it is none of them, evaluate otherwise, or throw an ArgumentError.\nThe compiled library needs this to call methods on an argument of an abstract type:\nshape_area(@nospecialize(s::Shape)) = @narrow s (Circle, Square) area(s)"
+  },
+  {
+    "objectID": "vignettes/articles/jlbind-reference.html#building-r-objects",
+    "href": "vignettes/articles/jlbind-reference.html#building-r-objects",
+    "title": "JLBind reference",
+    "section": "Building R objects",
+    "text": "Building R objects\nTo build a result yourself, without a copy, declare the entrypoint to return SEXP and use these, which call R’s C API directly. Most don’t check their arguments, so a wrong type or index crashes R instead of giving an error.\n\nSEXP\nSEXP\nAn R object, as R’s C API passes it. Declare an entrypoint to return SEXP to build its result yourself.\n\n\n@R\n@R(name)\nA function or variable of R’s C API, for ccall or cglobal:\nccall(@R(Rf_xlength), Int, (SEXP,), x)\n\n\n@r_global\n@r_global(name)\nThe value of one of R’s global SEXP variables, such as @r_global(R_NaString).\n\n\nnil\nnil() -&gt; SEXP\nR’s NULL.\n\n\nrtypeof, rlength\nrtypeof(x::SEXP) -&gt; Cint\nrlength(x::SEXP) -&gt; Int\nThe type of x (such as REALSXP), and its length.\n\n\nNILSXP, LGLSXP, INTSXP, REALSXP, CPLXSXP, STRSXP, VECSXP, EXTPTRSXP, RAWSXP\nNILSXP, LGLSXP, INTSXP, REALSXP, CPLXSXP, STRSXP, VECSXP, EXTPTRSXP, RAWSXP\nR’s object types, as rtypeof returns them and alloc takes them: NULL, logical, integer, double, complex, character and raw vectors, a list, and an external pointer.\n\n\nNA_INTEGER, NA_REAL\nNA_INTEGER, NA_REAL\nR’s NA in an integer or logical vector, and in a double vector.\n\n\nprotect, unprotect\nprotect(x::SEXP) -&gt; x\nunprotect(n)\nKeep x from R’s garbage collector while you allocate other R objects, and release the last n objects protected, before returning. These are R’s PROTECT and UNPROTECT.\n\n\npreserve, release\npreserve(x::SEXP) -&gt; x\nrelease(x::SEXP)\nKeep x alive across calls, until it is released.\n\n\nalloc, alloc_matrix\nalloc(t, n) -&gt; SEXP\nalloc_matrix(t, nrow, ncol) -&gt; SEXP\nA new R vector of type t and length n, or matrix of nrow rows and ncol columns, to fill in. protect it before allocating anything else.\n\n\nmkchar\nmkchar(s::Union{String,Symbol}) -&gt; SEXP\nAn R string, the element of a character vector. Strings of symbols are cached, which makes returning many names faster.\n\n\nstring_elt, set_string_elt, vector_elt, set_vector_elt\nstring_elt(x::SEXP, i) -&gt; SEXP\nset_string_elt(x::SEXP, i, v::SEXP)\nvector_elt(x::SEXP, i) -&gt; SEXP\nset_vector_elt(x::SEXP, i, v::SEXP)\nGet and set element i of a character vector or list. Indices start at 0, as in C, and aren’t checked. Make an element of a character vector with mkchar.\n\n\nreal_ptr, int_ptr, logical_ptr, complex_ptr, raw_ptr\nreal_ptr(x::SEXP) -&gt; Ptr{Float64}\nint_ptr(x::SEXP) -&gt; Ptr{Cint}\nlogical_ptr(x::SEXP) -&gt; Ptr{Cint}\ncomplex_ptr(x::SEXP) -&gt; Ptr{ComplexF64}\nraw_ptr(x::SEXP) -&gt; Ptr{UInt8}\nA pointer to the data of a double, integer, logical, complex or raw vector, to read with unsafe_load or fill with unsafe_store!. The type of x isn’t checked.\n\n\nget_attrib, set_attrib\nget_attrib(x::SEXP, name::SEXP) -&gt; SEXP\nset_attrib(x::SEXP, name::SEXP, value::SEXP)\nGet and set the attribute name of x, where name is an R symbol such as @r_global(R_NamesSymbol). A missing attribute is NULL.\n\n\ndata_frame\ndata_frame(names::Vector{String}, columns::Vector{SEXP}) -&gt; SEXP\nAn R data.frame of the R vectors columns, for columns whose types are only known at run time. Keep the columns protected until the call returns. When the types are known, return an RDataFrame instead."
+  },
+  {
+    "objectID": "authors.html",
+    "href": "authors.html",
+    "title": "Authors and Citation",
+    "section": "",
+    "text": "Bjarke Hautop Kristensen. Author, maintainer."
+  },
+  {
+    "objectID": "authors.html#authors",
+    "href": "authors.html#authors",
+    "title": "Authors and Citation",
+    "section": "",
+    "text": "Bjarke Hautop Kristensen. Author, maintainer."
+  },
+  {
+    "objectID": "authors.html#citation",
+    "href": "authors.html#citation",
+    "title": "Authors and Citation",
+    "section": "Citation",
+    "text": "Citation\n\nSource: DESCRIPTION\n\n\nKristensen B (2026). jlbind: Bind R Packages to Compiled Julia Code. R package version 0.0.0.9000, https://github.com/BjarkeHautop/jlbind.\n\n@Manual{,\n  title = {jlbind: Bind R Packages to Compiled Julia Code},\n  author = {Bjarke Hautop Kristensen},\n  year = {2026},\n  note = {R package version 0.0.0.9000},\n  url = {https://github.com/BjarkeHautop/jlbind},\n}"
+  },
+  {
+    "objectID": "reference/jlbind_clients.html",
+    "href": "reference/jlbind_clients.html",
+    "title": "List the packages that use jlbind",
+    "section": "",
+    "text": "Source: R/clients.R"
+  },
+  {
+    "objectID": "reference/jlbind_clients.html#description",
+    "href": "reference/jlbind_clients.html#description",
+    "title": "List the packages that use jlbind",
+    "section": "Description",
+    "text": "Description\nLists the installed packages that install_library() will compile. A package uses jlbind if its DESCRIPTION has a Config/jlbind field. If a package is installed in more than one library, the copy that library() would load is the one listed."
+  },
+  {
+    "objectID": "reference/jlbind_clients.html#usage",
+    "href": "reference/jlbind_clients.html#usage",
+    "title": "List the packages that use jlbind",
+    "section": "Usage",
+    "text": "Usage\njlbind_clients(lib.loc = NULL)"
+  },
+  {
+    "objectID": "reference/jlbind_clients.html#arguments",
+    "href": "reference/jlbind_clients.html#arguments",
+    "title": "List the packages that use jlbind",
+    "section": "Arguments",
+    "text": "Arguments\n\n\n\nlib.loc\n\n\nLibrary paths to search. Defaults to .libPaths()."
+  },
+  {
+    "objectID": "reference/jlbind_clients.html#value",
+    "href": "reference/jlbind_clients.html#value",
+    "title": "List the packages that use jlbind",
+    "section": "Value",
+    "text": "Value\nA data frame with one row per package and the columns package, version, module (the name of its Julia binding package), path (where the binding package is), trim (FALSE if it sets Config/jlbind/trim: false) and hash (a hash of the binding package’s files, which the library records to tell when it is out of date)."
+  },
+  {
+    "objectID": "reference/jlbind_clients.html#examples",
+    "href": "reference/jlbind_clients.html#examples",
+    "title": "List the packages that use jlbind",
+    "section": "Examples",
+    "text": "Examples\n\njlbind_clients()\n#&gt; [1] package version module  path    trim    hash   \n#&gt; &lt;0 rows&gt; (or 0-length row.names)"
   },
   {
     "objectID": "reference/use_jlbind_ci.html",
@@ -158,7 +368,7 @@
     "href": "reference/use_jlbind_ci.html#examples",
     "title": "Check a package with its Julia code on GitHub Actions",
     "section": "Examples",
-    "text": "Examples\n\n# A package in a temporary directory\npkg &lt;- tempfile(\"mypkg\")\ndir.create(pkg)\nwriteLines(c(\"Package: mypkg\", \"Version: 0.1.0\"), file.path(pkg, \"DESCRIPTION\"))\n\nfile &lt;- use_jlbind_ci(pkg)\n#&gt; Wrote /tmp/RtmpnRfYkt/mypkg18a2591249bb/.github/workflows/R-CMD-check.yaml.\nwriteLines(readLines(file))\n#&gt; # Generated by jlbind::use_jlbind_ci(), from r-lib/actions' check-standard\n#&gt; # workflow: https://github.com/r-lib/actions/tree/v2/examples\n#&gt; #\n#&gt; # Runs R CMD check with Julia on Linux, Windows and macOS, after compiling the\n#&gt; # package's Julia code into a library its tests and examples can call, and once\n#&gt; # on Linux without Julia, which is what CRAN sees: the package must install and\n#&gt; # pass its checks without the library.\n#&gt; on:\n#&gt;   push:\n#&gt;     branches: [main, master]\n#&gt;   pull_request:\n#&gt; \n#&gt; name: R-CMD-check.yaml\n#&gt; \n#&gt; permissions: read-all\n#&gt; \n#&gt; jobs:\n#&gt;   R-CMD-check:\n#&gt;     runs-on: ${{ matrix.config.os }}\n#&gt; \n#&gt;     name: ${{ matrix.config.os }} (${{ matrix.config.r }})${{ matrix.config.julia == '' && ' without Julia' || format(' Julia {0}', matrix.config.julia) }}\n#&gt; \n#&gt;     strategy:\n#&gt;       fail-fast: false\n#&gt;       matrix:\n#&gt;         config:\n#&gt;           - {os: ubuntu-latest,   r: 'release', julia: 'nightly'}\n#&gt;           - {os: windows-latest,  r: 'release', julia: 'nightly'}\n#&gt;           - {os: macos-latest,    r: 'release', julia: 'nightly'}\n#&gt;           - {os: ubuntu-latest,   r: 'release', julia: ''}\n#&gt; \n#&gt;     env:\n#&gt;       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}\n#&gt;       R_KEEP_PKG_SOURCE: yes\n#&gt; \n#&gt;     steps:\n#&gt;       - uses: actions/checkout@v7\n#&gt; \n#&gt;       - uses: julia-actions/setup-julia@v3\n#&gt;         if: matrix.config.julia != ''\n#&gt;         with:\n#&gt;           version: ${{ matrix.config.julia }}\n#&gt; \n#&gt;       - uses: julia-actions/cache@v3\n#&gt;         if: matrix.config.julia != ''\n#&gt; \n#&gt;       - uses: r-lib/actions/setup-pandoc@v2\n#&gt; \n#&gt;       - uses: r-lib/actions/setup-r@v2\n#&gt;         with:\n#&gt;           r-version: ${{ matrix.config.r }}\n#&gt;           http-user-agent: ${{ matrix.config.http-user-agent }}\n#&gt;           use-public-rspm: true\n#&gt; \n#&gt;       - uses: r-lib/actions/setup-r-dependencies@v2\n#&gt;         with:\n#&gt;           extra-packages: any::rcmdcheck, BjarkeHautop/jlbind\n#&gt;           needs: check\n#&gt; \n#&gt;       # Compiles the package's Julia code into .jlbind/ and points\n#&gt;       # JLBIND_LIBRARY at the library, so R CMD check binds the package to it.\n#&gt;       - name: Compile the Julia library\n#&gt;         if: matrix.config.julia != ''\n#&gt;         shell: Rscript {0}\n#&gt;         run: |\n#&gt;           lib &lt;- jlbind::build_library()\n#&gt;           cat(\n#&gt;             \"JLBIND_LIBRARY=\", lib, \"\\n\",\n#&gt;             sep = \"\", file = Sys.getenv(\"GITHUB_ENV\"), append = TRUE\n#&gt;           )\n#&gt; \n#&gt;       - uses: r-lib/actions/check-r-package@v2\n#&gt;         with:\n#&gt;           upload-snapshots: true\n#&gt;           build_args: 'c(\"--no-manual\",\"--compact-vignettes=gs+qpdf\")'"
+    "text": "Examples\n\n# A package in a temporary directory\npkg &lt;- tempfile(\"mypkg\")\ndir.create(pkg)\nwriteLines(c(\"Package: mypkg\", \"Version: 0.1.0\"), file.path(pkg, \"DESCRIPTION\"))\n\nfile &lt;- use_jlbind_ci(pkg)\n#&gt; Wrote /tmp/RtmpmGeChk/mypkg192451d317eb/.github/workflows/R-CMD-check.yaml.\nwriteLines(readLines(file))\n#&gt; # Generated by jlbind::use_jlbind_ci(), from r-lib/actions' check-standard\n#&gt; # workflow: https://github.com/r-lib/actions/tree/v2/examples\n#&gt; #\n#&gt; # Runs R CMD check with Julia on Linux, Windows and macOS, after compiling the\n#&gt; # package's Julia code into a library its tests and examples can call, and once\n#&gt; # on Linux without Julia, which is what CRAN sees: the package must install and\n#&gt; # pass its checks without the library.\n#&gt; on:\n#&gt;   push:\n#&gt;     branches: [main, master]\n#&gt;   pull_request:\n#&gt; \n#&gt; name: R-CMD-check.yaml\n#&gt; \n#&gt; permissions: read-all\n#&gt; \n#&gt; jobs:\n#&gt;   R-CMD-check:\n#&gt;     runs-on: ${{ matrix.config.os }}\n#&gt; \n#&gt;     name: ${{ matrix.config.os }} (${{ matrix.config.r }})${{ matrix.config.julia == '' && ' without Julia' || format(' Julia {0}', matrix.config.julia) }}\n#&gt; \n#&gt;     strategy:\n#&gt;       fail-fast: false\n#&gt;       matrix:\n#&gt;         config:\n#&gt;           - {os: ubuntu-latest,   r: 'release', julia: 'nightly'}\n#&gt;           - {os: windows-latest,  r: 'release', julia: 'nightly'}\n#&gt;           - {os: macos-latest,    r: 'release', julia: 'nightly'}\n#&gt;           - {os: ubuntu-latest,   r: 'release', julia: ''}\n#&gt; \n#&gt;     env:\n#&gt;       GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}\n#&gt;       R_KEEP_PKG_SOURCE: yes\n#&gt; \n#&gt;     steps:\n#&gt;       - uses: actions/checkout@v7\n#&gt; \n#&gt;       - uses: julia-actions/setup-julia@v3\n#&gt;         if: matrix.config.julia != ''\n#&gt;         with:\n#&gt;           version: ${{ matrix.config.julia }}\n#&gt; \n#&gt;       - uses: julia-actions/cache@v3\n#&gt;         if: matrix.config.julia != ''\n#&gt; \n#&gt;       - uses: r-lib/actions/setup-pandoc@v2\n#&gt; \n#&gt;       - uses: r-lib/actions/setup-r@v2\n#&gt;         with:\n#&gt;           r-version: ${{ matrix.config.r }}\n#&gt;           http-user-agent: ${{ matrix.config.http-user-agent }}\n#&gt;           use-public-rspm: true\n#&gt; \n#&gt;       - uses: r-lib/actions/setup-r-dependencies@v2\n#&gt;         with:\n#&gt;           extra-packages: any::rcmdcheck, BjarkeHautop/jlbind\n#&gt;           needs: check\n#&gt; \n#&gt;       # Compiles the package's Julia code into .jlbind/ and points\n#&gt;       # JLBIND_LIBRARY at the library, so R CMD check binds the package to it.\n#&gt;       - name: Compile the Julia library\n#&gt;         if: matrix.config.julia != ''\n#&gt;         shell: Rscript {0}\n#&gt;         run: |\n#&gt;           lib &lt;- jlbind::build_library()\n#&gt;           cat(\n#&gt;             \"JLBIND_LIBRARY=\", lib, \"\\n\",\n#&gt;             sep = \"\", file = Sys.getenv(\"GITHUB_ENV\"), append = TRUE\n#&gt;           )\n#&gt; \n#&gt;       - uses: r-lib/actions/check-r-package@v2\n#&gt;         with:\n#&gt;           upload-snapshots: true\n#&gt;           build_args: 'c(\"--no-manual\",\"--compact-vignettes=gs+qpdf\")'"
   },
   {
     "objectID": "reference/build_library.html",
@@ -203,74 +413,60 @@
     "text": "Examples\n# In the sources of a package that uses jlbind\nbuild_library()\ndevtools::load_all()\n\n# Several packages, used through JLBIND_LIBRARY\nlib &lt;- build_library(c(\"pkg1\", \"pkg2\"), \"jlbind-lib\")\nSys.setenv(JLBIND_LIBRARY = lib)"
   },
 {
-    "objectID": "vignettes/technical-details.html",
-    "href": "vignettes/technical-details.html",
-    "title": "Technical details",
+    "objectID": "vignettes/jlbind.html",
+    "href": "vignettes/jlbind.html",
+    "title": "Get started with jlbind",
     "section": "",
-    "text": "Source: vignettes/technical-details.qmd\nThis vignette covers what Get started with jlbind leaves out, so read that first."
+    "text": "Source: vignettes/jlbind.qmd\njlbind lets an R package call Julia code without starting a Julia session. The Julia code is compiled ahead of time into a shared library, and R calls it through native .External() calls.\nYou need Julia 1.13 or later, and devtools for the development workflow below.\nWe will refer to an R package that uses jlbind as a client."
   },
   {
-    "objectID": "vignettes/technical-details.html#one-library-for-all-clients",
-    "href": "vignettes/technical-details.html#one-library-for-all-clients",
-    "title": "Technical details",
-    "section": "One library for all clients",
-    "text": "One library for all clients\njlbind compiles Julia code with JuliaC.jl. An R process can load only one compiled Julia library1, so your client shares Julia dependency versions with every other client the user has installed. Using packages built on jlbind describes how those versions are chosen, what happens when clients conflict, and how to build a separate library for clients that are never used in the same R session."
+    "objectID": "vignettes/jlbind.html#set-up-your-package",
+    "href": "vignettes/jlbind.html#set-up-your-package",
+    "title": "Get started with jlbind",
+    "section": "Set up your package",
+    "text": "Set up your package\nFrom your R package’s directory, run:\njlbind::use_jlbind()\ndevtools::document()\nThis adds everything your package needs to talk to Julia, including a Julia binding package in inst/julia/. For a package called mypkg, its main file is inst/julia/src/mypkgBindings.jl, and it comes with one example function:\nmodule mypkgBindings\n\nusing JLBind\n\nhello(name) = \"Hello, \" * name * \", from Julia!\"\n\n@rcall hello(name::String)::String\n\nend # module mypkgBindings\n@rcall declares a Julia function that R can call, along with its argument and return types. Every argument and the return value need a type: the types decide how values are converted between R and Julia (see Types). The JLBind reference lists everything else JLBind provides."
   },
   {
-    "objectID": "vignettes/technical-details.html#what-use_jlbind-adds",
-    "href": "vignettes/technical-details.html#what-use_jlbind-adds",
-    "title": "Technical details",
-    "section": "What use_jlbind() adds",
-    "text": "What use_jlbind() adds\n\ninst/julia/, containing a Julia binding package named after the R package with a Bindings suffix (for example, MyPkgBindings), including an example function.\nR/jlbind-wrappers.R, with an R function for each Julia function the binding package declares.\nR/jlbind.R, which calls jlbind::bind_client() from .onLoad().\nThe Config/jlbind, Imports: jlbind and SystemRequirements: Julia (&gt;= 1.13) fields in DESCRIPTION.\nA .jlbind/ directory for development builds, added to .Rbuildignore and .gitignore.\n\nIf your package already defines .onLoad(), add jlbind::bind_client(pkgname) to the existing function yourself.\n\n\n\n\n\n\nImportantGive the Julia binding package a unique name\n\n\n\nAll clients are compiled into one library, so binding package names must be unique across all jlbind clients. The default, the R package name with a Bindings suffix, ensures this."
+    "objectID": "vignettes/jlbind.html#try-the-example",
+    "href": "vignettes/jlbind.html#try-the-example",
+    "title": "Get started with jlbind",
+    "section": "Try the example",
+    "text": "Try the example\nuse_jlbind() has already generated the R function for hello(), so all that’s left is to compile the Julia code and load your package:\njlbind::build_library()\ndevtools::load_all()\nThe first build downloads and compiles Julia dependencies, so it may take a few minutes. Then call it like any R function:\nhello(\"world\")\n#&gt; [1] \"Hello, world, from Julia!\""
   },
   {
-    "objectID": "vignettes/technical-details.html#writing-rcall-declarations",
-    "href": "vignettes/technical-details.html#writing-rcall-declarations",
-    "title": "Technical details",
-    "section": "Writing @rcall declarations",
-    "text": "Writing @rcall declarations\nThe binding package is an ordinary Julia package. Add its dependencies with Pkg, from your package’s directory, and import them as usual:\njulia --project=inst/julia -e 'using Pkg; Pkg.add(\"SomePackage\")'\n\n\n\n\n\n\nImportantWrite @rcall declarations literally at the top level\n\n\n\njlbind finds @rcall declarations by scanning the source files, not by running them, so write them literally at the top level of the module.\n\n\n\nDefault values\nA default in a declaration becomes the default of the generated R function. For example,\n@rcall summarise(x::Vector{Float64}, probs::Vector{Float64} = [0.25, 0.75],\n                 na::Union{Missing,Float64} = missing)::Vector{Float64}\ngenerates\nsummarise &lt;- function(x, probs = c(0.25, 0.75), na = NA) ...\nA default can be any of these:\n\n\n\n\n\n\n\nJulia default\nR default\n\n\n\n\nA literal number or string\nThe same literal\n\n\ntrue, false\nTRUE, FALSE\n\n\nmissing\nNA\n\n\nnothing\nNULL\n\n\n[1, 2], Float64[1, 2]\nc(1, 2)\n\n\n[\"a\", missing]\nc(\"a\", NA)\n\n\nFloat64[], String[], …\nnumeric(0), character(0), …\n\n\n\nAn empty vector names its element type, as in Int32[] or Bool[]."
+    "objectID": "vignettes/jlbind.html#add-your-own-function",
+    "href": "vignettes/jlbind.html#add-your-own-function",
+    "title": "Get started with jlbind",
+    "section": "Add your own function",
+    "text": "Add your own function\nAdding a function takes three steps.\n\n1. Declare it in Julia\nInside the module in the binding package, write the function and declare it with @rcall. Defaults in the declaration become R defaults:\nshift(x, by) = x .+ by\n\n@rcall shift(x::Vector{Float64}, by::Float64 = 1.0)::Vector{Float64}\n\n\n2. Generate its R function\njlbind::update_entrypoints()\nThis adds shift() to R/jlbind-wrappers.R:\nshift &lt;- function(x, by = 1.0) .External(.jlbind$.call, .jlbind$shift, x, by)\n\n\n\n\n\n\nNoteWhat update_entrypoints() generates\n\n\n\n\n\nR/jlbind-wrappers.R, which you shouldn’t edit by hand, also lists the declarations:\n.jlbind_module &lt;- \"mypkgBindings\"\n.jlbind_entries &lt;- c(\n  \"hello\",\n  \"shift\"\n)\n.jlbind &lt;- new.env(parent = emptyenv())\nWhen your package loads, jlbind::bind_client() looks up each entry in the compiled library, shift as mypkgBindings_shift, the function @rcall exports, and puts it into .jlbind. Calls go through .jlbind$.call, a routine in jlbind that turns a Julia error into an R error. If the R functions are out of date with the Julia code, as when you change an @rcall without running update_entrypoints(), calling one with the wrong number of arguments gives an error.\n\n\n\n\n\n3. Restart R and load your package\nA library that has loaded can’t be replaced, so restart R first. devtools::load_all() then rebuilds the library, since your Julia code changed. If you forget, devtools::load_all() warns that the development library is out of date and tells you to restart R.\nRepeat these steps as you develop. If you only change the body of a Julia function, you can skip step 2."
   },
   {
-    "objectID": "vignettes/technical-details.html#development-libraries",
-    "href": "vignettes/technical-details.html#development-libraries",
-    "title": "Technical details",
-    "section": "Development libraries",
-    "text": "Development libraries\nBy default, build_library() writes the library to .jlbind/ in your package’s source directory. When you load the package with devtools::load_all(), jlbind uses this development library instead of the one created by install_library(). Once .jlbind/ exists, devtools::load_all() rebuilds it when your binding package’s files or your package’s version have changed since it was built.\n\n\n\n\n\n\nNoteThe development library is only used when your package loads first\n\n\n\nA library that has loaded cannot be replaced, so the .jlbind/ library is used only if your package is the first jlbind client loaded in the R session.\n\n\nIf you need to use a library stored elsewhere, set the JLBIND_LIBRARY environment variable to its path before loading the package.\nYou can also test against an unreleased version of a Julia dependency by providing a local checkout through develop:\njlbind::build_library(develop = \"~/dev/SomePackage.jl\")\n\n\n\n\n\n\nTipPin the dependency versions\n\n\n\nInclude a Manifest.toml next to the binding package’s Project.toml with the Julia dependency versions known to compile with your package. CRAN’s policy asks that downloaded libraries be a fixed version rather than the latest.\nThe build uses the manifest of only the first client that has one (see Dependency versions), so keep your [compat] bounds accurate too."
+    "objectID": "vignettes/jlbind.html#export-your-functions",
+    "href": "vignettes/jlbind.html#export-your-functions",
+    "title": "Get started with jlbind",
+    "section": "Export your functions",
+    "text": "Export your functions\nTo export or document a generated function, write roxygen comments directly above its @rcall:\n#' Shift a vector\n#'\n#' @param x A numeric vector.\n#' @param by The amount to shift by.\n#' @export\n@rcall shift(x::Vector{Float64}, by::Float64 = 1.0)::Vector{Float64}\nupdate_entrypoints() copies them above shift() in R/jlbind-wrappers.R, so roxygen2 reads the function’s signature from there. To share a help page, use #' @rdname above the @rcall and write the page itself in R/, on NULL.\nTo add R code around a call, declare the Julia function with a jl_ prefix, e.g. @rcall jl_shift(...), and write shift() yourself, calling jl_shift()."
   },
   {
-    "objectID": "vignettes/technical-details.html#types",
-    "href": "vignettes/technical-details.html#types",
-    "title": "Technical details",
-    "section": "Types",
-    "text": "Types\n@rcall converts each argument using from_sexp() and converts the return value using to_sexp(). The built-in conversions are:\nSingle values\n\n\n\n\n\n\n\n\nJulia\nR argument\nR result\n\n\n\n\nString, Symbol\nA single string\nA character vector of length one\n\n\nFloat64\nA single number\nA double\n\n\nInt64\nA single whole number\nA double\n\n\nInt32\nA single whole number\nAn integer\n\n\nInt16, Int8, UInt16\nA single whole number in range\nAn integer\n\n\nUInt32\nA single whole number in range\nA double\n\n\nFloat32, Float16\nA single number in range\nA double\n\n\nBool\nTRUE or FALSE\nA logical\n\n\nComplexF64\nA single complex number\nA complex\n\n\nDate\nA single Date\nA Date\n\n\nDateTime\nA single POSIXct\nA POSIXct in UTC\n\n\nUnion{Missing,T}\nA value of type T, or NA\nA value of type T, or NA\n\n\nUnion{Nothing,T}\nNULL, or a value of type T\nNULL, or a value of type T\n\n\nNothing\n\nNULL, invisibly\n\n\n\nVectors and arrays\n\n\n\n\n\n\n\n\nJulia\nR argument\nR result\n\n\n\n\nVector{String}, Vector{Symbol}\nA character vector or factor\nA character vector\n\n\nVector{Float64}, Vector{Int64}\nA numeric vector\nA double vector\n\n\nVector{Int32}\nA numeric vector of whole numbers\nAn integer vector\n\n\nVectors of the smaller types above\nA numeric vector in range\nAn integer or double vector\n\n\nVector{Bool}\nA logical vector\nA logical vector\n\n\nVector{ComplexF64}\nA complex or numeric vector\nA complex vector\n\n\nVector{UInt8}\nA raw vector\nA raw vector\n\n\nVector{Date}\nA Date vector\nA Date vector\n\n\nVector{DateTime}\nA POSIXct vector\nA POSIXct vector in UTC\n\n\nVector{Union{Missing,T}}\nA vector of type T, which can have NA\nA vector of type T with NA\n\n\nRVector{T}\nA double, integer or raw vector\nThe same vector\n\n\nMatrix{T}, Array{T,N}\nA matrix or array of type T\nA matrix or array of type T\n\n\n\nLists, data frames and references\n\n\n\n\n\n\n\n\nJulia\nR argument\nR result\n\n\n\n\nOther Vectors, Tuples\nA list\nA list\n\n\nNamedTuple\nA named list, such as a data frame\nA named list\n\n\nRDataFrame\nA data frame\nA data frame\n\n\nDict{String,T}, Dict{Symbol,T}\nA named list\nA named list, sorted by name\n\n\nRRef{T}\nA reference to a Julia object\nA reference to a Julia object\n\n\nVector{RRef{T}}\nA list of references\nA list of references\n\n\n\n\nConversion rules\n\nMissing values: NA is an error unless the type is Union{Missing,T} or Vector{Union{Missing,T}}, which turn NA into missing and back.\nNaN: accepted only where missing is.\nRanges: a number must fit its type, so an Int16 argument rejects 40000.\nInt64 results: these become doubles, since R’s integers have 32 bits. Return Int32 for an R integer.\nDates: to use Date or DateTime, add the Dates standard library to the binding package’s dependencies.\nLists: if one element of a list can’t be converted, the error says which. For example, passing list(c(1, 2), \"a\") as a Vector{Vector{Float64}} gives the error element 2: expected a numeric vector.\n\n\n\nData frames\nTo take or return a data frame, wrap the columns in an RDataFrame. Its type lists the column names and the type of each column, so a type alias keeps signatures short:\nconst Sales = RDataFrame{(:group, :amount),Tuple{Vector{String},Vector{Float64}}}\nconst Summary = RDataFrame{(:group, :mean),Tuple{Vector{String},Vector{Float64}}}\n\nfunction summarise(df)\n    gs = sort(unique(df.group))\n    means = [sum(df.amount[df.group .== g]) / count(==(g), df.group) for g in gs]\n    return RDataFrame((group = gs, mean = means))\nend\n\n@rcall summarise(df::Sales)::Summary\nsummarise(data.frame(group = c(\"a\", \"b\", \"a\"), amount = c(1, 2, 3)))\n#&gt;   group mean\n#&gt; 1     a    2\n#&gt; 2     b    2\nAn RDataFrame argument:\n\nMust be a data frame (a tibble works too) with exactly the declared columns, in any order. If the data frame has other columns, select the ones you need in the R wrapper: summarise(df[c(\"group\", \"amount\")]).\nHas its columns as properties (df.group), and NamedTuple(df) returns them as a named tuple.\nConverts each column by the usual rules, so a factor column arrives as strings, and a Vector{Union{Missing,Float64}} column allows NA.\n\nReturning columns of different lengths is an error.\nIf you don’t need a data frame on the Julia side, a NamedTuple argument also accepts one, as a named tuple of its columns. It must have exactly the names of its fields, in any order.\n\n\nLarge vectors\nOther conversions copy, so a function given a large vector it only reads can take an RVector{Float64} (or RVector{Int32}, RVector{UInt8}). That is an AbstractVector viewing R’s memory, without checking for NA. It is valid only until the call returns, so don’t store it.\n\n\nYour own types\nJLBind is jlbind’s own Julia package, which every binding package depends on, so write JLBind.foo as it is rather than with the name of your package.\nA binding package can support additional types by defining methods for JLBind.from_sexp(::Type{T}, x::SEXP) and JLBind.to_sexp(x::T). JLBind also provides helpers for building R objects directly, such as JLBind.data_frame() for a data frame whose columns are not known when the library is compiled. See the JLBind source for the existing conversions and helpers.\n\n\nJulia objects in R\nSometimes an object is easier to keep in Julia than to convert into an R data structure. You can pass such objects by reference using RRef{T}. R receives an external pointer to the Julia object, allowing it to be reused across calls. The object is released when R garbage-collects the reference.\nFor example, define a mutable Julia object and expose functions that operate on it (the counterjl test client is a complete version of this):\nmutable struct Counter\n    n::Int64\nend\n\nJLBind.r_class(::Type{Counter}) = \"counter\"\n\nnew_counter(start) = Counter(start)\nincrement(c, by) = (c.n += by; c.n)\n\n@rcall new_counter(start::Int64)::RRef{Counter}\n@rcall increment(c::RRef{Counter}, by::Int64)::Int64\nFrom R, you can create a counter and update it across calls:\ncounter &lt;- new_counter(0)\nclass(counter)\n#&gt; [1] \"counter\"\n\nincrement(counter, 2)\n#&gt; [1] 2\nr_class() sets the R class of the external pointer, so your package can define methods such as print() for it. An argument declared as RRef{Counter} also checks that the reference points to a Counter, rather than accepting an arbitrary Julia object.\n\n\nSaving Julia objects\nR writes an external pointer as a null pointer, so by default a reference does not survive saveRDS(), save(), serialize(), or being sent to a parallel worker; using it afterwards gives an error. To make a type savable, you need to do two things.\nIn Julia, define JLBind.r_saved_by(), which names your R package, and JLBind.r_restore(), which rebuilds the object from the saved data:\nJLBind.r_saved_by(::Type{Counter}) = \"mypackage\"\nJLBind.r_restore(::Type{Counter}, state::SEXP) =\n    Counter(from_sexp(NamedTuple{(:n,),Tuple{Int64}}, state).n)\n\ncounter_value(c) = c.n\n\n@rcall counter_value(c::RRef{Counter})::Int64\nIn R, define .jlbind_saved_state(), which returns that data as a list of plain R values. It is internal, so don’t export it. If your package has several savable types, branch on the class of x:\n.jlbind_saved_state &lt;- function(x) {\n  list(n = counter_value(x))\n}\nThe first call that uses a loaded object rebuilds it, which needs the compiled library.\n.jlbind_saved_state() only runs when saving, through an ALTREP vector in the reference’s jlbind_state attribute. Creating this vector adds about 400 ns to each new reference."
+    "objectID": "vignettes/jlbind.html#share-your-package",
+    "href": "vignettes/jlbind.html#share-your-package",
+    "title": "Get started with jlbind",
+    "section": "Share your package",
+    "text": "Share your package\nAn R process can load only one compiled Julia library, so jlbind compiles the Julia code of all installed clients into one library on each user’s machine. Tell your users, for example in your README, to run this after installing your package:\njlbind::install_library()\nYour package must also install and pass R CMD check without Julia, as on CRAN. In tests, skip anything that needs the library:\nskip_if_not(jlbind::is_bound(\"mypkg\"))\nIn examples, wrap such calls in if (jlbind::is_bound(\"mypkg\")). Then run jlbind::use_jlbind_ci() to check your package both with and without Julia on GitHub Actions."
   },
   {
-    "objectID": "vignettes/technical-details.html#errors",
-    "href": "vignettes/technical-details.html#errors",
-    "title": "Technical details",
-    "section": "Errors",
-    "text": "Errors\nIf a function called through @rcall throws a Julia exception, jlbind turns it into an R error. The messages from ArgumentError, ErrorException, DimensionMismatch, OverflowError, and AssertionError are passed through. Other exceptions are summarized."
-  },
-  {
-    "objectID": "vignettes/technical-details.html#compilation-constraints-trimming",
-    "href": "vignettes/technical-details.html#compilation-constraints-trimming",
-    "title": "Technical details",
-    "section": "Compilation constraints (trimming)",
-    "text": "Compilation constraints (trimming)\nBy default, jlbind compiles the shared library with juliac --trim=safe. This keeps the compiled image small by including only code reachable from the functions exposed through @rcall. It also requires calls to be resolvable at compile time.\nIf your package cannot be compiled with trimming, add the following field to DESCRIPTION:\nConfig/jlbind/trim: false\n\n\n\n\n\n\nWarning\n\n\n\nAn untrimmed library includes the full Julia system image and is much larger, so avoid it if you can.\n\n\n\nAbstract types\nWith trimming, a common source of compilation errors is a function that accepts several concrete types through an abstract RRef. Suppose your binding package works with shapes:\n\n\nShape types and their areas\n\nabstract type Shape end\n\nstruct Circle &lt;: Shape\n    radius::Float64\nend\nstruct Square &lt;: Shape\n    side::Float64\nend\nstruct Rectangle &lt;: Shape\n    width::Float64\n    height::Float64\nend\nstruct Triangle &lt;: Shape\n    base::Float64\n    height::Float64\nend\n\nJLBind.r_class(::Type{&lt;:Shape}) = \"shape\"\n\narea(s::Circle) = pi * s.radius^2\narea(s::Square) = s.side^2\narea(s::Rectangle) = s.width * s.height\narea(s::Triangle) = s.base * s.height / 2\n\nAn entrypoint that takes an RRef{Shape} knows only that its argument is some Shape. If it simply calls area(s), the compiler cannot tell which of the four methods that call reaches, and the build fails with an error such as:\nVerifier error #1: unresolved call from statement area(s::Shape)::Any\nOne possible solution is to branch on the concrete types once, with @nospecialize, and to make the call inside each branch, where the type is known:\nfunction with_shape(f::F, @nospecialize(s::Shape)) where {F}\n    s isa Circle && return f(s)\n    s isa Square && return f(s)\n    s isa Rectangle && return f(s)\n    s isa Triangle && return f(s)\n    throw(ArgumentError(\"unknown shape\"))\nend\n\ncircle(radius) = Circle(radius)\nsquare(side) = Square(side)\nrectangle(width, height) = Rectangle(width, height)\ntriangle(base, height) = Triangle(base, height)\nshape_area(@nospecialize(s::Shape)) = with_shape(area, s)\nscaled_area(@nospecialize(s::Shape), factor::Float64) =\n    with_shape(x -&gt; factor^2 * area(x), s)\n\n@rcall circle(radius::Float64)::RRef{Shape}\n@rcall square(side::Float64)::RRef{Shape}\n@rcall rectangle(width::Float64, height::Float64)::RRef{Shape}\n@rcall triangle(base::Float64, height::Float64)::RRef{Shape}\n@rcall shape_area(shape::RRef{Shape})::Float64\n@rcall scaled_area(shape::RRef{Shape}, factor::Float64)::Float64\nEvery shape can then be passed to the same generated R functions:\nshapes &lt;- list(circle(1), square(2), rectangle(2, 3), triangle(2, 3))\nvapply(shapes, shape_area, numeric(1))\n#&gt; [1] 3.141593 4.000000 6.000000 3.000000\n\nscaled_area(square(2), 3)\n#&gt; [1] 36\nWithout @nospecialize, Julia compiles a separate with_shape for each concrete shape, and the call into it can’t be resolved, for the same reason as area(s). Functions that pass the shape on, such as shape_area, need it too (this small example happens to compile without it, since it is inlined).\nIf a hierarchy has only a few types, some alternatives to @nospecialize are:\n\nDeclare a separate entrypoint for each concrete type (RRef{Circle},RRef{Square}, …) and choose between them in R.\nUse a small Union such as RRef{Union{Circle,Square}}, which Julia resolves by checking each member in turn."
-  },
-  {
-    "objectID": "vignettes/technical-details.html#footnotes",
-    "href": "vignettes/technical-details.html#footnotes",
-    "title": "Technical details",
-    "section": "Footnotes",
-    "text": "Footnotes\n\n\nJuliaC can privatize a library, giving it its own copy of the Julia runtime, but jlbind doesn’t use this. Each client would then ship a bundle with its own runtime and compiled copy of Base, where a shared library adds only each client’s own code. On Linux with Julia 1.14, a bundle was over 80 MB for a larger client, and about 9 MB for a tiny client after removing the runtime libraries it doesn’t use by hand. Each runtime would also have its own garbage-collected heap and threads in memory, and Julia objects couldn’t be passed between clients. Privatization also doesn’t work on Windows yet (JuliaC.jl#151).↩︎"
+    "objectID": "vignettes/jlbind.html#next-steps",
+    "href": "vignettes/jlbind.html#next-steps",
+    "title": "Get started with jlbind",
+    "section": "Next steps",
+    "text": "Next steps\n\nTechnical details covers what you’ll likely need next: the types R and Julia can exchange, keeping Julia objects in R, errors, the compilation constraints on your Julia code, and development libraries, including how to pin Julia dependency versions.\nUsing packages built on jlbind describes what your users see, including threads and how clients share Julia dependencies.\nhellojl and counterjl are small, complete clients used in jlbind’s tests, and are good examples to learn from."
   },
   {
     "objectID": "index.html",
     "href": "index.html",
     "title": "jlbind ",
     "section": "",
-    "text": "Call Julia code from R without starting a Julia session.\njlbind compiles Julia code into a shared library with JuliaC.jl (by default with --trim=safe), and R calls it through R’s official C API. Thus, there is almost no overhead (see Performance).\nSeveral R packages using jlbind can be installed side by side: their Julia code is compiled into one shared library.\n\n\n# install.packages(\"pak\")\npak::pak(\"BjarkeHautop/jlbind\")\nBuilding the shared library requires Julia &gt;= 1.13. Installing jlbind does not itself build the library.\nJulia 1.14 or later is recommended: Julia 1.13 can compile a library that crashes as it loads when a function has a type parameter bounded by a Union (where {T&lt;:Union{...}}), fixed in JuliaLang/julia#63664.\n\n\n\nAfter installing or updating an R package that uses jlbind, build the shared library:\njlbind::install_library()\nThis compiles the Julia code of every installed package that uses jlbind and may take a few minutes. Run it again whenever you install or update one of them.\nSee Using packages built on jlbind for threads, troubleshooting and Julia dependency versions.\n\n\n\nSet up a package with jlbind::use_jlbind(), then declare the Julia functions R can call in the generated binding package under inst/julia/:\nmodule MyPkgBindings\n\nusing JLBind\n\ngreet(name) = \"Hello, \" * name * \"!\"\n@rcall greet(name::String)::String\n\nend # module MyPkgBindings\nRun jlbind::update_entrypoints(), which generates the R function greet(name) that calls it.\nSee Get started with jlbind for a walkthrough, and Technical details for types, errors and compilation constraints.\n\n\n\nContributions of all kinds are very welcome! You may use LLMs, but please write issue and PR descriptions in your own words. If you submit a PR, you should understand the code you’re contributing."
+    "text": "Call Julia code from R without starting a Julia session.\njlbind compiles Julia code into a shared library with JuliaC.jl (by default with --trim=safe), and R calls it through R’s official C API. Thus, there is almost no overhead (see Performance).\nSeveral R packages using jlbind can be installed side by side: their Julia code is compiled into one shared library.\n\n\n# install.packages(\"pak\")\npak::pak(\"BjarkeHautop/jlbind\")\nBuilding the shared library requires Julia &gt;= 1.13. Installing jlbind does not itself build the library.\nJulia 1.14 or later is recommended: Julia 1.13 can compile a library that crashes as it loads when a function has a type parameter bounded by a Union (where {T&lt;:Union{...}}), fixed in JuliaLang/julia#63664.\n\n\n\nAfter installing or updating an R package that uses jlbind, build the shared library:\njlbind::install_library()\nThis compiles the Julia code of every installed package that uses jlbind and may take a few minutes. Run it again whenever you install or update one of them.\nSee Using packages built on jlbind for threads, troubleshooting and Julia dependency versions.\n\n\n\nSet up a package with jlbind::use_jlbind(), then declare the Julia functions R can call in the generated binding package under inst/julia/:\nmodule MyPkgBindings\n\nusing JLBind\n\ngreet(name) = \"Hello, \" * name * \"!\"\n@rcall greet(name::String)::String\n\nend # module MyPkgBindings\nRun jlbind::update_entrypoints(), which generates the R function greet(name) that calls it.\nSee Get started with jlbind for a walkthrough, and Technical details for types, errors and compilation constraints.\n\n\n\n\nCausalStructures: causal graphs (DAGs, CPDAGs, PAGs, …) and identification, from CausalStructures.jl. Its binding package shows some advanced usage.\n\nUsing jlbind for your package? Feel free to open a pull request adding it to this list.\n\n\n\nContributions of all kinds are very welcome! You may use LLMs, but please write issue and PR descriptions in your own words. If you submit a PR, you should understand the code you’re contributing."
   },
   {
     "objectID": "index.html#installation",
@@ -294,6 +490,13 @@
     "text": "Set up a package with jlbind::use_jlbind(), then declare the Julia functions R can call in the generated binding package under inst/julia/:\nmodule MyPkgBindings\n\nusing JLBind\n\ngreet(name) = \"Hello, \" * name * \"!\"\n@rcall greet(name::String)::String\n\nend # module MyPkgBindings\nRun jlbind::update_entrypoints(), which generates the R function greet(name) that calls it.\nSee Get started with jlbind for a walkthrough, and Technical details for types, errors and compilation constraints."
   },
   {
+    "objectID": "index.html#packages-using-jlbind",
+    "href": "index.html#packages-using-jlbind",
+    "title": "jlbind ",
+    "section": "",
+    "text": "CausalStructures: causal graphs (DAGs, CPDAGs, PAGs, …) and identification, from CausalStructures.jl. Its binding package shows some advanced usage.\n\nUsing jlbind for your package? Feel free to open a pull request adding it to this list."
+  },
+  {
     "objectID": "index.html#contributing",
     "href": "index.html#contributing",
     "title": "jlbind ",
@@ -301,46 +504,46 @@
     "text": "Contributions of all kinds are very welcome! You may use LLMs, but please write issue and PR descriptions in your own words. If you submit a PR, you should understand the code you’re contributing."
   },
   {
-    "objectID": "reference/jlbind_clients.html",
-    "href": "reference/jlbind_clients.html",
-    "title": "List the packages that use jlbind",
+    "objectID": "reference/jlbind_sitrep.html",
+    "href": "reference/jlbind_sitrep.html",
+    "title": "Report on the jlbind setup",
     "section": "",
-    "text": "Source: R/clients.R"
+    "text": "Source: R/sitrep.R"
   },
   {
-    "objectID": "reference/jlbind_clients.html#description",
-    "href": "reference/jlbind_clients.html#description",
-    "title": "List the packages that use jlbind",
+    "objectID": "reference/jlbind_sitrep.html#description",
+    "href": "reference/jlbind_sitrep.html#description",
+    "title": "Report on the jlbind setup",
     "section": "Description",
-    "text": "Description\nLists the installed packages that install_library() will compile. A package uses jlbind if its DESCRIPTION has a Config/jlbind field. If a package is installed in more than one library, the copy that library() would load is the one listed."
+    "text": "Description\nPrints a report to run when a package that uses jlbind doesn’t work. It shows the Julia that builds the library, the library that is loaded (or would be) and what it was built from, the installed packages that use jlbind and whether the library is current for each, and the Julia thread count. It also works before a library has loaded."
   },
   {
-    "objectID": "reference/jlbind_clients.html#usage",
-    "href": "reference/jlbind_clients.html#usage",
-    "title": "List the packages that use jlbind",
+    "objectID": "reference/jlbind_sitrep.html#usage",
+    "href": "reference/jlbind_sitrep.html#usage",
+    "title": "Report on the jlbind setup",
     "section": "Usage",
-    "text": "Usage\njlbind_clients(lib.loc = NULL)"
+    "text": "Usage\njlbind_sitrep(julia = NULL)"
   },
   {
-    "objectID": "reference/jlbind_clients.html#arguments",
-    "href": "reference/jlbind_clients.html#arguments",
-    "title": "List the packages that use jlbind",
+    "objectID": "reference/jlbind_sitrep.html#arguments",
+    "href": "reference/jlbind_sitrep.html#arguments",
+    "title": "Report on the jlbind setup",
     "section": "Arguments",
-    "text": "Arguments\n\n\n\nlib.loc\n\n\nLibrary paths to search. Defaults to .libPaths()."
+    "text": "Arguments\n\n\n\njulia\n\n\nPath to the julia executable. By default, the JULIA environment variable, or julia on the PATH."
   },
   {
-    "objectID": "reference/jlbind_clients.html#value",
-    "href": "reference/jlbind_clients.html#value",
-    "title": "List the packages that use jlbind",
+    "objectID": "reference/jlbind_sitrep.html#value",
+    "href": "reference/jlbind_sitrep.html#value",
+    "title": "Report on the jlbind setup",
     "section": "Value",
-    "text": "Value\nA data frame with one row per package and the columns package, version, module (the name of its Julia binding package), path (where the binding package is), trim (FALSE if it sets Config/jlbind/trim: false) and hash (a hash of the binding package’s files, which the library records to tell when it is out of date)."
+    "text": "Value\nInvisibly, a list with:\n\n\njulia: a list with path (NA if Julia was not found), source (\"argument\", \"JULIA\" or \"PATH\"), version (NA if it could not be run) and ok (whether it is Julia 1.13 or later).\n\n\nlibrary: a list with path, how (\"loaded\", \"failed to load\", \"JLBIND_LIBRARY\" or \"default\"), exists, build (how it was built: the jlbind and Julia versions, when, whether it is trimmed, the CPU target and the CPU it was built on, any extra Julia arguments and whether it is a bundle, or NULL), problems (why it should be rebuilt or cannot load; empty if none) and objects (how many Julia objects R holds references to, or NULL if no library is loaded).\n\n\nclients: a data frame with one row per package that uses jlbind or that the library was built for, with the columns package, version (installed), built (the version in the library), status (\"ok\", \"left out\", \"not in the library\", \"built for version &lt;v&gt;\", \"Julia code changed\" or \"not installed\") and bound.\n\n\nthreads: a list with count (from JULIA_NUM_THREADS) and fixed (TRUE once a library is loaded, after which the count cannot change)."
   },
   {
-    "objectID": "reference/jlbind_clients.html#examples",
-    "href": "reference/jlbind_clients.html#examples",
-    "title": "List the packages that use jlbind",
+    "objectID": "reference/jlbind_sitrep.html#examples",
+    "href": "reference/jlbind_sitrep.html#examples",
+    "title": "Report on the jlbind setup",
     "section": "Examples",
-    "text": "Examples\n\njlbind_clients()\n#&gt; [1] package version module  path    trim    hash   \n#&gt; &lt;0 rows&gt; (or 0-length row.names)"
+    "text": "Examples\n\njlbind_sitrep()\n#&gt; ── Julia (for building the library)\n#&gt; ✖ not found: install Julia &gt;= 1.13, or set the JULIA environment variable to its path\n#&gt; ── Library\n#&gt; ✖ /home/runner/.local/share/R/jlbind/library/jlbind.so (default)\n#&gt; ✖ it has not been built\n#&gt; ── Packages that use jlbind\n#&gt;   none installed\n#&gt; ── Threads\n#&gt;   1 Julia thread (JULIA_NUM_THREADS unset)"
   },
   {
     "objectID": "reference/use_jlbind.html",
@@ -389,7 +592,7 @@
     "href": "reference/use_jlbind.html#examples",
     "title": "Set up a package to use jlbind",
     "section": "Examples",
-    "text": "Examples\n\n# A new package in a temporary directory\npkg &lt;- file.path(tempdir(), \"mypkg\")\ndir.create(pkg)\nwriteLines(\n  c(\n    \"Package: mypkg\",\n    \"Title: Demo\",\n    \"Version: 0.1.0\",\n    \"Description: Demo.\",\n    \"License: MIT\"\n  ),\n  file.path(pkg, \"DESCRIPTION\")\n)\n\nuse_jlbind(pkg)\n#&gt; Created the binding package mypkgBindings in /tmp/Rtmpw1IcQV/mypkg/inst/julia.\n#&gt; Wrote /tmp/Rtmpw1IcQV/mypkg/R/jlbind-wrappers.R (1 entrypoints).\nlist.files(pkg, recursive = TRUE)\n#&gt; [1] \"DESCRIPTION\"                     \"inst/julia/Project.toml\"        \n#&gt; [3] \"inst/julia/src/mypkgBindings.jl\" \"R/jlbind-wrappers.R\"            \n#&gt; [5] \"R/jlbind.R\"\n\n# The Julia binding package, with its example entrypoint\nwriteLines(readLines(file.path(pkg, \"inst/julia/src/mypkgBindings.jl\")))\n#&gt; \"\"\"\n#&gt;     mypkgBindings\n#&gt; \n#&gt; The R entrypoints of the R package mypkg. Each `@rcall` declaration\n#&gt; exports a Julia function to R; after changing them, run\n#&gt; `jlbind::update_entrypoints()` to regenerate the R functions that call them, in\n#&gt; `R/jlbind-wrappers.R`.\n#&gt; \"\"\"\n#&gt; module mypkgBindings\n#&gt; \n#&gt; using JLBind\n#&gt; \n#&gt; hello(name) = \"Hello, \" * name * \", from Julia!\"\n#&gt; \n#&gt; @rcall hello(name::String)::String\n#&gt; \n#&gt; end # module mypkgBindings"
+    "text": "Examples\n\n# A new package in a temporary directory\npkg &lt;- file.path(tempdir(), \"mypkg\")\ndir.create(pkg)\nwriteLines(\n  c(\n    \"Package: mypkg\",\n    \"Title: Demo\",\n    \"Version: 0.1.0\",\n    \"Description: Demo.\",\n    \"License: MIT\"\n  ),\n  file.path(pkg, \"DESCRIPTION\")\n)\n\nuse_jlbind(pkg)\n#&gt; Created the binding package mypkgBindings in /tmp/RtmpcSoGQh/mypkg/inst/julia.\n#&gt; Wrote /tmp/RtmpcSoGQh/mypkg/R/jlbind-wrappers.R (1 entrypoints).\nlist.files(pkg, recursive = TRUE)\n#&gt; [1] \"DESCRIPTION\"                     \"inst/julia/Project.toml\"        \n#&gt; [3] \"inst/julia/src/mypkgBindings.jl\" \"R/jlbind-wrappers.R\"            \n#&gt; [5] \"R/jlbind.R\"\n\n# The Julia binding package, with its example entrypoint\nwriteLines(readLines(file.path(pkg, \"inst/julia/src/mypkgBindings.jl\")))\n#&gt; \"\"\"\n#&gt;     mypkgBindings\n#&gt; \n#&gt; The R entrypoints of the R package mypkg. Each `@rcall` declaration\n#&gt; exports a Julia function to R; after changing them, run\n#&gt; `jlbind::update_entrypoints()` to regenerate the R functions that call them, in\n#&gt; `R/jlbind-wrappers.R`.\n#&gt; \"\"\"\n#&gt; module mypkgBindings\n#&gt; \n#&gt; using JLBind\n#&gt; \n#&gt; hello(name) = \"Hello, \" * name * \", from Julia!\"\n#&gt; \n#&gt; @rcall hello(name::String)::String\n#&gt; \n#&gt; end # module mypkgBindings"
   },
   {
     "objectID": "reference/index.html",
@@ -410,7 +613,7 @@
     "href": "reference/index.html#at-run-time",
     "title": "Function reference",
     "section": "At run time",
-    "text": "At run time\nBind a package to the compiled library, and check on it.\n\n\nbind_client()\n\n\nBind a package to the Julia library\n\n\nis_bound() check_bound()\n\n\nCheck whether a package is bound to the Julia library\n\n\njlbind_sitrep()\n\n\nReport on the jlbind setup"
+    "text": "At run time\nBind a package to the compiled library, and check on it.\n\n\nbind_client()\n\n\nBind a package to the Julia library\n\n\nis_bound() check_bound()\n\n\nCheck whether a package is bound to the Julia library\n\n\njlbind_sitrep()\n\n\nReport on the jlbind setup\n\n\nobject_count()\n\n\nCount the Julia objects R holds"
   },
   {
     "objectID": "reference/index.html#package-development",
@@ -420,32 +623,67 @@
     "text": "Package development\nSet up a package to use jlbind.\n\n\nuse_jlbind()\n\n\nSet up a package to use jlbind\n\n\nupdate_entrypoints()\n\n\nUpdate the list of Julia functions R can call\n\n\nuse_jlbind_ci()\n\n\nCheck a package with its Julia code on GitHub Actions"
   },
 {
-    "objectID": "vignettes/using-clients.html",
-    "href": "vignettes/using-clients.html",
-    "title": "Using packages built on jlbind",
+    "objectID": "vignettes/technical-details.html",
+    "href": "vignettes/technical-details.html",
+    "title": "Technical details",
     "section": "",
-    "text": "Source: vignettes/using-clients.qmd\njlbind lets R packages call Julia code compiled ahead of time into a shared library, without a Julia session. This vignette explains how that library works and how to use an R package built with jlbind. To add Julia functions to your own R package, see Get started with jlbind and Technical details. For how jlbind compares with other ways of calling Julia from R, see Performance."
+    "text": "Source: vignettes/technical-details.qmd\nThis vignette covers what Get started with jlbind leaves out, so read that first."
   },
   {
-    "objectID": "vignettes/using-clients.html#how-it-works",
-    "href": "vignettes/using-clients.html#how-it-works",
-    "title": "Using packages built on jlbind",
-    "section": "How it works",
-    "text": "How it works\nAn R process can load only one compiled Julia library. Julia has one runtime per process, and that runtime uses a single compiled image. If two R packages loaded separate copies of the library, they could conflict and crash the R session.\nTo avoid this, jlbind builds one shared library for each user, combining the Julia code of all installed R packages that use jlbind (clients). When you run install_library(), jlbind finds the installed clients, compiles their binding packages into one library, and saves it under tools::R_user_dir(\"jlbind\", \"data\"). Loading a client loads that library and connects the client to it.\nA client can only be bound to a library built from the version of that client currently installed. If you update a package without rebuilding the library, its functions will report that the library needs to be rebuilt."
+    "objectID": "vignettes/technical-details.html#one-library-for-all-clients",
+    "href": "vignettes/technical-details.html#one-library-for-all-clients",
+    "title": "Technical details",
+    "section": "One library for all clients",
+    "text": "One library for all clients\njlbind compiles Julia code with JuliaC.jl. An R process can load only one compiled Julia library1, so your client shares Julia dependency versions with every other client the user has installed. Using packages built on jlbind describes how those versions are chosen, what happens when clients conflict, and how to build a separate library for clients that are never used in the same R session."
   },
   {
-    "objectID": "vignettes/using-clients.html#using-a-package-built-on-jlbind",
-    "href": "vignettes/using-clients.html#using-a-package-built-on-jlbind",
-    "title": "Using packages built on jlbind",
-    "section": "Using a package built on jlbind",
-    "text": "Using a package built on jlbind\nYou need Julia 1.13 or later to build the shared library.\nAfter installing or updating an R package that uses jlbind, run:\njlbind::install_library()\nThe first build downloads and compiles the required Julia dependencies, so it may take a few minutes.\n\n\n\n\n\n\nNoteRestart R after rebuilding a library that is already loaded\n\n\n\nJulia cannot be restarted within an R session. If the old library has already been loaded, rebuilding it on disk does not replace the copy in memory. Restart R to use the new library.\n\n\n\nIf something doesn’t work correctly\nIf a package that uses jlbind doesn’t work, first check its status:\njlbind::check_bound(\"somepkg\")\nThe most common causes are that the shared library hasn’t been built yet, or that the package was updated after the last build. For a full report, run:\njlbind::jlbind_sitrep()\nIt shows the Julia that install_library() would use (with its version, and whether it came from JULIA or the PATH), the library and what it was built from, each installed package that uses jlbind and whether the library is current for it, and the thread count. It works whether or not a library has loaded, and returns the same information invisibly as a list.\nIf the Julia installation used for the build has been removed or replaced, for example by a juliaup update, rebuild the library. install_library() rebuilds it when the Julia version differs from the one it was built with. If the version is the same, use force = TRUE:\njlbind::install_library(force = TRUE)\nYou can select the Julia installation to use by setting the JULIA environment variable or by passing julia = to install_library().\nThe library is compiled for the building machine’s CPU, and jlbind won’t load it on another. If one R library is used from computers with different CPUs, see Build options.\n\n\nThreads\nJulia runs with one thread by default. To use multiple threads, set JULIA_NUM_THREADS before loading the first package that uses jlbind, for example in your .Renviron file:\nJULIA_NUM_THREADS=auto # or a number, such as 4\nThe thread count is fixed when the library is loaded, so restart R after changing it.\n\n\nDependency versions\nAll clients share a single set of Julia dependencies. By default, the build starts from the versions in the Manifest.toml of the first client that has one, and keeps them for the other clients where their [compat] bounds allow. Pass versions = \"compat\" to ignore the manifests and let Julia’s resolver choose versions from the clients’ [compat] bounds alone.\nIf a client’s [compat] bounds conflict with those of the clients listed before it by jlbind_clients(), it is left out of the build; check_bound() says which clients it conflicts with.\nYou can control which clients are included by specifying them explicitly:\njlbind::install_library(packages = c(\"pkgA\", \"pkgC\"))\n\n\n\n\n\n\nImportantClients with incompatible dependencies cannot share a library\n\n\n\n\n\nIf you need both clients but never need them in the same R session, build a separate library for each. Set JLBIND_LIBRARY before loading the client to select the library for that session.\nFor example, build the two libraries:\njlbind::build_library(\"pkgA\", \"~/jlbind/pkgA\")\njlbind::build_library(\"pkgB\", \"~/jlbind/pkgB\")\nThen select one in an R session:\n# jlbind.dll on Windows, jlbind.dylib on macOS\nSys.setenv(JLBIND_LIBRARY = \"~/jlbind/pkgA/jlbind.so\")\nlibrary(pkgA)"
+    "objectID": "vignettes/technical-details.html#what-use_jlbind-adds",
+    "href": "vignettes/technical-details.html#what-use_jlbind-adds",
+    "title": "Technical details",
+    "section": "What use_jlbind() adds",
+    "text": "What use_jlbind() adds\n\ninst/julia/, containing a Julia binding package named after the R package with a Bindings suffix (for example, MyPkgBindings), including an example function.\nR/jlbind-wrappers.R, with an R function for each Julia function the binding package declares.\nR/jlbind.R, which calls jlbind::bind_client() from .onLoad().\nThe Config/jlbind, Imports: jlbind and SystemRequirements: Julia (&gt;= 1.13) fields in DESCRIPTION.\nA .jlbind/ directory for development builds, added to .Rbuildignore and .gitignore.\n\nIf your package already defines .onLoad(), add jlbind::bind_client(pkgname) to the existing function yourself.\n\n\n\n\n\n\nImportantGive the Julia binding package a unique name\n\n\n\nAll clients are compiled into one library, so binding package names must be unique across all jlbind clients. The default, the R package name with a Bindings suffix, ensures this."
   },
   {
-    "objectID": "vignettes/using-clients.html#build-options",
-    "href": "vignettes/using-clients.html#build-options",
-    "title": "Using packages built on jlbind",
-    "section": "Build options",
-    "text": "Build options\njlbind compiles the library with these options, which keep it small and fast. Most users don’t need to change them.\n\n\n\nOption\nWhat it does\nHow to change it\n\n\n\n\n--output-lib\nBuilds a shared library\nFixed\n\n\n--compile-ccallable\nExports the clients’ functions\nFixed\n\n\n--trim=safe\nRemoves code that can’t be reached\nOne client setting Config/jlbind/trim: false turns it off for the whole library, which makes it much larger\n\n\n--cpu-target=native\nCompiles for this computer’s CPU\ncpu_target or JULIA_CPU_TARGET\n\n\n-g0\nLeaves out debug info\njulia_args or JLBIND_JULIA_ARGS\n\n\n\nWhen trimming, JuliaC also passes --experimental, --strip-ir and --strip-metadata.\n\nCPU target\nUse cpu_target if one R library is used from computers with different CPUs, such as cluster nodes sharing a home directory:\njlbind::install_library(cpu_target = \"generic\")\nThis table compares the options on an x86-64 Linux computer (AMD Zen 4) with Julia 1.14. Library size is the compiled library file for CausalStructures.jl, a package of graph algorithms; the Julia runtime it loads adds about 6 MB. Run times are relative to \"native\", so 2× takes twice as long. Graph code is CausalStructures.jl, and the other columns are small numeric kernels. Results will differ for other packages and computers. The benchmark code is in the jlbind repository.\n\n\n\n\n\n\n\n\n\n\n\ncpu_target\nRuns on\nLibrary size\nGraph code\nSIMD loops\nexp/sin\n\n\n\n\n\"native\" (default)\nThis CPU model\n8.9 MB\n1×\n1×\n1×\n\n\n\"generic\"\nAny CPU\n8.8 MB\n1×\n1.7–2.8×\n1.1×\n\n\nSeveral targets\nThe CPUs you list\n21 MB\n1.0–1.1×\n1.0–1.1×\n0.9×\n\n\n\"generic;native,clone_all\"\nThis CPU model\n13.7 MB\n1×\n1×\n2.1×\n\n\n\nSorting and a scalar ODE solver took about the same time with all of them.\nThe several targets measured here are those of Julia’s own system image, which keep numeric code fast across x86-64 CPUs:\njlbind::install_library(\n  cpu_target = paste(\n    \"generic\",\n    \"sandybridge,-xsaveopt,clone_all\",\n    \"haswell,-rdrnd,base(1)\",\n    \"x86-64-v4,-rdrnd,base(1)\",\n    sep = \";\"\n  )\n)\nBuild options count towards whether the library is up to date, so calling install_library() without them rebuilds the library with the defaults. To keep a target for every build, set JULIA_CPU_TARGET, for example in your .Renviron file:\nJULIA_CPU_TARGET=generic\n\n\nJulia arguments\nFor advanced use, julia_args passes extra options to Julia when it compiles the library, such as \"-O3\", or \"-g1\" to keep the debug info that jlbind removes with -g0. You can also set them in JLBIND_JULIA_ARGS, separated by spaces. They can’t change the options jlbind relies on: --trim, --output-* and --compile-ccallable.\n\n\nLibraries for people without Julia\nThe library loads the runtime of the Julia that built it, so that Julia must stay installed. With bundle = TRUE, jlbind copies Julia’s runtime next to the library, using JuliaC’s --bundle, so that it runs without Julia:\njlbind::build_library(\n  c(\"pkgA\", \"pkgB\"),\n  \"~/jlbind/bundle\",\n  cpu_target = \"generic\",\n  bundle = TRUE\n)\nGive them the whole directory, built on the same operating system and CPU architecture as theirs. Then they should set JLBIND_LIBRARY to the library in it before loading them.\nThe size depends on how much of the runtime you keep. Julia’s whole runtime includes libraries that many packages never use, such as OpenBLAS. These sizes are for the whole directory, with cpu_target = \"generic\" on the computer above, for CausalStructures.jl and for a tiny package:\n\n\n\nLibrary\nCausalStructures.jl\nTiny package\n\n\n\n\nNot bundled (needs Julia)\n8.8 MB\n2.0 MB\n\n\nBundled\n87 MB\n68 MB\n\n\nBundled and removed by hand\n15 MB\n8.9 MB\n\n\n\nTo get the last row, delete jlbind-bundle/share, and everything in jlbind-bundle/lib and jlbind-bundle/lib/julia except libjulia, libjulia-internal, libunwind, libz, libzstd, libatomic, libgcc_s and libopenlibm, then run strip on the library. jlbind doesn’t do this for you, because a package can need more of them; one using LinearAlgebra needs OpenBLAS, for example. Test every package after removing anything."
+    "objectID": "vignettes/technical-details.html#writing-rcall-declarations",
+    "href": "vignettes/technical-details.html#writing-rcall-declarations",
+    "title": "Technical details",
+    "section": "Writing @rcall declarations",
+    "text": "Writing @rcall declarations\nThe binding package is an ordinary Julia package. Add its dependencies with Pkg, from your package’s directory, and import them as usual:\njulia --project=inst/julia -e 'using Pkg; Pkg.add(\"SomePackage\")'\n\n\n\n\n\n\nImportantWrite @rcall declarations literally at the top level\n\n\n\njlbind finds @rcall declarations by scanning the source files, not by running them, so write them literally at the top level of the module.\n\n\n\nDefault values\nA default in a declaration becomes the default of the generated R function. For example,\n@rcall summarise(x::Vector{Float64}, probs::Vector{Float64} = [0.25, 0.75],\n                 na::Union{Missing,Float64} = missing)::Vector{Float64}\ngenerates\nsummarise &lt;- function(x, probs = c(0.25, 0.75), na = NA) ...\nA default can be any of these:\n\n\n\nJulia default\nR default\n\n\n\n\nA literal number or string\nThe same literal\n\n\ntrue, false\nTRUE, FALSE\n\n\nmissing\nNA\n\n\nnothing\nNULL\n\n\n[1, 2], Float64[1, 2]\nc(1, 2)\n\n\n[\"a\", missing]\nc(\"a\", NA)\n\n\nFloat64[], String[], …\nnumeric(0), character(0), …\n\n\n\nAn empty vector names its element type, as in Int32[] or Bool[]."
+  },
+  {
+    "objectID": "vignettes/technical-details.html#development-libraries",
+    "href": "vignettes/technical-details.html#development-libraries",
+    "title": "Technical details",
+    "section": "Development libraries",
+    "text": "Development libraries\nBy default, build_library() writes the library to .jlbind/ in your package’s source directory. When you load the package with devtools::load_all(), jlbind uses this development library instead of the one created by install_library(). Once .jlbind/ exists, devtools::load_all() rebuilds it when your binding package’s files or your package’s version have changed since it was built.\n\n\n\n\n\n\nNoteThe development library is only used when your package loads first\n\n\n\nA library that has loaded cannot be replaced, so the .jlbind/ library is used only if your package is the first jlbind client loaded in the R session.\n\n\nIf you need to use a library stored elsewhere, set the JLBIND_LIBRARY environment variable to its path before loading the package.\nYou can also test against an unreleased version of a Julia dependency by providing a local checkout through develop:\njlbind::build_library(develop = \"~/dev/SomePackage.jl\")\n\n\n\n\n\n\nTipPin the dependency versions\n\n\n\nInclude a Manifest.toml next to the binding package’s Project.toml with the Julia dependency versions known to compile with your package. CRAN’s policy asks that downloaded libraries be a fixed version rather than the latest.\nThe build uses the manifest of only the first client that has one (see Dependency versions), so keep your [compat] bounds accurate too."
+  },
+  {
+    "objectID": "vignettes/technical-details.html#types",
+    "href": "vignettes/technical-details.html#types",
+    "title": "Technical details",
+    "section": "Types",
+    "text": "Types\n@rcall converts each argument using from_sexp() and converts the return value using to_sexp(). The built-in conversions are:\nSingle values\n\n\n\n\n\n\n\n\nJulia\nR argument\nR result\n\n\n\n\nString, Symbol\nA single string\nA character vector of length one\n\n\nFloat64\nA single number\nA double\n\n\nInt64\nA single whole number\nA double\n\n\nInt32\nA single whole number\nAn integer\n\n\nInt16, Int8, UInt16\nA single whole number in range\nAn integer\n\n\nUInt32\nA single whole number in range\nA double\n\n\nFloat32, Float16\nA single number in range\nA double\n\n\nBool\nTRUE or FALSE\nA logical\n\n\nComplexF64\nA single complex number\nA complex\n\n\nDate\nA single Date\nA Date\n\n\nDateTime\nA single POSIXct\nA POSIXct in UTC\n\n\nUnion{Missing,T}\nA value of type T, or NA\nA value of type T, or NA\n\n\nUnion{Nothing,T}\nNULL, or a value of type T\nNULL, or a value of type T\n\n\nNothing\n\nNULL, invisibly\n\n\n\nVectors and arrays\n\n\n\n\n\n\n\n\nJulia\nR argument\nR result\n\n\n\n\nVector{String}, Vector{Symbol}\nA character vector or factor\nA character vector\n\n\nVector{Float64}, Vector{Int64}\nA numeric vector\nA double vector\n\n\nVector{Int32}\nA numeric vector of whole numbers\nAn integer vector\n\n\nVectors of the smaller types above\nA numeric vector in range\nAn integer or double vector\n\n\nVector{Bool}\nA logical vector\nA logical vector\n\n\nVector{ComplexF64}\nA complex or numeric vector\nA complex vector\n\n\nVector{UInt8}\nA raw vector\nA raw vector\n\n\nVector{Date}\nA Date vector\nA Date vector\n\n\nVector{DateTime}\nA POSIXct vector\nA POSIXct vector in UTC\n\n\nVector{Union{Missing,T}}\nA vector of type T, which can have NA\nA vector of type T with NA\n\n\nRVector{T}\nA double, integer or raw vector\nThe same vector\n\n\nMatrix{T}, Array{T,N}\nA matrix or array of type T\nA matrix or array of type T\n\n\n\nLists, data frames and references\n\n\n\n\n\n\n\n\nJulia\nR argument\nR result\n\n\n\n\nOther Vectors, Tuples\nA list\nA list\n\n\nNamedTuple\nA named list, such as a data frame\nA named list\n\n\nRDataFrame\nA data frame\nA data frame\n\n\nDict{String,T}, Dict{Symbol,T}\nA named list\nA named list, sorted by name\n\n\nRRef{T}\nA reference to a Julia object\nA reference to a Julia object\n\n\nVector{RRef{T}}\nA list of references\nA list of references\n\n\n\n\nConversion rules\n\nMissing values: NA is an error unless the type is Union{Missing,T} or Vector{Union{Missing,T}}, which turn NA into missing and back.\nNaN: accepted only where missing is.\nRanges: a number must fit its type, so an Int16 argument rejects 40000.\nInt64 results: these become doubles, since R’s integers have 32 bits. Return Int32 for an R integer.\nDates: to use Date or DateTime, add the Dates standard library to the binding package’s dependencies.\nLists: if one element of a list can’t be converted, the error says which. For example, passing list(c(1, 2), \"a\") as a Vector{Vector{Float64}} gives the error element 2: expected a numeric vector.\n\n\n\nData frames\nTo take or return a data frame, wrap the columns in an RDataFrame. Its type lists the column names and the type of each column, so a type alias keeps signatures short:\nconst Sales = RDataFrame{(:group, :amount),Tuple{Vector{String},Vector{Float64}}}\nconst Summary = RDataFrame{(:group, :mean),Tuple{Vector{String},Vector{Float64}}}\n\nfunction summarise(df)\n    gs = sort(unique(df.group))\n    means = [sum(df.amount[df.group .== g]) / count(==(g), df.group) for g in gs]\n    return RDataFrame((group = gs, mean = means))\nend\n\n@rcall summarise(df::Sales)::Summary\nsummarise(data.frame(group = c(\"a\", \"b\", \"a\"), amount = c(1, 2, 3)))\n#&gt;   group mean\n#&gt; 1     a    2\n#&gt; 2     b    2\nAn RDataFrame argument:\n\nMust be a data frame (a tibble works too) with exactly the declared columns, in any order. If the data frame has other columns, select the ones you need in the R wrapper: summarise(df[c(\"group\", \"amount\")]).\nHas its columns as properties (df.group), and NamedTuple(df) returns them as a named tuple.\nConverts each column by the usual rules, so a factor column arrives as strings, and a Vector{Union{Missing,Float64}} column allows NA.\n\nReturning columns of different lengths is an error.\nIf you don’t need a data frame on the Julia side, a NamedTuple argument also accepts one, as a named tuple of its columns. It must have exactly the names of its fields, in any order.\n\n\nLarge vectors\nOther conversions copy, so a function given a large vector it only reads can take an RVector{Float64} (or RVector{Int32}, RVector{UInt8}). That is an AbstractVector viewing R’s memory, without checking for NA. It is valid only until the call returns, so don’t store it.\n\n\nYour own types\nJLBind is jlbind’s own Julia package, which every binding package depends on, so write JLBind.foo as it is rather than with the name of your package.\nA binding package can support additional types by defining methods for JLBind.from_sexp(::Type{T}, x::SEXP) and JLBind.to_sexp(x::T). JLBind also provides helpers for building R objects directly, such as JLBind.data_frame() for a data frame whose columns are not known when the library is compiled, and JLBind.alloc() and JLBind.alloc_matrix() for a vector or matrix to fill in place, without a copy in Julia first. The JLBind reference documents all of them.\n\n\nJulia objects in R\nSometimes an object is easier to keep in Julia than to convert into an R data structure. You can pass such objects by reference using RRef{T}. R receives an external pointer to the Julia object, allowing it to be reused across calls. The object is released when R garbage-collects the reference, and jlbind::object_count() counts the objects R holds, to check that a package doesn’t leak them.\nFor example, define a mutable Julia object and expose functions that operate on it (the counterjl test client is a complete version of this):\nmutable struct Counter\n    n::Int64\nend\n\nJLBind.r_class(::Type{Counter}) = \"counter\"\n\nnew_counter(start) = Counter(start)\nincrement(c, by) = (c.n += by; c.n)\n\n@rcall new_counter(start::Int64)::RRef{Counter}\n@rcall increment(c::RRef{Counter}, by::Int64)::Int64\nFrom R, you can create a counter and update it across calls:\ncounter &lt;- new_counter(0)\nclass(counter)\n#&gt; [1] \"counter\"\n\nincrement(counter, 2)\n#&gt; [1] 2\nr_class() sets the R class of the external pointer, so your package can define methods such as print() for it. An argument declared as RRef{Counter} also checks that the reference points to a Counter, rather than accepting an arbitrary Julia object.\n\n\nSaving Julia objects\nR writes an external pointer as a null pointer, so by default a reference does not survive saveRDS(), save(), serialize(), or being sent to a parallel worker; using it afterwards gives an error. To make a type savable, you need to do two things.\nIn Julia, define JLBind.r_saved_by(), which names your R package, and JLBind.r_restore(), which rebuilds the object from the saved data:\nJLBind.r_saved_by(::Type{Counter}) = \"mypackage\"\nJLBind.r_restore(::Type{Counter}, state::SEXP) =\n    Counter(from_sexp(NamedTuple{(:n,),Tuple{Int64}}, state).n)\n\ncounter_value(c) = c.n\n\n@rcall counter_value(c::RRef{Counter})::Int64\nIn R, define .jlbind_saved_state(), which returns that data as a list of plain R values. It is internal, so don’t export it. If your package has several savable types, branch on the class of x:\n.jlbind_saved_state &lt;- function(x) {\n  list(n = counter_value(x))\n}\nThe first call that uses a loaded object rebuilds it, which needs the compiled library.\n.jlbind_saved_state() only runs when saving, through an ALTREP vector in the reference’s jlbind_state attribute. Creating this vector adds about 400 ns to each new reference."
+  },
+  {
+    "objectID": "vignettes/technical-details.html#errors",
+    "href": "vignettes/technical-details.html#errors",
+    "title": "Technical details",
+    "section": "Errors",
+    "text": "Errors\nIf a function called through @rcall throws a Julia exception, jlbind turns it into an R error. The messages from ArgumentError, ErrorException, DimensionMismatch, OverflowError, and AssertionError are passed through. Other exceptions are summarized."
+  },
+  {
+    "objectID": "vignettes/technical-details.html#compilation-constraints-trimming",
+    "href": "vignettes/technical-details.html#compilation-constraints-trimming",
+    "title": "Technical details",
+    "section": "Compilation constraints (trimming)",
+    "text": "Compilation constraints (trimming)\nBy default, jlbind compiles the shared library with juliac --trim=safe. This keeps the compiled image small by including only code reachable from the functions exposed through @rcall. It also requires calls to be resolvable at compile time.\nIf your package cannot be compiled with trimming, add the following field to DESCRIPTION:\nConfig/jlbind/trim: false\n\n\n\n\n\n\nWarning\n\n\n\nAn untrimmed library includes the full Julia system image and is much larger, so avoid it if you can.\n\n\n\nAbstract types\nWith trimming, a common source of compilation errors is a function that accepts several concrete types through an abstract RRef. Suppose your binding package works with shapes:\n\n\nShape types and their areas\n\nabstract type Shape end\n\nstruct Circle &lt;: Shape\n    radius::Float64\nend\nstruct Square &lt;: Shape\n    side::Float64\nend\nstruct Rectangle &lt;: Shape\n    width::Float64\n    height::Float64\nend\nstruct Triangle &lt;: Shape\n    base::Float64\n    height::Float64\nend\n\nJLBind.r_class(::Type{&lt;:Shape}) = \"shape\"\n\narea(s::Circle) = pi * s.radius^2\narea(s::Square) = s.side^2\narea(s::Rectangle) = s.width * s.height\narea(s::Triangle) = s.base * s.height / 2\n\nAn entrypoint that takes an RRef{Shape} knows only that its argument is some Shape. If it simply calls area(s), the compiler cannot tell which of the four methods that call reaches, and the build fails with an error such as:\nVerifier error #1: unresolved call from statement area(s::Shape)::Any\nThe solution is to take the argument with @nospecialize and branch on the concrete types, making the call inside each branch, where the type is known. @narrow s (A, B, ...) expr does that: it evaluates expr with s narrowed to whichever of the listed types it is (see its reference):\ncircle(radius) = Circle(radius)\nsquare(side) = Square(side)\nrectangle(width, height) = Rectangle(width, height)\ntriangle(base, height) = Triangle(base, height)\nshape_area(@nospecialize(s::Shape)) =\n    @narrow s (Circle, Square, Rectangle, Triangle) area(s)\nscaled_area(@nospecialize(s::Shape), factor::Float64) =\n    @narrow s (Circle, Square, Rectangle, Triangle) factor^2 * area(s)\n\n@rcall circle(radius::Float64)::RRef{Shape}\n@rcall square(side::Float64)::RRef{Shape}\n@rcall rectangle(width::Float64, height::Float64)::RRef{Shape}\n@rcall triangle(base::Float64, height::Float64)::RRef{Shape}\n@rcall shape_area(shape::RRef{Shape})::Float64\n@rcall scaled_area(shape::RRef{Shape}, factor::Float64)::Float64\nEvery shape can then be passed to the same generated R functions:\nshapes &lt;- list(circle(1), square(2), rectangle(2, 3), triangle(2, 3))\nvapply(shapes, shape_area, numeric(1))\n#&gt; [1] 3.141593 4.000000 6.000000 3.000000\n\nscaled_area(square(2), 3)\n#&gt; [1] 36\nA shape of a type that isn’t listed gives the error expected Circle, Square, Rectangle or Triangle; a fourth argument to @narrow is evaluated instead, to give another error or a default. List only the types the call has methods for.\nWithout @nospecialize, Julia compiles a separate shape_area for each concrete shape, and the call into it from the entrypoint can’t be resolved, for the same reason as area(s). A function that receives the shape and passes it on needs @nospecialize too.\nIf a hierarchy has only a few types, some alternatives to @nospecialize are:\n\nDeclare a separate entrypoint for each concrete type (RRef{Circle},RRef{Square}, …) and choose between them in R.\nUse a small Union such as RRef{Union{Circle,Square}}, which Julia resolves by checking each member in turn.\n\n\n\nOther calls that don’t compile\nThe same rule, that every call must resolve when the library is compiled, rules out a few common patterns:\n\nSplatting a vector, as in f(xs...) for xs::Vector: the number of arguments is only known at run time. Call a method that takes the vector, or call f once per element if that gives the same result.\nNames of abstract types, as in nameof(typeof(x)) where x is only known to be some Shape. Use @narrow to give each type its name.\nTypes as keyword arguments, as in f(; type = T): the keyword arguments are stored in a NamedTuple whose field is only a DataType. Pass the type positionally, or call the keyword form with @inline where T is a constant.\n\nOptional arguments are not a problem: @rcall calls the function in a separate branch for nothing (or missing) and for a value of each argument declared as a Union{Nothing,T} (or Union{Missing,T}), so each call has concrete types. This needs the Union written out in the declaration, not an alias for it."
+  },
+  {
+    "objectID": "vignettes/technical-details.html#footnotes",
+    "href": "vignettes/technical-details.html#footnotes",
+    "title": "Technical details",
+    "section": "Footnotes",
+    "text": "Footnotes\n\n\nJuliaC can privatize a library, giving it its own copy of the Julia runtime, but jlbind doesn’t use this. Each client would then ship a bundle with its own runtime and compiled copy of Base, where a shared library adds only each client’s own code. On Linux with Julia 1.14, a bundle was over 80 MB for a larger client, and about 9 MB for a tiny client after removing the runtime libraries it doesn’t use by hand. Each runtime would also have its own garbage-collected heap and threads in memory, and Julia objects couldn’t be passed between clients. Privatization also doesn’t work on Windows yet (JuliaC.jl#151).↩︎"
   },
   {
     "objectID": "LICENSE-text.html",
@@ -455,46 +693,39 @@
     "text": "YEAR: 2026\nCOPYRIGHT HOLDER: jlbind authors"
   },
   {
-    "objectID": "reference/jlbind_sitrep.html",
-    "href": "reference/jlbind_sitrep.html",
-    "title": "Report on the jlbind setup",
+    "objectID": "reference/object_count.html",
+    "href": "reference/object_count.html",
+    "title": "Count the Julia objects R holds",
     "section": "",
     "text": "Source: R/sitrep.R"
   },
   {
-    "objectID": "reference/jlbind_sitrep.html#description",
-    "href": "reference/jlbind_sitrep.html#description",
-    "title": "Report on the jlbind setup",
+    "objectID": "reference/object_count.html#description",
+    "href": "reference/object_count.html#description",
+    "title": "Count the Julia objects R holds",
     "section": "Description",
-    "text": "Description\nPrints a report to run when a package that uses jlbind doesn’t work. It shows the Julia that builds the library, the library that is loaded (or would be) and what it was built from, the installed packages that use jlbind and whether the library is current for each, and the Julia thread count. It also works before a library has loaded."
+    "text": "Description\nThe number of Julia objects that R currently holds references to (the RRefs returned by the packages that use jlbind), across all of these packages. An object is released once R garbage-collects every reference to it, so this is useful for checking that a package doesn’t leak objects."
   },
   {
-    "objectID": "reference/jlbind_sitrep.html#usage",
-    "href": "reference/jlbind_sitrep.html#usage",
-    "title": "Report on the jlbind setup",
+    "objectID": "reference/object_count.html#usage",
+    "href": "reference/object_count.html#usage",
+    "title": "Count the Julia objects R holds",
     "section": "Usage",
-    "text": "Usage\njlbind_sitrep(julia = NULL)"
+    "text": "Usage\nobject_count()"
   },
   {
-    "objectID": "reference/jlbind_sitrep.html#arguments",
-    "href": "reference/jlbind_sitrep.html#arguments",
-    "title": "Report on the jlbind setup",
-    "section": "Arguments",
-    "text": "Arguments\n\n\n\njulia\n\n\nPath to the julia executable. By default, the JULIA environment variable, or julia on the PATH."
-  },
-  {
-    "objectID": "reference/jlbind_sitrep.html#value",
-    "href": "reference/jlbind_sitrep.html#value",
-    "title": "Report on the jlbind setup",
+    "objectID": "reference/object_count.html#value",
+    "href": "reference/object_count.html#value",
+    "title": "Count the Julia objects R holds",
     "section": "Value",
-    "text": "Value\nInvisibly, a list with:\n\n\njulia: a list with path (NA if Julia was not found), source (\"argument\", \"JULIA\" or \"PATH\"), version (NA if it could not be run) and ok (whether it is Julia 1.13 or later).\n\n\nlibrary: a list with path, how (\"loaded\", \"failed to load\", \"JLBIND_LIBRARY\" or \"default\"), exists, build (how it was built: the jlbind and Julia versions, when, whether it is trimmed, the CPU target and the CPU it was built on, any extra Julia arguments and whether it is a bundle, or NULL), problems (why it should be rebuilt or cannot load; empty if none) and objects (how many Julia objects R holds references to, or NULL if no library is loaded).\n\n\nclients: a data frame with one row per package that uses jlbind or that the library was built for, with the columns package, version (installed), built (the version in the library), status (\"ok\", \"left out\", \"not in the library\", \"built for version &lt;v&gt;\", \"Julia code changed\" or \"not installed\") and bound.\n\n\nthreads: a list with count (from JULIA_NUM_THREADS) and fixed (TRUE once a library is loaded, after which the count cannot change)."
+    "text": "Value\nA number, or NULL if no Julia library is loaded."
   },
   {
-    "objectID": "reference/jlbind_sitrep.html#examples",
-    "href": "reference/jlbind_sitrep.html#examples",
-    "title": "Report on the jlbind setup",
+    "objectID": "reference/object_count.html#examples",
+    "href": "reference/object_count.html#examples",
+    "title": "Count the Julia objects R holds",
     "section": "Examples",
-    "text": "Examples\n\njlbind_sitrep()\n#&gt; ── Julia (for building the library)\n#&gt; ✖ not found: install Julia &gt;= 1.13, or set the JULIA environment variable to its path\n#&gt; ── Library\n#&gt; ✖ /home/runner/.local/share/R/jlbind/library/jlbind.so (default)\n#&gt; ✖ it has not been built\n#&gt; ── Packages that use jlbind\n#&gt;   none installed\n#&gt; ── Threads\n#&gt;   1 Julia thread (JULIA_NUM_THREADS unset)"
+    "text": "Examples\n\nobject_count()\n#&gt; NULL"
   },
   {
     "objectID": "vignettes/articles/performance.html",
@@ -586,152 +817,5 @@
     "title": "Build the Julia library",
     "section": "Examples",
     "text": "Examples\ninstall_library()\n\n# With a local checkout of a Julia dependency\ninstall_library(develop = \"~/dev/SomePackage.jl\")\n\n# Only two of the installed packages\ninstall_library(packages = c(\"pkgA\", \"pkgB\"))\n\n# For an R library shared by computers with different CPUs\ninstall_library(cpu_target = \"generic\")"
-  },
-{
-    "objectID": "reference/remove_library.html",
-    "href": "reference/remove_library.html",
-    "title": "Remove the Julia library",
-    "section": "",
-    "text": "Source: R/library.R"
-  },
-  {
-    "objectID": "reference/remove_library.html#description",
-    "href": "reference/remove_library.html#description",
-    "title": "Remove the Julia library",
-    "section": "Description",
-    "text": "Description\nDeletes the library built by install_library(), with everything else jlbind stores in tools::R_user_dir(\"jlbind\", \"data\"). Packages that use jlbind can’t call their Julia code until you run install_library() again."
-  },
-  {
-    "objectID": "reference/remove_library.html#usage",
-    "href": "reference/remove_library.html#usage",
-    "title": "Remove the Julia library",
-    "section": "Usage",
-    "text": "Usage\nremove_library(ask = interactive())"
-  },
-  {
-    "objectID": "reference/remove_library.html#arguments",
-    "href": "reference/remove_library.html#arguments",
-    "title": "Remove the Julia library",
-    "section": "Arguments",
-    "text": "Arguments\n\n\n\nask\n\n\nIf TRUE, ask before removing. Defaults to interactive()."
-  },
-  {
-    "objectID": "reference/remove_library.html#details",
-    "href": "reference/remove_library.html#details",
-    "title": "Remove the Julia library",
-    "section": "Details",
-    "text": "Details\nLibraries that build_library() wrote elsewhere are left alone, as are the Julia packages that builds downloaded into Julia’s package depot; run Pkg.gc() in Julia to remove the ones nothing uses."
-  },
-  {
-    "objectID": "reference/remove_library.html#value",
-    "href": "reference/remove_library.html#value",
-    "title": "Remove the Julia library",
-    "section": "Value",
-    "text": "Value\nTRUE if there was a library to remove, otherwise FALSE, invisibly."
-  },
-  {
-    "objectID": "reference/remove_library.html#examples",
-    "href": "reference/remove_library.html#examples",
-    "title": "Remove the Julia library",
-    "section": "Examples",
-    "text": "Examples\nremove_library()"
-  },
-  {
-    "objectID": "reference/update_entrypoints.html",
-    "href": "reference/update_entrypoints.html",
-    "title": "Update the list of Julia functions R can call",
-    "section": "",
-    "text": "Source: R/scaffold.R"
-  },
-  {
-    "objectID": "reference/update_entrypoints.html#description",
-    "href": "reference/update_entrypoints.html#description",
-    "title": "Update the list of Julia functions R can call",
-    "section": "Description",
-    "text": "Description\nFinds the @rcall declarations in the package’s Julia binding package and writes R/jlbind-wrappers.R, with an R function for each that calls the compiled Julia function. Run this whenever you add or remove an @rcall, or change its arguments. @rcall shift(x::Vector{Float64}, by::Float64 = 0.0)::Float64 becomes shift &lt;- function(x, by = 0.0) .External(.jlbind$.call, .jlbind$shift, x, by), where bind_client() puts the compiled function into .jlbind."
-  },
-  {
-    "objectID": "reference/update_entrypoints.html#usage",
-    "href": "reference/update_entrypoints.html#usage",
-    "title": "Update the list of Julia functions R can call",
-    "section": "Usage",
-    "text": "Usage\nupdate_entrypoints(path = \".\")"
-  },
-  {
-    "objectID": "reference/update_entrypoints.html#arguments",
-    "href": "reference/update_entrypoints.html#arguments",
-    "title": "Update the list of Julia functions R can call",
-    "section": "Arguments",
-    "text": "Arguments\n\n\n\npath\n\n\nPath to the package sources."
-  },
-  {
-    "objectID": "reference/update_entrypoints.html#details",
-    "href": "reference/update_entrypoints.html#details",
-    "title": "Update the list of Julia functions R can call",
-    "section": "Details",
-    "text": "Details\nDefaults must be literal numbers, strings, true, false, missing (NA) or nothing (NULL), or vectors of these, such as [1, 2] (c(1, 2)) or Float64[] (numeric(0)). A function returning Nothing returns invisibly. To export or document a function, write roxygen comments (#') directly above its @rcall: they’re copied above the R function, so roxygen2 sees its signature. To add R code around a call, declare the Julia function with a jl_ prefix and write the R function yourself, calling the generated jl_ function."
-  },
-  {
-    "objectID": "reference/update_entrypoints.html#value",
-    "href": "reference/update_entrypoints.html#value",
-    "title": "Update the list of Julia functions R can call",
-    "section": "Value",
-    "text": "Value\nInvisibly, a data frame of the entrypoints with the columns name, nargs, and the formals, args, invisible (whether it returns invisibly) and roxygen (the comments above its @rcall) of their R wrappers."
-  },
-  {
-    "objectID": "reference/update_entrypoints.html#examples",
-    "href": "reference/update_entrypoints.html#examples",
-    "title": "Update the list of Julia functions R can call",
-    "section": "Examples",
-    "text": "Examples\n\n# A package set up with use_jlbind() in a temporary directory\npkg &lt;- file.path(tempdir(), \"addpkg\")\ndir.create(pkg)\nwriteLines(\n  c(\n    \"Package: addpkg\",\n    \"Title: Demo\",\n    \"Version: 0.1.0\",\n    \"Description: Demo.\",\n    \"License: MIT\"\n  ),\n  file.path(pkg, \"DESCRIPTION\")\n)\nuse_jlbind(pkg)\n#&gt; Created the binding package addpkgBindings in /tmp/RtmpE8Ir5A/addpkg/inst/julia.\n#&gt; Wrote /tmp/RtmpE8Ir5A/addpkg/R/jlbind-wrappers.R (1 entrypoints).\n\n# Add an entrypoint to the binding package, before its closing `end`\nfile &lt;- file.path(pkg, \"inst/julia/src/addpkgBindings.jl\")\ncode &lt;- readLines(file)\nlast &lt;- max(grep(\"^end\", code))\ncode &lt;- append(\n  code,\n  c(\n    \"add(x, y) = x + y\",\n    \"@rcall add(x::Float64, y::Float64)::Float64\",\n    \"\"\n  ),\n  after = last - 1L\n)\nwriteLines(code, file)\n\nupdate_entrypoints(pkg)\n#&gt; Wrote /tmp/RtmpE8Ir5A/addpkg/R/jlbind-wrappers.R (2 entrypoints).\nwriteLines(readLines(file.path(pkg, \"R\", \"jlbind-wrappers.R\")))\n#&gt; # Generated by jlbind::update_entrypoints(): do not edit by hand\n#&gt; \n#&gt; # The entrypoints of the Julia binding package, which\n#&gt; # jlbind::bind_client() looks up in the compiled library and puts into\n#&gt; # `.jlbind` for the functions below.\n#&gt; .jlbind_module &lt;- \"addpkgBindings\"\n#&gt; .jlbind_entries &lt;- c(\n#&gt;   \"hello\",\n#&gt;   \"add\"\n#&gt; )\n#&gt; .jlbind &lt;- new.env(parent = emptyenv())\n#&gt; \n#&gt; hello &lt;- function(name) .External(.jlbind$.call, .jlbind$hello, name)\n#&gt; add &lt;- function(x, y) .External(.jlbind$.call, .jlbind$add, x, y)"
-  },
-  {
-    "objectID": "reference/bind_client.html",
-    "href": "reference/bind_client.html",
-    "title": "Bind a package to the Julia library",
-    "section": "",
-    "text": "Source: R/runtime.R"
-  },
-  {
-    "objectID": "reference/bind_client.html#description",
-    "href": "reference/bind_client.html#description",
-    "title": "Bind a package to the Julia library",
-    "section": "Description",
-    "text": "Description\nCall this from the .onLoad() of a package that uses jlbind; use_jlbind() sets that up. The first call loads the compiled library, and each call binds one package’s routines to it. If the library is missing or was built from another version of the package, the package isn’t bound and its functions give an error; check_bound() says why."
-  },
-  {
-    "objectID": "reference/bind_client.html#usage",
-    "href": "reference/bind_client.html#usage",
-    "title": "Bind a package to the Julia library",
-    "section": "Usage",
-    "text": "Usage\nbind_client(pkg)"
-  },
-  {
-    "objectID": "reference/bind_client.html#arguments",
-    "href": "reference/bind_client.html#arguments",
-    "title": "Bind a package to the Julia library",
-    "section": "Arguments",
-    "text": "Arguments\n\n\n\npkg\n\n\nThe package name."
-  },
-  {
-    "objectID": "reference/bind_client.html#details",
-    "href": "reference/bind_client.html#details",
-    "title": "Bind a package to the Julia library",
-    "section": "Details",
-    "text": "Details\nThe library is the one from install_library(), unless JLBIND_LIBRARY names another, or the first package bound was loaded with pkgload::load_all() and has one from build_library(). That library is rebuilt as the package loads if it is out of date with the package’s sources, as when its Julia code has changed. A library that has already loaded cannot be replaced, so after a change, restart R.\nTo run Julia with more threads, set JULIA_NUM_THREADS (a number or \"auto\") before loading the first package that uses jlbind."
-  },
-  {
-    "objectID": "reference/bind_client.html#value",
-    "href": "reference/bind_client.html#value",
-    "title": "Bind a package to the Julia library",
-    "section": "Value",
-    "text": "Value\nInvisibly, TRUE if the package is bound and FALSE if not."
-  },
-  {
-    "objectID": "reference/bind_client.html#examples",
-    "href": "reference/bind_client.html#examples",
-    "title": "Bind a package to the Julia library",
-    "section": "Examples",
-    "text": "Examples\n# In a package's R/jlbind.R, as use_jlbind() writes it\n.onLoad &lt;- function(libname, pkgname) {\n  jlbind::bind_client(pkgname)\n}"
   }
 ]

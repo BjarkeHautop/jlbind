@@ -66,9 +66,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-895821ad15f059b9418e27e3b3cc8812.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-075e5125ddc0819b3e079ebe08fa8522.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-c95f020296228d9422c2b057e21f3454.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-075e5125ddc0819b3e079ebe08fa8522.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -308,10 +308,21 @@ visitors who prefer it, before Quarto reads the stored choice.
     <a class="nav-link" href="../vignettes/jlbind.html"> 
 <span class="menu-text">Get started</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="../reference/index.html"> 
-<span class="menu-text">Reference</span></a>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-reference" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Reference</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-reference">
+<li>
+    <a class="dropdown-item" href="../reference/index.html">
+ <span class="dropdown-text">R functions</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/articles/jlbind-reference.html">
+ <span class="dropdown-text">JLBind (Julia)</span></a>
+  </li>  
+    </ul>
+</li>
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-articles" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Articles</span>
@@ -325,6 +336,7 @@ visitors who prefer it, before Quarto reads the stored choice.
     <a class="dropdown-item" href="../vignettes/using-clients.html">
  <span class="dropdown-text">Using packages built on jlbind</span></a>
   </li>  
+        <li><hr class="dropdown-divider"></li>
         <li>
     <a class="dropdown-item" href="../vignettes/articles/performance.html">
  <span class="dropdown-text">Performance</span></a>

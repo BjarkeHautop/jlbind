@@ -66,9 +66,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="site_libs/bootstrap/bootstrap.min.js"></script><link href="site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="site_libs/bootstrap/bootstrap-dark-895821ad15f059b9418e27e3b3cc8812.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-075e5125ddc0819b3e079ebe08fa8522.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="site_libs/bootstrap/bootstrap-dark-c95f020296228d9422c2b057e21f3454.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="site_libs/bootstrap/bootstrap-075e5125ddc0819b3e079ebe08fa8522.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -310,10 +310,21 @@ visitors who prefer it, before Quarto reads the stored choice.
     <a class="nav-link" href="./vignettes/jlbind.html"> 
 <span class="menu-text">Get started</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="./reference/index.html"> 
-<span class="menu-text">Reference</span></a>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-reference" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Reference</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-reference">
+<li>
+    <a class="dropdown-item" href="./reference/index.html">
+ <span class="dropdown-text">R functions</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/articles/jlbind-reference.html">
+ <span class="dropdown-text">JLBind (Julia)</span></a>
+  </li>  
+    </ul>
+</li>
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-articles" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Articles</span>
@@ -327,6 +338,7 @@ visitors who prefer it, before Quarto reads the stored choice.
     <a class="dropdown-item" href="./vignettes/using-clients.html">
  <span class="dropdown-text">Using packages built on jlbind</span></a>
   </li>  
+        <li><hr class="dropdown-divider"></li>
         <li>
     <a class="dropdown-item" href="./vignettes/articles/performance.html">
  <span class="dropdown-text">Performance</span></a>
@@ -354,6 +366,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <li><a href="#installation" id="toc-installation" class="nav-link" data-scroll-target="#installation">Installation</a></li>
   <li><a href="#using-a-package-built-on-jlbind" id="toc-using-a-package-built-on-jlbind" class="nav-link" data-scroll-target="#using-a-package-built-on-jlbind">Using a package built on jlbind</a></li>
   <li><a href="#writing-a-package-that-uses-jlbind" id="toc-writing-a-package-that-uses-jlbind" class="nav-link" data-scroll-target="#writing-a-package-that-uses-jlbind">Writing a package that uses jlbind</a></li>
+  <li><a href="#packages-using-jlbind" id="toc-packages-using-jlbind" class="nav-link" data-scroll-target="#packages-using-jlbind">Packages using jlbind</a></li>
   <li><a href="#contributing" id="toc-contributing" class="nav-link" data-scroll-target="#contributing">Contributing</a></li>
   </ul>
 </li>
@@ -396,6 +409,12 @@ visitors who prefer it, before Quarto reads the stored choice.
 </div>
 <p>Run <code>jlbind::<a class="quartodown-tip-ref" data-quartodown-tip="t3" href="reference/update_entrypoints.html">update_entrypoints</a>()</code>, which generates the R function <code>greet(name)</code> that calls it.</p>
 <p>See <a href="https://bjarkehautop.github.io/jlbind/vignettes/jlbind.html">Get started with jlbind</a> for a walkthrough, and <a href="https://bjarkehautop.github.io/jlbind/vignettes/technical-details.html">Technical details</a> for types, errors and compilation constraints.</p>
+</section><section id="packages-using-jlbind" class="level2"><h2 class="anchored" data-anchor-id="packages-using-jlbind">Packages using jlbind</h2>
+<ul>
+<li>
+<a href="https://bjarkehautop.github.io/CausalStructures/">CausalStructures</a>: causal graphs (DAGs, CPDAGs, PAGs, …) and identification, from <a href="https://github.com/BjarkeHautop/CausalStructures.jl">CausalStructures.jl</a>. Its <a href="https://github.com/BjarkeHautop/CausalStructures/blob/main/inst/julia/src/csjl.jl">binding package</a> shows some advanced usage.</li>
+</ul>
+<p>Using jlbind for your package? Feel free to open a pull request adding it to this list.</p>
 </section><section id="contributing" class="level2"><h2 class="anchored" data-anchor-id="contributing">Contributing</h2>
 <p>Contributions of all kinds are very welcome! You may use LLMs, but please write issue and PR descriptions in your own words. If you submit a PR, you should understand the code you’re contributing.</p>
 </section></section><div class="no-row-height column-margin column-container"><div class="">

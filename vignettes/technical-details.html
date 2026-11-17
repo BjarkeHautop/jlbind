@@ -66,9 +66,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-895821ad15f059b9418e27e3b3cc8812.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-075e5125ddc0819b3e079ebe08fa8522.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-c95f020296228d9422c2b057e21f3454.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-075e5125ddc0819b3e079ebe08fa8522.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -308,10 +308,21 @@ visitors who prefer it, before Quarto reads the stored choice.
     <a class="nav-link" href="../vignettes/jlbind.html"> 
 <span class="menu-text">Get started</span></a>
   </li>  
-  <li class="nav-item">
-    <a class="nav-link" href="../reference/index.html"> 
-<span class="menu-text">Reference</span></a>
+  <li class="nav-item dropdown ">
+    <a class="nav-link dropdown-toggle" href="#" id="nav-menu-reference" role="link" data-bs-toggle="dropdown" aria-expanded="false">
+ <span class="menu-text">Reference</span>
+    </a>
+    <ul class="dropdown-menu" aria-labelledby="nav-menu-reference">
+<li>
+    <a class="dropdown-item" href="../reference/index.html">
+ <span class="dropdown-text">R functions</span></a>
   </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/articles/jlbind-reference.html">
+ <span class="dropdown-text">JLBind (Julia)</span></a>
+  </li>  
+    </ul>
+</li>
   <li class="nav-item dropdown ">
     <a class="nav-link dropdown-toggle" href="#" id="nav-menu-articles" role="link" data-bs-toggle="dropdown" aria-expanded="false">
  <span class="menu-text">Articles</span>
@@ -325,6 +336,7 @@ visitors who prefer it, before Quarto reads the stored choice.
     <a class="dropdown-item" href="../vignettes/using-clients.html">
  <span class="dropdown-text">Using packages built on jlbind</span></a>
   </li>  
+        <li><hr class="dropdown-divider"></li>
         <li>
     <a class="dropdown-item" href="../vignettes/articles/performance.html">
  <span class="dropdown-text">Performance</span></a>
@@ -371,6 +383,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <a href="#compilation-constraints-trimming" id="toc-compilation-constraints-trimming" class="nav-link" data-scroll-target="#compilation-constraints-trimming">Compilation constraints (trimming)</a>
   <ul class="collapse">
 <li><a href="#abstract-types" id="toc-abstract-types" class="nav-link" data-scroll-target="#abstract-types">Abstract types</a></li>
+  <li><a href="#other-calls-that-dont-compile" id="toc-other-calls-that-dont-compile" class="nav-link" data-scroll-target="#other-calls-that-dont-compile">Other calls that don’t compile</a></li>
   </ul>
 </li>
   </ul></nav>
@@ -455,10 +468,6 @@ visitors who prefer it, before Quarto reads the stored choice.
 </div>
 <p>A default can be any of these:</p>
 <table class="caption-top table">
-<colgroup>
-<col style="width: 50%">
-<col style="width: 50%">
-</colgroup>
 <thead><tr class="header">
 <th>Julia default</th>
 <th>R default</th>
@@ -543,9 +552,9 @@ visitors who prefer it, before Quarto reads the stored choice.
 <p><strong>Single values</strong></p>
 <table class="caption-top table">
 <colgroup>
-<col style="width: 32%">
-<col style="width: 32%">
+<col style="width: 28%">
 <col style="width: 34%">
+<col style="width: 36%">
 </colgroup>
 <thead><tr class="header">
 <th>Julia</th>
@@ -821,9 +830,9 @@ visitors who prefer it, before Quarto reads the stored choice.
 <p>Other conversions copy, so a function given a large vector it only reads can take an <code>RVector{Float64}</code> (or <code>RVector{Int32}</code>, <code>RVector{UInt8}</code>). That is an <code>AbstractVector</code> viewing R’s memory, without checking for <code>NA</code>. It is valid only until the call returns, so don’t store it.</p>
 </section><section id="your-own-types" class="level3"><h3 class="anchored" data-anchor-id="your-own-types">Your own types</h3>
 <p><code>JLBind</code> is jlbind’s own Julia package, which every binding package depends on, so write <code>JLBind.foo</code> as it is rather than with the name of your package.</p>
-<p>A binding package can support additional types by defining methods for <code>JLBind.from_sexp(::Type{T}, x::SEXP)</code> and <code>JLBind.to_sexp(x::T)</code>. <code>JLBind</code> also provides helpers for building R objects directly, such as <code>JLBind.data_frame()</code> for a data frame whose columns are not known when the library is compiled. See the <a href="https://github.com/BjarkeHautop/jlbind/tree/main/inst/julia/JLBind/src"><code>JLBind</code> source</a> for the existing conversions and helpers.</p>
+<p>A binding package can support additional types by defining methods for <code>JLBind.from_sexp(::Type{T}, x::SEXP)</code> and <code>JLBind.to_sexp(x::T)</code>. <code>JLBind</code> also provides helpers for building R objects directly, such as <code>JLBind.data_frame()</code> for a data frame whose columns are not known when the library is compiled, and <code>JLBind.alloc()</code> and <code>JLBind.alloc_matrix()</code> for a vector or matrix to fill in place, without a copy in Julia first. The <a href="articles/jlbind-reference.html">JLBind reference</a> documents all of them.</p>
 </section><section id="julia-objects-in-r" class="level3"><h3 class="anchored" data-anchor-id="julia-objects-in-r">Julia objects in R</h3>
-<p>Sometimes an object is easier to keep in Julia than to convert into an R data structure. You can pass such objects by reference using <code>RRef{T}</code>. R receives an external pointer to the Julia object, allowing it to be reused across calls. The object is released when R garbage-collects the reference.</p>
+<p>Sometimes an object is easier to keep in Julia than to convert into an R data structure. You can pass such objects by reference using <code>RRef{T}</code>. R receives an external pointer to the Julia object, allowing it to be reused across calls. The object is released when R garbage-collects the reference, and <code>jlbind::<a class="quartodown-tip-ref" data-quartodown-tip="t4" href="../reference/object_count.html">object_count</a>()</code> counts the objects R holds, to check that a package doesn’t leak them.</p>
 <p>For example, define a mutable Julia object and expose functions that operate on it (the <a href="https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/counterjl"><code>counterjl</code></a> test client is a complete version of this):</p>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb7"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a><span class="kw">mutable struct</span> Counter</span>
@@ -923,30 +932,23 @@ Shape types and their areas
 </div>
 </details><p>An entrypoint that takes an <code>RRef{Shape}</code> knows only that its argument is <em>some</em> <code>Shape</code>. If it simply calls <code>area(s)</code>, the compiler cannot tell which of the four methods that call reaches, and the build fails with an error such as:</p>
 <pre class="text"><code>Verifier error #1: unresolved call from statement area(s::Shape)::Any</code></pre>
-<p>One possible solution is to branch on the concrete types once, with <code>@nospecialize</code>, and to make the call inside each branch, where the type is known:</p>
+<p>The solution is to take the argument with <code>@nospecialize</code> and branch on the concrete types, making the call inside each branch, where the type is known. <code>@narrow s (A, B, ...) expr</code> does that: it evaluates <code>expr</code> with <code>s</code> narrowed to whichever of the listed types it is (see its <a href="articles/jlbind-reference.html#macro-narrow">reference</a>):</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="kw">function</span> <span class="fu">with_shape</span>(f<span class="op">::</span><span class="dt">F</span>, <span class="pp">@nospecialize</span>(s<span class="op">::</span><span class="dt">Shape</span>)) <span class="kw">where</span> {F}</span>
-<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>    s isa Circle <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
-<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>    s isa Square <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
-<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>    s isa Rectangle <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
-<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>    s isa Triangle <span class="op">&amp;&amp;</span> <span class="cf">return</span> <span class="fu">f</span>(s)</span>
-<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="fu">throw</span>(<span class="fu">ArgumentError</span>(<span class="st">"unknown shape"</span>))</span>
-<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="kw">end</span></span>
-<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a><span class="fu">circle</span>(radius) <span class="op">=</span> <span class="fu">Circle</span>(radius)</span>
-<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="fu">square</span>(side) <span class="op">=</span> <span class="fu">Square</span>(side)</span>
-<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="fu">rectangle</span>(width, height) <span class="op">=</span> <span class="fu">Rectangle</span>(width, height)</span>
-<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="fu">triangle</span>(base, height) <span class="op">=</span> <span class="fu">Triangle</span>(base, height)</span>
-<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="fu">shape_area</span>(<span class="pp">@nospecialize</span>(s<span class="op">::</span><span class="dt">Shape</span>)) <span class="op">=</span> <span class="fu">with_shape</span>(area, s)</span>
-<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="fu">scaled_area</span>(<span class="pp">@nospecialize</span>(s<span class="op">::</span><span class="dt">Shape</span>), factor<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span></span>
-<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a>    <span class="fu">with_shape</span>(x <span class="op">-&gt;</span> factor<span class="op">^</span><span class="fl">2</span> <span class="op">*</span> <span class="fu">area</span>(x), s)</span>
-<span id="cb14-16"><a href="#cb14-16" aria-hidden="true" tabindex="-1"></a></span>
-<span id="cb14-17"><a href="#cb14-17" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">circle</span>(radius<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
-<span id="cb14-18"><a href="#cb14-18" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">square</span>(side<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
-<span id="cb14-19"><a href="#cb14-19" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">rectangle</span>(width<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
-<span id="cb14-20"><a href="#cb14-20" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">triangle</span>(base<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
-<span id="cb14-21"><a href="#cb14-21" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">shape_area</span>(shape<span class="op">::</span><span class="dt">RRef{Shape}</span>)<span class="op">::</span><span class="dt">Float64</span></span>
-<span id="cb14-22"><a href="#cb14-22" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">scaled_area</span>(shape<span class="op">::</span><span class="dt">RRef{Shape}</span>, factor<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">Float64</span></span></code></pre></div>
+<div class="sourceCode" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">circle</span>(radius) <span class="op">=</span> <span class="fu">Circle</span>(radius)</span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">square</span>(side) <span class="op">=</span> <span class="fu">Square</span>(side)</span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a><span class="fu">rectangle</span>(width, height) <span class="op">=</span> <span class="fu">Rectangle</span>(width, height)</span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a><span class="fu">triangle</span>(base, height) <span class="op">=</span> <span class="fu">Triangle</span>(base, height)</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a><span class="fu">shape_area</span>(<span class="pp">@nospecialize</span>(s<span class="op">::</span><span class="dt">Shape</span>)) <span class="op">=</span></span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@narrow</span> s (Circle, Square, Rectangle, Triangle) <span class="fu">area</span>(s)</span>
+<span id="cb14-7"><a href="#cb14-7" aria-hidden="true" tabindex="-1"></a><span class="fu">scaled_area</span>(<span class="pp">@nospecialize</span>(s<span class="op">::</span><span class="dt">Shape</span>), factor<span class="op">::</span><span class="dt">Float64</span>) <span class="op">=</span></span>
+<span id="cb14-8"><a href="#cb14-8" aria-hidden="true" tabindex="-1"></a>    <span class="pp">@narrow</span> s (Circle, Square, Rectangle, Triangle) factor<span class="op">^</span><span class="fl">2</span> <span class="op">*</span> <span class="fu">area</span>(s)</span>
+<span id="cb14-9"><a href="#cb14-9" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb14-10"><a href="#cb14-10" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">circle</span>(radius<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
+<span id="cb14-11"><a href="#cb14-11" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">square</span>(side<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
+<span id="cb14-12"><a href="#cb14-12" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">rectangle</span>(width<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
+<span id="cb14-13"><a href="#cb14-13" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">triangle</span>(base<span class="op">::</span><span class="dt">Float64</span>, height<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">RRef{Shape}</span></span>
+<span id="cb14-14"><a href="#cb14-14" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">shape_area</span>(shape<span class="op">::</span><span class="dt">RRef{Shape}</span>)<span class="op">::</span><span class="dt">Float64</span></span>
+<span id="cb14-15"><a href="#cb14-15" aria-hidden="true" tabindex="-1"></a><span class="pp">@rcall</span> <span class="fu">scaled_area</span>(shape<span class="op">::</span><span class="dt">RRef{Shape}</span>, factor<span class="op">::</span><span class="dt">Float64</span>)<span class="op">::</span><span class="dt">Float64</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>Every shape can then be passed to the same generated R functions:</p>
@@ -959,12 +961,26 @@ Shape types and their areas
 <span id="cb15-6"><a href="#cb15-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 36</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p>Without <code>@nospecialize</code>, Julia compiles a separate <code>with_shape</code> for each concrete shape, and the call into it can’t be resolved, for the same reason as <code>area(s)</code>. Functions that pass the shape on, such as <code>shape_area</code>, need it too (this small example happens to compile without it, since it is inlined).</p>
+<p>A shape of a type that isn’t listed gives the error <code>expected Circle, Square, Rectangle or Triangle</code>; a fourth argument to <code>@narrow</code> is evaluated instead, to give another error or a default. List only the types the call has methods for.</p>
+<p>Without <code>@nospecialize</code>, Julia compiles a separate <code>shape_area</code> for each concrete shape, and the call into it from the entrypoint can’t be resolved, for the same reason as <code>area(s)</code>. A function that receives the shape and passes it on needs <code>@nospecialize</code> too.</p>
 <p>If a hierarchy has only a few types, some alternatives to <code>@nospecialize</code> are:</p>
 <ul>
 <li><p>Declare a separate entrypoint for each concrete type (<code>RRef{Circle}</code>,<code>RRef{Square}</code>, …) and choose between them in R.</p></li>
 <li><p>Use a small <code>Union</code> such as <code>RRef{Union{Circle,Square}}</code>, which Julia resolves by checking each member in turn.</p></li>
-</ul></section></section><div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+</ul></section><section id="other-calls-that-dont-compile" class="level3"><h3 class="anchored" data-anchor-id="other-calls-that-dont-compile">Other calls that don’t compile</h3>
+<p>The same rule, that every call must resolve when the library is compiled, rules out a few common patterns:</p>
+<ul>
+<li>
+<strong>Splatting a vector</strong>, as in <code>f(xs...)</code> for <code>xs::Vector</code>: the number of arguments is only known at run time. Call a method that takes the vector, or call <code>f</code> once per element if that gives the same result.</li>
+<li>
+<strong>Names of abstract types</strong>, as in <code>nameof(typeof(x))</code> where <code>x</code> is only known to be some <code>Shape</code>. Use <code>@narrow</code> to give each type its name.</li>
+<li>
+<strong>Types as keyword arguments</strong>, as in <code>f(; type = T)</code>: the keyword arguments are stored in a <code>NamedTuple</code> whose field is only a <code>DataType</code>. Pass the type positionally, or call the keyword form with <code>@inline</code> where <code>T</code> is a constant.</li>
+</ul>
+<p>Optional arguments are not a problem: <code>@rcall</code> calls the function in a separate branch for <code>nothing</code> (or <code>missing</code>) and for a value of each argument declared as a <code>Union{Nothing,T}</code> (or <code>Union{Missing,T}</code>), so each call has concrete types. This needs the <code>Union</code> written out in the declaration, not an alias for it.</p>
+
+
+</section></section><div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
 
 <ol>
 <li id="fn1"><p>JuliaC can <em>privatize</em> a library, giving it its own copy of the Julia runtime, but jlbind doesn’t use this. Each client would then ship a bundle with its own runtime and compiled copy of Base, where a shared library adds only each client’s own code. On Linux with Julia 1.14, a bundle was over 80 MB for a larger client, and about 9 MB for a tiny client after removing the runtime libraries it doesn’t use by hand. Each runtime would also have its own garbage-collected heap and threads in memory, and Julia objects couldn’t be passed between clients. Privatization also doesn’t work on Windows yet (<a href="https://github.com/JuliaLang/JuliaC.jl/pull/151">JuliaC.jl#151</a>).<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
@@ -1815,6 +1831,9 @@ Shape types and their areas
   <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>
 )</code><span class="quartodown-tip-brief">Build the Julia library</span>
+</div>
+<div data-for="t4">
+<code class="quartodown-tip-sig"><span class="fu">object_count</span>()</code><span class="quartodown-tip-brief">Count the Julia objects R holds</span>
 </div>
 </div>
 </body>
