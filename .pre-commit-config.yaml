@@ -26,3 +26,11 @@ repos:
         language: system
         files: '^(R/|DESCRIPTION|NAMESPACE|man/)'
         pass_filenames: false
+      - id: jlbind-reference
+        name: JLBind reference is up to date
+        entry: >
+          julia --startup-file=no --project=inst/julia/JLBind
+          vignettes/articles/jlbind-reference/build.jl --check
+        language: system
+        files: '^(inst/julia/JLBind/src/|vignettes/articles/jlbind-reference)'
+        pass_filenames: false

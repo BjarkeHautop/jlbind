@@ -84,15 +84,15 @@ summarise <- function(x, probs = c(0.25, 0.75), na = NA) ...
 
 A default can be any of these:
 
-  | Julia default                     | R default                         |
-  | --------------------------------- | --------------------------------- |
-  | A literal number or string        | The same literal                  |
-  | `true`, `false`                   | `TRUE`, `FALSE`                   |
-  | `missing`                         | `NA`                              |
-  | `nothing`                         | `NULL`                            |
-  | `[1, 2]`, `Float64[1, 2]`         | `c(1, 2)`                         |
-  | `["a", missing]`                  | `c("a", NA)`                      |
-  | `Float64[]`, `String[]`, ...      | `numeric(0)`, `character(0)`, ... |
+  | Julia default                | R default                         |
+  | ---------------------------- | --------------------------------- |
+  | A literal number or string   | The same literal                  |
+  | `true`, `false`              | `TRUE`, `FALSE`                   |
+  | `missing`                    | `NA`                              |
+  | `nothing`                    | `NULL`                            |
+  | `[1, 2]`, `Float64[1, 2]`    | `c(1, 2)`                         |
+  | `["a", missing]`             | `c("a", NA)`                      |
+  | `Float64[]`, `String[]`, ... | `numeric(0)`, `character(0)`, ... |
 
 An empty vector names its element type, as in `Int32[]` or `Bool[]`.
 
@@ -137,22 +137,22 @@ value using `to_sexp()`. The built-in conversions are:
 
 **Single values**
 
-  | Julia                          | R argument                     | R result                         |
-  | ------------------------------ | ------------------------------ | -------------------------------- |
-  | `String`, `Symbol`             | A single string                | A character vector of length one |
-  | `Float64`                      | A single number                | A double                         |
-  | `Int64`                        | A single whole number          | A double                         |
-  | `Int32`                        | A single whole number          | An integer                       |
-  | `Int16`, `Int8`, `UInt16`      | A single whole number in range | An integer                       |
-  | `UInt32`                       | A single whole number in range | A double                         |
-  | `Float32`, `Float16`           | A single number in range       | A double                         |
-  | `Bool`                         | `TRUE` or `FALSE`              | A logical                        |
-  | `ComplexF64`                   | A single complex number        | A complex                        |
-  | `Date`                         | A single `Date`                | A `Date`                         |
-  | `DateTime`                     | A single `POSIXct`             | A `POSIXct` in UTC               |
-  | `Union{Missing,T}`             | A value of type `T`, or `NA`   | A value of type `T`, or `NA`     |
-  | `Union{Nothing,T}`             | `NULL`, or a value of type `T` | `NULL`, or a value of type `T`   |
-  | `Nothing`                      |                                | `NULL`, invisibly                |
+  | Julia                     | R argument                     | R result                         |
+  | ------------------------- | ------------------------------ | -------------------------------- |
+  | `String`, `Symbol`        | A single string                | A character vector of length one |
+  | `Float64`                 | A single number                | A double                         |
+  | `Int64`                   | A single whole number          | A double                         |
+  | `Int32`                   | A single whole number          | An integer                       |
+  | `Int16`, `Int8`, `UInt16` | A single whole number in range | An integer                       |
+  | `UInt32`                  | A single whole number in range | A double                         |
+  | `Float32`, `Float16`      | A single number in range       | A double                         |
+  | `Bool`                    | `TRUE` or `FALSE`              | A logical                        |
+  | `ComplexF64`              | A single complex number        | A complex                        |
+  | `Date`                    | A single `Date`                | A `Date`                         |
+  | `DateTime`                | A single `POSIXct`             | A `POSIXct` in UTC               |
+  | `Union{Missing,T}`        | A value of type `T`, or `NA`   | A value of type `T`, or `NA`     |
+  | `Union{Nothing,T}`        | `NULL`, or a value of type `T` | `NULL`, or a value of type `T`   |
+  | `Nothing`                 |                                | `NULL`, invisibly                |
 
 **Vectors and arrays**
 
@@ -256,9 +256,8 @@ A binding package can support additional types by defining methods for
 provides helpers for building R objects directly, such as `JLBind.data_frame()`
 for a data frame whose columns are not known when the library is compiled, and
 `JLBind.alloc()` and `JLBind.alloc_matrix()` for a vector or matrix to fill in
-place, without a copy in Julia first. See the [`JLBind`
-source](https://github.com/BjarkeHautop/jlbind/tree/main/inst/julia/JLBind/src)
-for the existing conversions and helpers.
+place, without a copy in Julia first. The [JLBind
+reference](articles/jlbind-reference.qmd) documents all of them.
 
 ### Julia objects in R
 
@@ -415,7 +414,8 @@ Verifier error #1: unresolved call from statement area(s::Shape)::Any
 The solution is to take the argument with `@nospecialize` and branch on the
 concrete types, making the call inside each branch, where the type is known.
 `@narrow s (A, B, ...) expr` does that: it evaluates `expr` with `s` narrowed to
-whichever of the listed types it is:
+whichever of the listed types it is (see its
+[reference](articles/jlbind-reference.qmd#macro-narrow)):
 
 ```julia
 circle(radius) = Circle(radius)

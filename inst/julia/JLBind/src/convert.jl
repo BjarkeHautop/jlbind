@@ -3,29 +3,21 @@
 """
     from_sexp(T, x::SEXP) -> T
 
-Convert the R object `x` to a `T`, throwing an `ArgumentError` with a message
-for the R user if it is not one. `@rcall` converts each argument with it.
+Convert the R object `x` to a `T`, or throw an `ArgumentError` saying what was
+expected. `@rcall` converts every argument with it; add a method to accept a
+type of your own.
 
-Methods are provided for
+It supports:
 
-- `SEXP` (no conversion);
-- `String` and `Symbol` (from a character vector or a factor), `Bool`,
-  `Float64`, `Int64`, `Int32` and `ComplexF64`, `Date` (from a `Date`) and
-  `DateTime` (from a `POSIXct`, to the millisecond), and vectors of each;
-- `Float32`, `Float16`, `Int16`, `Int8`, `UInt32` and `UInt16`, from a number
-  in their range, and vectors of each;
-- `Union{Missing,T}` and `Vector{Union{Missing,T}}`, where `NA` is `missing`,
-  for each `T` above (`NA` is otherwise an error);
-- `Vector{UInt8}` (a raw vector) and [`RVector{T}`](@ref) (a view of a double,
-  integer or raw vector);
-- `Array{T,N}`, including `Matrix{T}`, from an R array of `N` dimensions;
-- from a list: other `Vector`s, `Tuple`s, `NamedTuple`s (from a list named
-  exactly by their fields, such as a `data.frame`), `Dict{String,T}` and
-  `Dict{Symbol,T}`;
-- [`RDataFrame`](@ref), from a `data.frame`;
-- `Union{Nothing,T}` (`NULL` is `nothing`).
-
-A binding package adds methods for its own types.
+- `String` and `Symbol` (from a string or factor), `Bool`, `Float64`, `Int64`,
+  `Int32`, `ComplexF64`, `Date`, `DateTime` and the smaller number types, and
+  vectors of all of these;
+- `Union{Missing,T}` and `Vector{Union{Missing,T}}`, which allow `NA`;
+- `Union{Nothing,T}`, which allows `NULL`;
+- `Matrix{T}` and `Array{T,N}`, from an R matrix or array;
+- other `Vector`s, `Tuple`s, `NamedTuple`s and `Dict{String,T}`, from a list;
+- [`RVector{T}`](@ref RVector), [`RDataFrame`](@ref), and `SEXP`, which is
+  passed as is.
 """
 function from_sexp end
 
@@ -338,16 +330,14 @@ function from_sexp(::Type{Vector{UInt8}}, x::SEXP)
 end
 
 """
-    RVector{T} <: AbstractVector{T}
+    RVector{T}
 
-In an `@rcall` signature, a read-only view of the data of an R vector, without
-copying it: `RVector{Float64}` of a double vector, `RVector{Int32}` of an
-integer vector and `RVector{UInt8}` of a raw vector. R's `NA` is not checked
-for: it is a NaN in a double vector and `typemin(Int32)` in an integer vector.
+A read-only view of the data of an R vector, without a copy: `RVector{Float64}`
+for a double vector, `RVector{Int32}` for an integer vector and
+`RVector{UInt8}` for a raw vector. Use it for a large vector you only read.
 
-The view is valid only until the call that received it returns, so do not keep
-it, or anything sharing its memory, past that. Returned, it is the R vector it
-views.
+`NA` is not checked for, and the view is only valid during the call, so don't
+keep it. Returning it returns the R vector it views.
 """
 struct RVector{T} <: AbstractVector{T}
     sexp::SEXP
@@ -531,25 +521,12 @@ end
 """
     to_sexp(x) -> SEXP
 
-Convert `x` to a new R object. `@rcall` converts each result with it.
+Convert `x` to an R object. `@rcall` converts every return value with it; add a
+method to return a type of your own.
 
-Methods are provided for
-
-- `SEXP` (no conversion), `nothing` (`NULL`) and `missing` (`NA`);
-- `Bool`, `Int64` and `Float64` (double), `Int32` (integer), `ComplexF64`,
-  `String` and `Symbol` (character), `Date` (`Date`) and `DateTime` (`POSIXct`
-  in UTC), and vectors of each;
-- `Int16`, `Int8` and `UInt16` (integer), and `UInt32`, `Float32` and
-  `Float16` (double), and vectors of each;
-- `Vector{Union{Missing,T}}`, where `missing` is `NA`, for each `T` above;
-- `Vector{UInt8}` (a raw vector) and [`RVector`](@ref) (the R vector it views);
-- `Array{T,N}`, including `Matrix{T}` (an R array of `N` dimensions);
-- as lists, other vectors and tuples, and, as named lists, named tuples and
-  `Dict{String,T}` and `Dict{Symbol,T}` (in the order of their keys);
-- [`RDataFrame`](@ref) (a `data.frame`).
-
-Integers become doubles, since R's integers have 32 bits. A binding package
-adds methods for its own types.
+It supports the types [`from_sexp`](@ref) does, plus `nothing` (`NULL`) and
+`missing` (`NA`). An `Int64` becomes a double, since R's integers have 32 bits:
+return an `Int32` for an R integer.
 """
 function to_sexp end
 
@@ -709,9 +686,9 @@ end
 """
     data_frame(names::Vector{String}, columns::Vector{SEXP}) -> SEXP
 
-A `data.frame` with the equal-length R vectors `columns`. The columns must be
-protected (or reachable from R) until the call returns. For columns whose types
-are known when the library is compiled, return an [`RDataFrame`](@ref) instead.
+An R `data.frame` of the R vectors `columns`, for columns whose types are only
+known at run time. Keep the columns protected until the call returns. When the
+types are known, return an [`RDataFrame`](@ref) instead.
 """
 function data_frame(names::Vector{String}, columns::Vector{SEXP})
     n = length(columns) == 0 ? 0 : rlength(columns[1])
@@ -741,17 +718,19 @@ end
 # --- Data frames -------------------------------------------------------------
 
 """
-    RDataFrame{names,T}(columns::NamedTuple{names,T})
     RDataFrame(columns::NamedTuple)
 
-A data frame of the equal-length column vectors `columns`, which converts to
-and from an R `data.frame` (a tibble is one too). As an argument it must be a
-`data.frame` with exactly the columns `names`, in any order; as a result it is
-a `data.frame` with compact row names. Each column converts by the usual rules,
-so it can be a `Vector{Union{Missing,Float64}}`, a `Vector{Date}`, and so on.
+A data frame, converted to and from an R `data.frame` (or tibble). Its columns
+are `df.x` and so on. As an argument, the data frame must have exactly these
+columns, in any order.
 
-Its columns are its properties, `df.x`, and `NamedTuple(df)` is the named tuple
-of them.
+```julia
+const Sales = RDataFrame{(:group, :amount),Tuple{Vector{String},Vector{Float64}}}
+
+total(df) = sum(df.amount)
+
+@rcall total(df::Sales)::Float64
+```
 """
 struct RDataFrame{names,T<:Tuple}
     columns::NamedTuple{names,T}

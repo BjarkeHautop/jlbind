@@ -1,36 +1,29 @@
 """
-    @rcall f(a::A, b::B, ...)::R
+    @rcall f(arg::T, ...)::R
 
-Export the R entrypoint `<module>_f(args::Ptr{SEXP}, n::Cint)::SEXP`, where
-`<module>` is the name of the binding package the declaration is in, and
-`args` points to the `n` arguments. Every entrypoint has this signature, so
-the jlbind R package calls them all the same way; one called with the wrong
-number of arguments returns an error. It
-converts each argument with `from_sexp(A, a)`, calls `f`, and converts the
-result with `to_sexp(::R)`; an argument or result type `RRef{T}` passes a
-Julia object by reference instead (see [`RRef`](@ref)). An argument can have a
-default, `a::A = 1`, a literal number, string, `true`, `false`, `missing` or
-`nothing`, or a vector of these such as `[1, 2]` or `Float64[]`: it becomes
-the default of the argument of the generated R function (`NA` for `missing`,
-`NULL` for `nothing`, `c(1, 2)` for `[1, 2]`, `numeric(0)` for `Float64[]`),
-which always passes every argument. The compiled library
-can only call `f` statically if each argument type it receives is concrete, or
-is `@nospecialize`d in `f`'s signature. An argument declared as a literal
-`Union{Nothing,T}` or `Union{Missing,T}` (not an alias of one) is fine: `f` is
-called in a branch for each, where its type is known, so any number of such
-arguments can be declared (each doubles the calls compiled).
+Make `f` callable from R. `jlbind::update_entrypoints()` writes a matching R
+function for each `@rcall`.
 
-R must never unwind through Julia frames, so an entrypoint does not raise an R
-error: a Julia exception is returned as a character vector of class
-`jlbind_error`, which the jlbind R package raises once the call has
-returned. The message of an `ArgumentError`, `ErrorException`,
-`DimensionMismatch`, `OverflowError` or `AssertionError` is passed on;
-any other exception is summarized, since rendering an arbitrary exception
-needs a call the compiler cannot resolve.
+```julia
+greet(name) = "Hello, " * name * "!"
 
-The jlbind R package's `update_entrypoints()` reads these declarations to
-generate the client's R functions, so declare each entrypoint with a
-literal `@rcall` at the top level of the binding package's source files.
+@rcall greet(name::String)::String
+```
+
+Every argument and the return value need a type, which decides how they are
+converted (see [`from_sexp`](@ref) and [`to_sexp`](@ref)). Use
+[`RRef{T}`](@ref RRef) to give R a Julia object by reference. An argument of
+type `Union{Nothing,T}` accepts `NULL`, and `Union{Missing,T}` accepts `NA`.
+
+An argument can have a default, which the R function gets too: a number,
+string, `true`, `false`, `missing` (`NA`), `nothing` (`NULL`), or a vector of
+these such as `[1, 2]`.
+
+If `f` throws, R gets an error. The message of an `ArgumentError`, `error()` and
+a few other common exceptions is passed on; others get a generic message.
+
+Write each `@rcall` at the top level of a file, as `update_entrypoints()` reads
+the source.
 """
 macro rcall(sig)
     Meta.isexpr(sig, :(::)) || error("@rcall needs a return type: @rcall f(...)::R")

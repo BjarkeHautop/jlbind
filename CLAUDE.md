@@ -16,6 +16,11 @@ out: types, errors, trimming, development libraries) and
 guides (rendered with Quarto); keep them in sync with user-visible behavior.
 `vignettes/articles/performance.qmd` is a website-only article whose data comes
 from `vignettes/articles/performance/benchmark.R`.
+`vignettes/articles/jlbind-reference.qmd` (website-only) is generated from
+JLBind's docstrings by `vignettes/articles/jlbind-reference/build.jl` (run with
+`julia --project=inst/julia/JLBind`; `--check` is a pre-commit hook). Every
+public JLBind name needs a docstring and an entry in its `SECTIONS`; names
+sharing an entry share one docstring (`@doc (@doc a) b`).
 
 The website is built with
 [quartodown](https://github.com/BjarkeHautop/quartodown). Build it with

@@ -6,33 +6,39 @@
 """
     RRef{T}
 
-In an `@rcall` signature, a Julia object of type `T` held by R as an external
-pointer. As an argument type, `f` is passed the `T` the pointer refers to (or,
-for `Vector{RRef{T}}`, a `Vector{T}` from a list of them); as the result type
-(or `Vector{RRef{T}}`, a list of them), the `T` that `f` returns is stored and R gets an external pointer to it, with class
-[`r_class(T)`](@ref r_class). The object is released when R garbage-collects
-the pointer.
+A Julia object that R holds by reference, for objects that are easier to keep
+in Julia than to convert:
 
-If `T` is abstract, `f` must not specialize on the argument:
-`f(@nospecialize(x::T))`. A call with an abstractly typed argument stays
-dynamic otherwise, which `--trim` rejects ("unresolved call"); inside `f`,
-branch on the concrete types (`x isa A`) to get statically resolved calls.
+```julia
+new_counter(start) = Counter(start)
+increment(c, by) = (c.n += by; c.n)
+
+@rcall new_counter(start::Int64)::RRef{Counter}
+@rcall increment(c::RRef{Counter}, by::Int64)::Int64
+```
+
+R gets an object of class [`r_class(T)`](@ref r_class) that it can pass back to
+any entrypoint taking an `RRef{T}`, and a `Vector{RRef{T}}` is a list of them.
+The Julia object is freed once R no longer uses it. A reference that is saved
+and loaded again has lost its object, unless the type supports saving (see
+[`r_saved_by`](@ref)).
+
+If `T` is abstract, take the argument with `@nospecialize` and call methods on
+it with [`@narrow`](@ref).
 """
 struct RRef{T} end
 
 """
-    @narrow x (A, B, ...) body [otherwise]
+    @narrow x (A, B, ...) expr [otherwise]
 
-Evaluate `body` with the variable `x` narrowed to whichever of the types `A`,
-`B`, ... it is, tried in order, or else evaluate `otherwise`, by default an
-`ArgumentError` naming the types. Each type gets its own copy of `body`, where
-the calls on `x` resolve statically, as the compiled library needs of an
-argument taken as an abstract type (see [`RRef`](@ref)):
+Evaluate `expr` with `x` known to be an `A`, a `B`, and so on, whichever it is.
+If it is none of them, evaluate `otherwise`, or throw an `ArgumentError`.
+
+The compiled library needs this to call methods on an argument of an abstract
+type:
 
 ```julia
-function area(@nospecialize(s::Shape))
-    @narrow s (Circle, Square) area(s)
-end
+shape_area(@nospecialize(s::Shape)) = @narrow s (Circle, Square) area(s)
 ```
 """
 macro narrow(x, types, body, otherwise = nothing)
@@ -57,22 +63,25 @@ end
 """
     r_class(T) -> String
 
-The R class of the external pointers to objects of type `T` (see
-[`RRef`](@ref)). Define a method for each type a binding package hands to R,
-e.g. `JLBind.r_class(::Type{<:Model}) = "mymodel"`; the default is
-`"jlbind_ref"`.
+The R class of references to `T`s, `"jlbind_ref"` by default. Define a method
+to give them a class of their own, for methods such as `print()`:
+
+```julia
+JLBind.r_class(::Type{Model}) = "mymodel"
+```
 """
 r_class(::Type) = "jlbind_ref"
 
 """
     r_saved_by(T) -> Union{String,Nothing}
 
-The name of the R package whose entrypoints return references to objects of type
-`T`, which can then be saved with `saveRDS()`, `save()` or `serialize()`, or
-`nothing` (the default) if they can't. R writes an external pointer as a null pointer, so a reference alone
-loses its object. Define a method, along with [`r_restore`](@ref), and an R
-function `.jlbind_saved_state(x)` in that package's `R/` code, with no need to
-export it, that returns plain R data, a list, to rebuild `x` from:
+Return your package's name to let references to `T`s be saved with `saveRDS()`
+and the like. By default they can't be: a reference that is saved and loaded
+again has lost its object.
+
+Saving also needs an [`r_restore`](@ref) method, and an R function
+`.jlbind_saved_state(x)` in your package (it need not be exported) that returns
+a list to rebuild the object from:
 
 ```julia
 JLBind.r_saved_by(::Type{Model}) = "mypackage"
@@ -84,21 +93,18 @@ JLBind.r_restore(::Type{Model}, state::SEXP) =
 .jlbind_saved_state <- function(x) list(weights = model_weights(x))
 ```
 
-Each reference then holds a small hook, an ALTREP vector, costing about 400 ns to
-create; `.jlbind_saved_state()` only runs if the reference is saved. Loading
-stores the state, and the first entrypoint that receives the reference rebuilds
-the object, in place, so every copy of the reference gets it. `saveRDS(version =
-2)` has no ALTREP support and writes no state.
-
+The object is rebuilt the first time a loaded reference is used. Supporting
+saving adds about 400 ns to creating each reference, and `saveRDS(version = 2)`
+can't save one.
 """
 r_saved_by(::Type) = nothing
 
 """
     r_restore(T, state::SEXP) -> T
 
-Rebuild an object of type `T` from the list `.jlbind_saved_state()` returned;
-see [`r_saved_by`](@ref). It should check any version the state records, as the
-state may come from another version of the package.
+Rebuild a `T` from the list `.jlbind_saved_state()` returned when it was saved
+(see [`r_saved_by`](@ref)). The list may come from an older version of your
+package, so check any version it records.
 """
 function r_restore end
 
@@ -123,7 +129,7 @@ end
 """
     object_count() -> Int64
 
-The number of Julia objects R currently holds through [`RRef`](@ref)s.
+How many Julia objects R holds references to, to check that they are freed.
 """
 object_count() = Int64(length(OBJECTS) - length(RELEASED))
 
