@@ -25,6 +25,23 @@ local_install <- function(..., env = parent.frame()) {
   } else {
     libpath <- c(lib, dirname(jlbind_path), .Library)
   }
+  # covr's instrumented jlbind calls covr as it loads, so the process needs
+  # covr and its dependencies, but not the other packages in their libraries.
+  if (identical(Sys.getenv("R_COVR"), "true")) {
+    covr_lib <- withr::local_tempdir(.local_envir = env)
+    deps <- tools::package_dependencies(
+      "covr",
+      db = utils::installed.packages(),
+      which = c("Depends", "Imports", "LinkingTo"),
+      recursive = TRUE
+    )[[1]]
+    pkgs <- setdiff(
+      c("covr", deps),
+      rownames(utils::installed.packages(.Library))
+    )
+    file.symlink(find.package(pkgs), file.path(covr_lib, pkgs))
+    libpath <- c(libpath, covr_lib)
+  }
   for (path in c(...)) {
     install(path)
   }
