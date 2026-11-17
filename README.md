@@ -73,6 +73,18 @@ walkthrough, and [Technical
 details](https://bjarkehautop.github.io/jlbind/vignettes/technical-details.html)
 for types, errors and compilation constraints.
 
+## Packages using jlbind
+
+- [CausalStructures](https://bjarkehautop.github.io/CausalStructures/): causal
+  graphs (DAGs, CPDAGs, PAGs, ...) and identification, from
+  [CausalStructures.jl](https://github.com/BjarkeHautop/CausalStructures.jl).
+  Its [binding
+  package](https://github.com/BjarkeHautop/CausalStructures/blob/main/inst/julia/src/csjl.jl)
+  shows some advanced usage.
+
+Using jlbind for your package? Feel free to open a pull request adding it to
+this list.
+
 ## Contributing
 
 Contributions of all kinds are very welcome! You may use LLMs, but please write
