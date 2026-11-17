@@ -25,10 +25,11 @@ sharing an entry share one docstring (`@doc (@doc a) b`).
 The website is built with
 [quartodown](https://github.com/BjarkeHautop/quartodown). Build it with
 `quartodown::build_site()` (output in `docs/`). `_quartodown/_quartodown.yml`
-groups the reference index; new functions must be added there. The navbar is
-generated: `jlbind.qmd` is "Get started" and every other vignette, including
-`vignettes/articles/`, goes under "Articles". `_quarto/` is the Quarto project
-generated on every build and is gitignored.
+groups the reference index; new functions must be added there. It also lays out
+the navbar: `jlbind.qmd` is "Get started", "Reference" is a menu of the R
+functions and the JLBind reference, and "Articles" lists the other vignettes, so
+a new vignette must be added there (`build_site()` warns about one that isn't).
+`_quarto/` is the Quarto project generated on every build and is gitignored.
 
 ## Commands
 

@@ -1,6 +1,22 @@
 # Configuration for quartodown::build_site(). See
 # vignette("customizing", package = "quartodown") for all fields.
 
+navbar:
+  left:
+    - intro
+    - text: Reference
+      menu:
+        - text: R functions
+          href: reference/index.qmd
+        - text: JLBind (Julia)
+          href: vignettes/articles/jlbind-reference.qmd
+    - text: Articles
+      menu:
+        - technical-details
+        - using-clients
+        - text: "---"
+        - articles/performance
+
 reference:
   - title: "Building the library"
     desc: "Compile the Julia code of the installed packages that use jlbind."
