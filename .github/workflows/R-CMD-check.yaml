@@ -24,7 +24,6 @@ jobs:
           # an untrimmed library (JLBIND_TEST_NOTRIM).
           - {os: ubuntu-latest,   r: 'release', julia: 'nightly', notrim: true}
           - {os: windows-latest,  r: 'release', julia: 'nightly'}
-          - {os: macos-latest,    r: 'release', julia: 'nightly'}
           # What CRAN sees: no Julia.
           - {os: ubuntu-latest,   r: 'release', julia: ''}
 

@@ -113,7 +113,7 @@ use_jlbind <- function(path = ".", module = NULL, dir = "julia") {
 #' Check a package with its Julia code on GitHub Actions
 #'
 #' Writes a GitHub Actions workflow that checks the package with and without
-#' Julia. With Julia, it runs `R CMD check` on Linux, Windows and macOS after
+#' Julia. With Julia, it runs `R CMD check` on Linux and Windows after
 #' compiling the package's Julia code with [build_library()], so tests and
 #' examples that need the library run. Without Julia, it checks the package
 #' once on Linux, as CRAN does, where those tests and examples must be skipped.

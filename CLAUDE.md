@@ -80,9 +80,9 @@ else `"native"`), `JLBIND_JULIA_ARGS` (the default `julia_args` of builds, split
 at spaces).
 
 CI (`.github/workflows/R-CMD-check.yaml`) runs R CMD check with Julia nightly on
-Linux/Windows/macOS, all with the integration test enabled (the Linux job also
-sets `JLBIND_TEST_NOTRIM`), and once on Linux without Julia, which is what CRAN
-sees — everything except the integration test must pass without Julia.
+Linux/Windows, both with the integration test enabled (the Linux job also sets
+`JLBIND_TEST_NOTRIM`), and once on Linux without Julia, which is what CRAN sees
+— everything except the integration test must pass without Julia.
 `test-coverage.yaml` runs covr with Julia nightly and `JLBIND_TEST_BUILD=true`
 and uploads to Codecov; `altdoc.yaml` builds and deploys the site.
 
