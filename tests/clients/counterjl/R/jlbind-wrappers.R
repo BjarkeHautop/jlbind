@@ -12,7 +12,9 @@
   "increment",
   "counters",
   "total",
-  "live"
+  "live",
+  "value",
+  "counter_value"
 )
 .jlbind <- new.env(parent = emptyenv())
 
@@ -28,3 +30,7 @@ increment <- function(counter, by = 1) {
 counters <- function(n) .External(.jlbind$.call, .jlbind$counters, n)
 total <- function(counters) .External(.jlbind$.call, .jlbind$total, counters)
 live <- function() .External(.jlbind$.call, .jlbind$live)
+value <- function(thing) .External(.jlbind$.call, .jlbind$value, thing)
+counter_value <- function(thing) {
+  .External(.jlbind$.call, .jlbind$counter_value, thing)
+}

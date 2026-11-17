@@ -174,6 +174,16 @@ test_that("two clients share one compiled library", {
         total_bad = tryCatch(total(list(c1, 1)), error = conditionMessage),
         reloaded = tryCatch(increment(readRDS(f)), error = conditionMessage),
         live = live(),
+        maybes = c(
+          maybes(1, NULL, NA, 4),
+          maybes(NULL, 2.5, "c", NULL),
+          maybes(NULL, NULL, NA, NULL)
+        ),
+        grid = fill_grid(2, 3),
+        grid_empty = fill_grid(0, 2),
+        value = c(value(c1), value(new_point(1.5))),
+        counter_value = err(counter_value(new_point(1.5))),
+        value_bad = err(value(list())),
         saved = local({
           p <- new_point(2.5)
           file <- tempfile()
@@ -227,6 +237,12 @@ test_that("two clients share one compiled library", {
   expect_equal(res$greet, "Hello, R!")
   expect_equal(res$shift, c(1.5, 2.5, 3.5))
   expect_equal(res$shift_null, c(1, 2))
+  expect_equal(res$maybes, c("1--4", "-2.5c-", "----"))
+  expect_identical(res$grid, outer(1:2 * 10, 1:3, `+`) + 0)
+  expect_identical(dim(res$grid_empty), c(0L, 2L))
+  expect_equal(res$value, c(16, 1.5))
+  expect_equal(res$counter_value, "expected Counter")
+  expect_equal(res$value_bad, "expected a `thing` object")
   expect_equal(res$describe, list(n = 3, mean = 5, range = c(1, 9)))
   expect_equal(res$upper, c("A", "BÉ"))
   expect_identical(res$evens, c(2L, 4L, 6L))

@@ -21,6 +21,40 @@ branch on the concrete types (`x isa A`) to get statically resolved calls.
 struct RRef{T} end
 
 """
+    @narrow x (A, B, ...) body [otherwise]
+
+Evaluate `body` with the variable `x` narrowed to whichever of the types `A`,
+`B`, ... it is, tried in order, or else evaluate `otherwise`, by default an
+`ArgumentError` naming the types. Each type gets its own copy of `body`, where
+the calls on `x` resolve statically, as the compiled library needs of an
+argument taken as an abstract type (see [`RRef`](@ref)):
+
+```julia
+function area(@nospecialize(s::Shape))
+    @narrow s (Circle, Square) area(s)
+end
+```
+"""
+macro narrow(x, types, body, otherwise = nothing)
+    x isa Symbol || error("@narrow needs a variable, not $x")
+    Ts = Meta.isexpr(types, :tuple) ? types.args : Any[types]
+    isempty(Ts) && error("@narrow needs at least one type")
+    if otherwise === nothing
+        names = join(string.(Ts), ", ", " or ")
+        otherwise = :(throw(ArgumentError($("expected " * names))))
+    end
+    ex = otherwise
+    for T in reverse(Ts)
+        ex = Expr(:if, :($x isa $T), :(
+            let $x = $x::$T
+                $body
+            end
+        ), ex)
+    end
+    return esc(ex)
+end
+
+"""
     r_class(T) -> String
 
 The R class of the external pointers to objects of type `T` (see

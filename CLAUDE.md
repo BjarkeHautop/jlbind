@@ -139,8 +139,11 @@ the test clients to match.
 
 - Everything in the library is compiled with `--trim=safe`, so every Julia call
   must be statically resolvable. A function receiving an abstract `RRef{T}` must
-  take it as `@nospecialize(x::T)` and branch on concrete types; `Core.invoke`
-  is not accepted by trim verification (Julia 1.13).
+  take it as `@nospecialize(x::T)` and branch on concrete types (`@narrow`);
+  `Core.invoke` is not accepted by trim verification (Julia 1.13). A call with
+  more than two union-typed arguments is not union-split, so `@rcall` calls `f`
+  in a branch per `nothing`/`missing` of each argument declared as a literal
+  `Union{Nothing,T}`/`Union{Missing,T}` (`_union_with` in `rcall.jl`).
 - `@R(sym)` must name `R.dll` on Windows; Windows builds record `julia_bindir`
   so R can find the Julia runtime before loading the DLL.
 - Never write into an installed package directory; builds work on scratch

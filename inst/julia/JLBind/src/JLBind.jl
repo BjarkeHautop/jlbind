@@ -19,11 +19,11 @@ module JLBind
 import Dates
 using Dates: Date, DateTime
 
-export SEXP, @rcall, from_sexp, to_sexp, RRef, RVector, RDataFrame
+export SEXP, @rcall, @narrow, from_sexp, to_sexp, RRef, RVector, RDataFrame
 
 public @R, @r_global, r_class, r_saved_by, r_restore, object_count
 public nil, rtypeof, rlength, protect, unprotect, preserve, release
-public alloc, string_elt, set_string_elt, vector_elt, set_vector_elt
+public alloc, alloc_matrix, string_elt, set_string_elt, vector_elt, set_vector_elt
 public real_ptr, int_ptr, logical_ptr, complex_ptr, raw_ptr
 public mkchar, get_attrib, set_attrib, data_frame
 public NILSXP, LGLSXP, INTSXP, REALSXP, CPLXSXP, STRSXP, VECSXP, EXTPTRSXP, RAWSXP

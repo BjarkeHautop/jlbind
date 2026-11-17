@@ -52,6 +52,21 @@ function group_means(df::Groups)
     return RDataFrame((group = gs, mean = means, first = [Dates.Date(2024) for _ in gs]))
 end
 uneven() = RDataFrame((a = [1.0], b = [1.0, 2.0]))
+# More optional arguments than the compiler union-splits a call over.
+maybes(
+    a::Union{Nothing,Int64}, b::Union{Nothing,Float64}, c::Union{Missing,String},
+    d::Union{Nothing,Int64},
+) = (a === nothing ? "-" : string(a)) * (b === nothing ? "-" : string(b)) *
+    (c === missing ? "-" : c) * (d === nothing ? "-" : string(d))
+# A matrix filled in place: element (i, j) is 10i + j.
+function fill_grid(nrow::Int64, ncol::Int64)
+    out = JLBind.alloc_matrix(JLBind.REALSXP, nrow, ncol)
+    p = JLBind.real_ptr(out)
+    for j = 1:ncol, i = 1:nrow
+        unsafe_store!(p, Float64(10i + j), (j - 1) * nrow + i)
+    end
+    return out
+end
 
 @rcall greet(name::String)::String
 @rcall shift(x::Vector{Float64}, by::Union{Nothing,Float64} = nothing)::Vector{Float64}
@@ -93,5 +108,10 @@ uneven() = RDataFrame((a = [1.0], b = [1.0, 2.0]))
 @rcall small_types(a::Int8, b::UInt16, c::UInt32, d::Float16)::Tuple{Int8,UInt16,UInt32,Float16}
 @rcall group_means(df::Groups)::RDataFrame{(:group, :mean, :first),Tuple{Vector{String},Vector{Union{Missing,Float64}},Vector{Dates.Date}}}
 @rcall uneven()::RDataFrame{(:a, :b),Tuple{Vector{Float64},Vector{Float64}}}
+@rcall maybes(
+    a::Union{Nothing,Int64}, b::Union{Nothing,Float64}, c::Union{Missing,String},
+    d::Union{Nothing,Int64},
+)::String
+@rcall fill_grid(nrow::Int64, ncol::Int64)::SEXP
 
 end

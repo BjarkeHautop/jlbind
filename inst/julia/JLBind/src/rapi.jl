@@ -79,7 +79,22 @@ Keep `x` alive across calls (`R_PreserveObject`), until released.
 preserve(x::SEXP) = (ccall(@R(R_PreserveObject), Cvoid, (SEXP,), x); x)
 release(x::SEXP) = ccall(@R(R_ReleaseObject), Cvoid, (SEXP,), x)
 
+"""
+    alloc(t, n) -> SEXP
+    alloc_matrix(t, nrow, ncol) -> SEXP
+
+A new R vector of type `t` (`REALSXP`, `STRSXP`, ...) and length `n`, or an
+`nrow`-by-`ncol` matrix of it, to fill in place (in column-major order). It is
+unprotected; see [`protect`](@ref).
+"""
 alloc(t::Cint, n::Integer) = ccall(@R(Rf_allocVector), SEXP, (Cint, Int), t, n)
+
+function alloc_matrix(t::Cint, nrow::Integer, ncol::Integer)
+    # R raises an R error for a dimension beyond an `int`.
+    0 <= nrow <= typemax(Cint) && 0 <= ncol <= typemax(Cint) ||
+        throw(ArgumentError("cannot return a matrix with a dimension over 2^31 - 1 to R"))
+    return ccall(@R(Rf_allocMatrix), SEXP, (Cint, Cint, Cint), t, nrow, ncol)
+end
 
 # Element accessors take 0-based indices, as in C.
 string_elt(x::SEXP, i::Integer) = ccall(@R(STRING_ELT), SEXP, (SEXP, Int), x, i)

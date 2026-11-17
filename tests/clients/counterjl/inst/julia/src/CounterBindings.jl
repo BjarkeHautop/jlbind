@@ -3,7 +3,11 @@ module CounterBindings
 
 using JLBind
 
-mutable struct Counter
+# Objects of two types, which an entrypoint can take as either.
+abstract type Thing end
+JLBind.r_class(::Type{Thing}) = "thing"
+
+mutable struct Counter <: Thing
     n::Int64
 end
 
@@ -16,7 +20,7 @@ total(cs::Vector{Counter}) = sum(c.n for c in cs; init = 0)
 live() = JLBind.object_count()
 
 # An object that survives saveRDS(); a `Counter` does not.
-struct Point
+struct Point <: Thing
     x::Float64
 end
 
@@ -28,6 +32,11 @@ new_point(x::Float64) = Point(x)
 points(n::Int64) = [Point(i) for i = 1:n]
 point_x(p::Point) = p.x
 
+_value(c::Counter) = Float64(c.n)
+_value(p::Point) = p.x
+value(@nospecialize(t::Thing)) = @narrow t (Counter, Point) _value(t)
+counter_value(@nospecialize(t::Thing)) = @narrow t Counter _value(t)
+
 @rcall new_point(x::Float64)::RRef{Point}
 @rcall points(n::Int64)::Vector{RRef{Point}}
 @rcall point_x(point::RRef{Point})::Float64
@@ -37,5 +46,7 @@ point_x(p::Point) = p.x
 @rcall counters(n::Int64)::Vector{RRef{Counter}}
 @rcall total(counters::Vector{RRef{Counter}})::Int64
 @rcall live()::Int64
+@rcall value(thing::RRef{Thing})::Float64
+@rcall counter_value(thing::RRef{Thing})::Float64
 
 end

@@ -254,8 +254,9 @@ so write `JLBind.foo` as it is rather than with the name of your package.
 A binding package can support additional types by defining methods for
 `JLBind.from_sexp(::Type{T}, x::SEXP)` and `JLBind.to_sexp(x::T)`. `JLBind` also
 provides helpers for building R objects directly, such as `JLBind.data_frame()`
-for a data frame whose columns are not known when the library is compiled. See
-the [`JLBind`
+for a data frame whose columns are not known when the library is compiled, and
+`JLBind.alloc()` and `JLBind.alloc_matrix()` for a vector or matrix to fill in
+place, without a copy in Julia first. See the [`JLBind`
 source](https://github.com/BjarkeHautop/jlbind/tree/main/inst/julia/JLBind/src)
 for the existing conversions and helpers.
 
@@ -264,7 +265,9 @@ for the existing conversions and helpers.
 Sometimes an object is easier to keep in Julia than to convert into an R data
 structure. You can pass such objects by reference using `RRef{T}`. R receives an
 external pointer to the Julia object, allowing it to be reused across calls. The
-object is released when R garbage-collects the reference.
+object is released when R garbage-collects the reference, and
+`jlbind::object_count()` counts the objects R holds, to check that a package
+doesn't leak them.
 
 For example, define a mutable Julia object and expose functions that operate on
 it (the
@@ -409,26 +412,20 @@ four methods that call reaches, and the build fails with an error such as:
 Verifier error #1: unresolved call from statement area(s::Shape)::Any
 ```
 
-One possible solution is to branch on the concrete types once, with
-`@nospecialize`, and to make the call inside each branch, where the type is
-known:
+The solution is to take the argument with `@nospecialize` and branch on the
+concrete types, making the call inside each branch, where the type is known.
+`@narrow s (A, B, ...) expr` does that: it evaluates `expr` with `s` narrowed to
+whichever of the listed types it is:
 
 ```julia
-function with_shape(f::F, @nospecialize(s::Shape)) where {F}
-    s isa Circle && return f(s)
-    s isa Square && return f(s)
-    s isa Rectangle && return f(s)
-    s isa Triangle && return f(s)
-    throw(ArgumentError("unknown shape"))
-end
-
 circle(radius::Float64) = Circle(radius)
 square(side::Float64) = Square(side)
 rectangle(width::Float64, height::Float64) = Rectangle(width, height)
 triangle(base::Float64, height::Float64) = Triangle(base, height)
-shape_area(@nospecialize(s::Shape)) = with_shape(area, s)
+shape_area(@nospecialize(s::Shape)) =
+    @narrow s (Circle, Square, Rectangle, Triangle) area(s)
 scaled_area(@nospecialize(s::Shape), factor::Float64) =
-    with_shape(x -> factor^2 * area(x), s)
+    @narrow s (Circle, Square, Rectangle, Triangle) factor^2 * area(s)
 
 @rcall circle(radius::Float64)::RRef{Shape}
 @rcall square(side::Float64)::RRef{Shape}
@@ -449,10 +446,15 @@ scaled_area(square(2), 3)
 #> [1] 36
 ```
 
-Without `@nospecialize`, Julia compiles a separate `with_shape` for each
-concrete shape, and the call into it can't be resolved, for the same reason as
-`area(s)`. Functions that pass the shape on, such as `shape_area`, need it too
-(this small example happens to compile without it, since it is inlined).
+A shape of a type that isn't listed gives the error
+`expected Circle, Square, Rectangle or Triangle`; a fourth argument to `@narrow`
+is evaluated instead, to give another error or a default. List only the types
+the call has methods for.
+
+Without `@nospecialize`, Julia compiles a separate `shape_area` for each
+concrete shape, and the call into it from the entrypoint can't be resolved, for
+the same reason as `area(s)`. A function that receives the shape and passes it
+on needs `@nospecialize` too.
 
 If a hierarchy has only a few types, some alternatives to `@nospecialize` are:
 
@@ -461,3 +463,22 @@ If a hierarchy has only a few types, some alternatives to `@nospecialize` are:
 
 - Use a small `Union` such as `RRef{Union{Circle,Square}}`, which Julia resolves
   by checking each member in turn.
+
+### Other calls that don't compile
+
+The same rule, that every call must resolve when the library is compiled, rules
+out a few common patterns:
+
+- **Splatting a vector**, as in `f(xs...)` for `xs::Vector`: the number of
+  arguments is only known at run time. Call a method that takes the vector, or
+  call `f` once per element if that gives the same result.
+- **Names of abstract types**, as in `nameof(typeof(x))` where `x` is only known
+  to be some `Shape`. Use `@narrow` to give each type its name.
+- **Types as keyword arguments**, as in `f(; type = T)`: the keyword arguments
+  are stored in a `NamedTuple` whose field is only a `DataType`. Pass the type
+  positionally, or call the keyword form with `@inline` where `T` is a constant.
+
+Optional arguments are not a problem: `@rcall` calls the function in a separate
+branch for `nothing` (or `missing`) and for a value of each argument declared as
+a `Union{Nothing,T}` (or `Union{Missing,T}`), so each call has concrete types.
+This needs the `Union` written out in the declaration, not an alias for it.

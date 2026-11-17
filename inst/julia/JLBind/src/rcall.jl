@@ -15,7 +15,10 @@ the default of the argument of the generated R function (`NA` for `missing`,
 `NULL` for `nothing`, `c(1, 2)` for `[1, 2]`, `numeric(0)` for `Float64[]`),
 which always passes every argument. The compiled library
 can only call `f` statically if each argument type it receives is concrete, or
-is `@nospecialize`d in `f`'s signature.
+is `@nospecialize`d in `f`'s signature. An argument declared as a literal
+`Union{Nothing,T}` or `Union{Missing,T}` (not an alias of one) is fine: `f` is
+called in a branch for each, where its type is known, so any number of such
+arguments can be declared (each doubles the calls compiled).
 
 R must never unwind through Julia frames, so an entrypoint does not raise an R
 error: a Julia exception is returned as a character vector of class
@@ -58,22 +61,43 @@ macro rcall(sig)
     from = GlobalRef(JLBind, :from_sexp)
     args = gensym("args")
     n = gensym("n")
-    converted = [:($from($T, unsafe_load($args, $i)))
+    vals = [gensym(string(a)) for a in argnames]
+    converted = [:($(vals[i]) = $from($T, unsafe_load($args, $i)))
                  for (i, T) in enumerate(argtypes)]
-    result = :($(GlobalRef(JLBind, :_result))($R, $fname($(converted...))))
+    # A call with more than a few union-typed arguments is not union-split, and
+    # so stays dynamic, which `--trim` rejects. So the call is made in a branch
+    # per `nothing` or `missing` an argument can be, where its type is known.
+    body = :(return $(GlobalRef(JLBind, :_result))($R, $fname($(vals...))))
+    for (v, T) in zip(vals, argtypes)
+        for s in (:Nothing, :Missing)
+            if _union_with(T, s)
+                body = :(if $v === $(s === :Nothing ? :nothing : :missing)
+                    $body
+                else
+                    $body
+                end)
+            end
+        end
+    end
     on_error = GlobalRef(JLBind, :_error_sexp)
     wrong = "$fname() takes $nargs argument$(nargs == 1 ? "" : "s"), but was given "
     return esc(quote
         Base.@ccallable function $cname($args::Ptr{$SEXP}, $n::Cint)::$SEXP
             try
                 $n == $nargs || throw(ArgumentError(string($wrong, $n)))
-                return $result
+                $(converted...)
+                $body
             catch e
                 return $on_error(e)
             end
         end
     end)
 end
+
+# Whether the type expression `T` is a `Union{...}` with the member `s`.
+_union_with(T, s::Symbol) =
+    Meta.isexpr(T, :curly) && T.args[1] in (:Union, :(Base.Union)) &&
+    any(a -> a === s || a == :(Base.$s), T.args[2:end])
 
 # The defaults `@rcall` accepts, which the R package's `update_entrypoints()`
 # translates to R: a literal number, string, `true`, `false`, `missing` or

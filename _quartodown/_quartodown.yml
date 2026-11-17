@@ -16,6 +16,7 @@ reference:
       - bind_client
       - is_bound
       - jlbind_sitrep
+      - object_count
 
   - title: "Package development"
     desc: "Set up a package to use jlbind."

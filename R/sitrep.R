@@ -109,13 +109,22 @@ jlbind_sitrep <- function(julia = NULL) {
       "Bundle"
     )],
     problems = problems,
-    objects = .object_count()
+    objects = object_count()
   )
 }
 
-# How many Julia objects R holds references to (RRefs), or NULL if no library
-# is loaded.
-.object_count <- function() {
+#' Count the Julia objects R holds
+#'
+#' The number of Julia objects that R currently holds references to (the
+#' `RRef`s returned by the packages that use jlbind), across all of these
+#' packages. An object is released once R garbage-collects every reference to
+#' it, so this is useful for checking that a package doesn't leak objects.
+#'
+#' @return A number, or `NULL` if no Julia library is loaded.
+#' @export
+#' @examples
+#' object_count()
+object_count <- function() {
   dll <- .state$dll
   if (is.null(dll)) {
     return(NULL)

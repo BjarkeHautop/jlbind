@@ -44,7 +44,9 @@
   "shorts",
   "small_types",
   "group_means",
-  "uneven"
+  "uneven",
+  "maybes",
+  "fill_grid"
 )
 .jlbind <- new.env(parent = emptyenv())
 
@@ -90,3 +92,9 @@ small_types <- function(a, b, c, d) {
 }
 group_means <- function(df) .External(.jlbind$.call, .jlbind$group_means, df)
 uneven <- function() .External(.jlbind$.call, .jlbind$uneven)
+maybes <- function(a, b, c, d) {
+  .External(.jlbind$.call, .jlbind$maybes, a, b, c, d)
+}
+fill_grid <- function(nrow, ncol) {
+  .External(.jlbind$.call, .jlbind$fill_grid, nrow, ncol)
+}
