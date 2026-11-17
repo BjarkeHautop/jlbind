@@ -4,10 +4,10 @@ module benchjlBindings
 
 using JLBind
 
-greet(name::String) = "Hello, " * name * "!"
-shift(x::Vector{Float64}, by::Float64) = x .+ by
+greet(name) = "Hello, " * name * "!"
+shift(x, by) = x .+ by
 
 @rcall greet(name::String)::String
 @rcall shift(x::Vector{Float64}, by::Float64)::Vector{Float64}
 
-end
+end # module benchjlBindings

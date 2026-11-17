@@ -10,8 +10,8 @@ module {{module}}
 
 using JLBind
 
-hello(name::String) = "Hello, " * name * ", from Julia!"
+hello(name) = "Hello, " * name * ", from Julia!"
 
 @rcall hello(name::String)::String
 
-end
+end # module {{module}}

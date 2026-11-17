@@ -13,10 +13,10 @@ end
 
 JLBind.r_class(::Type{Counter}) = "counter"
 
-new_counter(start::Int64) = Counter(start)
-increment(c::Counter, by::Int64) = (c.n += by; c.n)
-counters(n::Int64) = [Counter(i) for i = 1:n]
-total(cs::Vector{Counter}) = sum(c.n for c in cs; init = 0)
+new_counter(start) = Counter(start)
+increment(c, by) = (c.n += by; c.n)
+counters(n) = [Counter(i) for i = 1:n]
+total(cs) = sum(c.n for c in cs; init = 0)
 live() = JLBind.object_count()
 
 # An object that survives saveRDS(); a `Counter` does not.
@@ -28,9 +28,9 @@ JLBind.r_class(::Type{Point}) = "point"
 JLBind.r_saved_by(::Type{Point}) = "counterjl"
 JLBind.r_restore(::Type{Point}, state::SEXP) = Point(from_sexp(Float64, JLBind.vector_elt(state, 0)))
 
-new_point(x::Float64) = Point(x)
-points(n::Int64) = [Point(i) for i = 1:n]
-point_x(p::Point) = p.x
+new_point(x) = Point(x)
+points(n) = [Point(i) for i = 1:n]
+point_x(p) = p.x
 
 _value(c::Counter) = Float64(c.n)
 _value(p::Point) = p.x
@@ -49,4 +49,4 @@ counter_value(@nospecialize(t::Thing)) = @narrow t Counter _value(t)
 @rcall value(thing::RRef{Thing})::Float64
 @rcall counter_value(thing::RRef{Thing})::Float64
 
-end
+end # module CounterBindings

@@ -73,8 +73,8 @@ The functions are those of `benchjl`, a minimal jlbind client kept next to the
 benchmark script:
 
 ```julia
-greet(name::String) = "Hello, " * name * "!"
-shift(x::Vector{Float64}, by::Float64) = x .+ by
+greet(name) = "Hello, " * name * "!"
+shift(x, by) = x .+ by
 ```
 
 jlbind calls them through `benchjl`, compiled into a jlbind library. JuliaCall
