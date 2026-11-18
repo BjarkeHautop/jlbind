@@ -12,7 +12,8 @@ build_library(
   develop = NULL,
   cpu_target = NULL,
   julia_args = NULL,
-  bundle = FALSE
+  bundle = FALSE,
+  private = FALSE
 )
 }
 \arguments{
@@ -45,10 +46,15 @@ info), which these can override (e.g. \code{"-g1"}), but not the options it
 relies on: \code{--trim}, \verb{--output-*} and \code{--compile-ccallable}. By default,
 \code{JLBIND_JULIA_ARGS} split at spaces.}
 
-\item{bundle}{If \code{TRUE}, copy the Julia runtime next to the library, so that
-it runs without Julia installed. This makes the library much larger, and is
-only useful for giving a library to people without Julia, who set
-\code{JLBIND_LIBRARY} to it. They also need a \code{cpu_target} other than \code{"native"}.}
+\item{bundle}{If \code{TRUE}, copy the Julia runtime next to the shared library,
+so that it runs without Julia installed. This makes the library much
+larger, and is only useful for giving a library to people without Julia,
+who set \code{JLBIND_LIBRARY} to it. They also need a \code{cpu_target} other than
+\code{"native"}.}
+
+\item{private}{If \code{TRUE}, give the library a private Julia runtime, as
+\code{private} does in \code{\link[=install_library]{install_library()}}. The library then loads alongside
+the shared one, and the packages built into it bind to it.}
 }
 \value{
 The path to the library, invisibly.

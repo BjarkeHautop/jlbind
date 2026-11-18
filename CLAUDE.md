@@ -106,19 +106,27 @@ Three layers, spread across R, Julia and C:
   with JuliaC in a separate environment. With `bundle = TRUE` it also copies the
   Julia runtime into `jlbind-bundle/` next to the library, found through a
   relative RUNPATH (on Windows, `.add_julia_bindir()` puts it on the PATH).
+  `--privatize=<salt>` (from `.salt()`) also has JuliaC rename the bundled
+  runtime's symbols, so the library loads alongside others (Linux/macOS only).
 - **R side (`R/`)** — `library.R`: `install_library()` / `build_library()`
   (finds clients, runs `build.jl`, stores the library under
   `R_user_dir("jlbind", "data")/library/` with the client versions and binding
   package hashes (`.binding_hash()`) it was built from, so it is rebuilt when a
-  client's Julia code changes without a version bump). `clients.R`: client
-  discovery via the `Config/jlbind` DESCRIPTION field. `runtime.R`:
-  `bind_client(pkg)` called from a client's `.onLoad`, loads the library once,
-  sets threads, binds a client only if the library was built from its installed
-  version. `sitrep.R`: `jlbind_sitrep()`, a report on Julia, the library and
-  each client that works before a library has loaded. `scaffold.R`:
-  `use_jlbind()` and `update_entrypoints()`, which scans `@rcall` declarations
-  (with comments/strings blanked, so they must be literal top-level `@rcall`s)
-  and writes `R/jlbind-wrappers.R`. `julia.R`: locating Julia.
+  client's Julia code changes without a version bump).
+  `install_library(private = )` also builds a privatized library per listed
+  client under `R_user_dir("jlbind", "data")/private/<pkg>/`; its existence is
+  what keeps it private on later builds. `clients.R`: client discovery via the
+  `Config/jlbind` DESCRIPTION field. `runtime.R`: `bind_client(pkg)` called from
+  a client's `.onLoad`, loads the library once, sets threads, binds a client
+  only if the library was built from its installed version. Each library has a
+  state environment: `.state` itself for the shared one,
+  `.state$private[[path]]` for privatized ones (`Private` salt in the `build`
+  file); `.library_path()` picks a client's library. `sitrep.R`:
+  `jlbind_sitrep()`, a report on Julia, the library and each client that works
+  before a library has loaded. `scaffold.R`: `use_jlbind()` and
+  `update_entrypoints()`, which scans `@rcall` declarations (with
+  comments/strings blanked, so they must be literal top-level `@rcall`s) and
+  writes `R/jlbind-wrappers.R`. `julia.R`: locating Julia.
 
 Clients are pure R packages, so a fix to how they call the library needs only a
 jlbind update. `R/jlbind-wrappers.R` defines `.jlbind_module`, `.jlbind_entries`
@@ -126,15 +134,20 @@ jlbind update. `R/jlbind-wrappers.R` defines `.jlbind_module`, `.jlbind_entries`
 `.External(.jlbind$.call, .jlbind$<name>, args...)`. `bind_client()`
 (`.set_entries()`) fills `.jlbind` with external pointers to `<Module>_<name>`
 from `jlbind_entries()` in `src/call.c` (null ones while unbound, which give the
-"not available" error), and `.call` with the address of `jlbind_call()`, which
-passes the arguments as an array and raises a `jlbind_error` as an R error.
-`.call` is stored as the bare address, not a `NativeSymbolInfo`, because R CMD
-check flags a client's calls to another package's `NativeSymbolInfo`.
+"not available" error); the symbols are looked up in R through the library's
+`DLLInfo` (`.dll_symbols()`), since every library has the DLL name `jlbind`, and
+`.call` with the address of `jlbind_call()`, which passes the arguments as an
+array and raises a `jlbind_error` as an R error. `.call` is stored as the bare
+address, not a `NativeSymbolInfo`, because R CMD check flags a client's calls to
+another package's `NativeSymbolInfo`.
 
 jlbind's own `src/state.c` has the ALTREP class that lets a reference be saved
 (see `r_saved_by` in `refs.jl`): R must find the class when loading a file,
 before or without the library. JLBind finds its `jlbind_state_hook` with
-`R_GetCCallable()` when first needed, since binding must not start Julia.
+`R_GetCCallable()` when first needed, since binding must not start Julia. A
+reference's external pointer has the tag `jlbind_ref` and, as its protected
+value, a symbol naming the runtime that made it (`_runtime()`), so a live
+reference from another (private) runtime is rejected.
 
 The test clients in `tests/clients/{hellojl,counterjl}` are scaffolded output:
 their `R/jlbind.R` and `R/jlbind-wrappers.R` correspond to `inst/templates/` and

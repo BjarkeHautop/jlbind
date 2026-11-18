@@ -20,42 +20,31 @@
 
 typedef SEXP (*jlbind_fn)(SEXP *, int);
 
-/* Entries for the library symbols `symbols` of the client `package`. With
- * `dll` the name of the loaded library (its DLLInfo name), every symbol is
- * looked up before any entry is made, so a library missing one leaves the
- * client unbound rather than half bound. With `dll` NULL, the entries are
- * null, for a client that is not bound. */
-SEXP jlbind_entries(SEXP dll, SEXP symbols, SEXP package)
+/* Entries for the client `package` from `addresses`, a list of the library
+ * symbols' addresses (external pointers, as from getNativeSymbolInfo()), each
+ * NULL for a null entry, for a client that is not bound. The symbols are
+ * looked up in R, through the library's DLLInfo, since every library loaded
+ * has the DLL name `jlbind`, under which R_FindSymbol() searches only one. */
+SEXP jlbind_entries(SEXP addresses, SEXP package)
 {
-    R_xlen_t n = XLENGTH(symbols);
+    R_xlen_t n = XLENGTH(addresses);
     SEXP out = PROTECT(Rf_allocVector(VECSXP, n));
     for (R_xlen_t i = 0; i < n; i++) {
-        DL_FUNC f = NULL;
-        if (!Rf_isNull(dll)) {
-            const char *symbol = CHAR(STRING_ELT(symbols, i));
-            f = R_FindSymbol(symbol, CHAR(STRING_ELT(dll, 0)), NULL);
-            if (f == NULL)
-                Rf_error("Symbol '%s' not found in the compiled Julia library, "
-                         "which was built from other Julia code.",
-                         symbol);
-        }
+        SEXP a = VECTOR_ELT(addresses, i);
+        DL_FUNC f = Rf_isNull(a) ? NULL : R_ExternalPtrAddrFn(a);
         SET_VECTOR_ELT(out, i, R_MakeExternalPtrFn(f, package, R_NilValue));
     }
     UNPROTECT(1);
     return out;
 }
 
-/* Sets the number of Julia threads with the library's
- * jlbind_set_julia_threads() (set_threads.c in JLBind), before Julia starts:
- * 0 if it did, else nonzero. `dll` is the library's DLLInfo name. */
-SEXP jlbind_set_threads(SEXP dll, SEXP threads)
+/* Sets the number of Julia threads with a library's
+ * jlbind_set_julia_threads() (set_threads.c in JLBind) at `address`, before
+ * its Julia starts: 0 if it did, else nonzero. */
+SEXP jlbind_set_threads(SEXP address, SEXP threads)
 {
     typedef void (*set_fn)(int *, int *);
-    set_fn f = (set_fn)R_FindSymbol("jlbind_set_julia_threads",
-                                    CHAR(STRING_ELT(dll, 0)), NULL);
-    if (f == NULL)
-        Rf_error("Symbol 'jlbind_set_julia_threads' not found in the compiled "
-                 "Julia library.");
+    set_fn f = (set_fn)R_ExternalPtrAddrFn(address);
     int n = Rf_asInteger(threads), status = 0;
     f(&n, &status);
     return Rf_ScalarInteger(status);

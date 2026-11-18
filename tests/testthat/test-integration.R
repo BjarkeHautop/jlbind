@@ -531,3 +531,111 @@ test_that("a client reloaded with pkgload::load_all() is bound again", {
   expect_true(res$bound)
   expect_equal(res$greet, "Hello, R!")
 })
+
+test_that("a private library runs alongside the shared one", {
+  skip_on_cran()
+  skip_on_os("windows")
+  skip_if_not(
+    identical(Sys.getenv("JLBIND_TEST_BUILD"), "true"),
+    "set JLBIND_TEST_BUILD=true to compile a library"
+  )
+  skip_if_not_installed("callr")
+  julia <- tryCatch(.find_julia(), error = function(e) NULL)
+  skip_if(is.null(julia), "Julia >= 1.13 not found")
+
+  data <- withr::local_tempdir()
+  clients <- test_path("..", "clients")
+  libpath <- local_install(
+    file.path(clients, "hellojl"),
+    file.path(clients, "counterjl")
+  )
+  env <- c(
+    callr::rcmd_safe_env(),
+    R_USER_DATA_DIR = data,
+    JULIA_NUM_THREADS = "2"
+  )
+
+  # counterjl loads first, so its private library loads before the shared
+  # one, and both go on working through calls, GCs and finalizers.
+  res <- callr::r(
+    function() {
+      library(counterjl)
+      library(hellojl)
+      suppressMessages(jlbind::install_library(
+        ask = FALSE,
+        private = "counterjl"
+      ))
+      jlbind::check_bound("counterjl")
+      jlbind::check_bound("hellojl")
+      for (i in 1:500) {
+        increment(new_counter(i))
+        greet("x")
+        if (i %% 100 == 0) gc()
+      }
+      c1 <- new_counter(1)
+      p1 <- new_point(2.5)
+      f <- tempfile()
+      saveRDS(p1, f)
+      report <- suppressMessages(jlbind::jlbind_sitrep())
+      list(
+        counter = increment(c1, 2),
+        point = point_x(readRDS(f)),
+        threads = threads(),
+        again = tryCatch(
+          {
+            jlbind::install_library(ask = FALSE)
+            "built nothing"
+          },
+          message = conditionMessage
+        ),
+        private = report$private,
+        clients = report$clients,
+        objects = jlbind::object_count()
+      )
+    },
+    libpath = libpath,
+    env = env,
+    show = TRUE
+  )
+  expect_equal(res$counter, 3)
+  expect_equal(res$point, 2.5)
+  expect_equal(res$threads, 2)
+  # Packages keep their private library.
+  expect_match(res$again, "up to date")
+  expect_length(res$private, 1L)
+  expect_equal(res$private[[1L]]$how, "loaded")
+  expect_equal(res$private[[1L]]$problems, character())
+  expect_match(res$private[[1L]]$build$Private, "^jl")
+  expect_equal(
+    res$clients$library[res$clients$package == "counterjl"],
+    res$private[[1L]]$path
+  )
+  expect_gte(res$objects, 2)
+
+  # Put back into the shared library, counterjl loses its private one.
+  res <- callr::r(
+    function() {
+      suppressMessages(jlbind::install_library(
+        ask = FALSE,
+        private = character()
+      ))
+      library(counterjl)
+      list(
+        bound = jlbind::is_bound("counterjl"),
+        private = suppressMessages(jlbind::jlbind_sitrep())$private
+      )
+    },
+    libpath = libpath,
+    env = env,
+    show = TRUE
+  )
+  expect_true(res$bound)
+  expect_length(res$private, 0L)
+  expect_false(dir.exists(file.path(
+    data,
+    "R",
+    "jlbind",
+    "private",
+    "counterjl"
+  )))
+})

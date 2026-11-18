@@ -218,24 +218,28 @@ test_that("bind_client() records why a client could not be bound", {
   # Without a library, the reason is that it could not be loaded.
   .state$dll <- NULL
   .state$bound <- character()
+  .state$problems <- list()
   .state$problem <- "No library."
   expect_error(check_bound("stats"), "No library.", fixed = TRUE)
 })
 
 test_that("jlbind_call() checks its entry", {
   call <- jlbind_call$address
-  unbound <- .Call(jlbind_entries, NULL, "f", "demo")[[1L]]
+  unbound <- .Call(jlbind_entries, list(NULL), "demo")[[1L]]
   expect_error(
     .External(call, unbound, 1),
     'library of demo is not available; run jlbind::check_bound("demo")',
     fixed = TRUE
   )
   expect_error(.External(call, "f", 1), "Not a jlbind entrypoint")
-  # jlbind's own registered routines stand in for library symbols.
+  # jlbind's own DLL and routines stand in for a library and its symbols.
+  dll <- getLoadedDLLs()[["jlbind"]]
   expect_error(
-    .Call(jlbind_entries, "jlbind", c("jlbind_entries", "nope"), "demo"),
+    .dll_symbols(dll, c("jlbind_entries", "nope")),
     "Symbol 'nope' not found"
   )
+  found <- .Call(jlbind_entries, .dll_symbols(dll, "jlbind_entries"), "demo")
+  expect_length(found, 1L)
 })
 
 test_that("bind_client() fills a client's entrypoints", {
@@ -326,7 +330,8 @@ test_that("an out-of-date development library is rebuilt before loading", {
       develop,
       cpu_target,
       julia_args,
-      bundle
+      bundle,
+      ...
     ) {
       built <<- list(
         packages = packages,
@@ -359,7 +364,7 @@ test_that("an out-of-date development library is rebuilt before loading", {
   .state$build <- .read_build(dir)
   .state$excluded <- NULL
   fake_dev_library(src, dir)
-  local_mocked_bindings(.rebuild_hint = function(pkg) "Restart R.")
+  local_mocked_bindings(.rebuild_hint = function(pkg, lib) "Restart R.")
   expect_warning(.refresh_dev_library("demo"), "Julia code changed")
   .state$clients <- .read_clients(dir)
   expect_silent(.refresh_dev_library("demo"))

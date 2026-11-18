@@ -6,13 +6,21 @@
 #' later. The first build downloads and compiles the Julia dependencies, which
 #' can take a few minutes.
 #'
-#' All packages share one Julia environment. By default, the dependencies get
-#' the versions in the first package's `Manifest.toml`. If two packages
-#' conflict, the one listed later by [jlbind_clients()] is left out, and
-#' [check_bound()] says why. See `vignette("using-clients", "jlbind")` for
-#' details.
+#' All packages in the shared library share one Julia environment. By default,
+#' the dependencies get the versions in the first package's `Manifest.toml`.
+#' If two packages conflict, the one listed later by [jlbind_clients()] is left
+#' out, and [check_bound()] says why. See `vignette("using-clients", "jlbind")`
+#' for details.
 #'
-#' The library is rebuilt only if it is out of date: built from other versions
+#' A package listed in `private` instead gets a library of its own, with its
+#' own copy of the Julia runtime, which loads alongside the shared library.
+#' Its Julia dependencies are then resolved for it alone, so it works with
+#' packages it conflicts with. Each private library takes more disk space and
+#' memory, and runs Julia separately: its Julia objects work only with the
+#' functions of its own package. Packages keep their private library on later
+#' builds until `private` says otherwise.
+#'
+#' A library is rebuilt only if it is out of date: built from other versions
 #' of the packages or their Julia code, by another version of jlbind or Julia,
 #' or with other options. If a library is already loaded, restart R to use the
 #' new one.
@@ -42,13 +50,19 @@
 #'   info), which these can override (e.g. `"-g1"`), but not the options it
 #'   relies on: `--trim`, `--output-*` and `--compile-ccallable`. By default,
 #'   `JLBIND_JULIA_ARGS` split at spaces.
-#' @param bundle If `TRUE`, copy the Julia runtime next to the library, so that
-#'   it runs without Julia installed. This makes the library much larger, and is
-#'   only useful for giving a library to people without Julia, who set
-#'   `JLBIND_LIBRARY` to it. They also need a `cpu_target` other than `"native"`.
+#' @param bundle If `TRUE`, copy the Julia runtime next to the shared library,
+#'   so that it runs without Julia installed. This makes the library much
+#'   larger, and is only useful for giving a library to people without Julia,
+#'   who set `JLBIND_LIBRARY` to it. They also need a `cpu_target` other than
+#'   `"native"`.
+#' @param private Names of packages among `packages` to give a library of
+#'   their own, with a private Julia runtime, on Linux and macOS. By default,
+#'   the packages that already have one. `character()` puts every package in
+#'   the shared library.
 #'
-#' @return The path to the library (invisibly), or `NULL` if there was nothing
-#'   to build.
+#' @return The path to the shared library (invisibly), or `NULL` if there was
+#'   nothing to build. With every package private, the path to the first
+#'   private library.
 #' @export
 #' @examples
 #' \dontrun{
@@ -62,6 +76,10 @@
 #'
 #' # For an R library shared by computers with different CPUs
 #' install_library(cpu_target = "generic")
+#'
+#' # pkgB in a library of its own, as its Julia dependencies conflict with
+#' # those of pkgA
+#' install_library(private = "pkgB")
 #' }
 install_library <- function(
   packages = NULL,
@@ -72,7 +90,8 @@ install_library <- function(
   develop = NULL,
   cpu_target = NULL,
   julia_args = NULL,
-  bundle = FALSE
+  bundle = FALSE,
+  private = NULL
 ) {
   versions <- match.arg(versions)
   cpu_target <- .cpu_target(cpu_target)
@@ -95,42 +114,84 @@ install_library <- function(
     message("No installed package uses jlbind, so there is nothing to build.")
     return(invisible(NULL))
   }
-  dir <- .library_dir()
-  path <- file.path(dir, .library_file())
+  private <- .check_private(private, clients$package)
   julia <- .find_julia(julia)
-  if (
-    !force &&
-      versions == "manifest" &&
-      !length(develop) &&
-      .up_to_date(
-        dir,
-        clients,
-        .julia_version(julia),
+  julia_version <- .julia_version(julia)
+
+  # The libraries to build: the shared one, unless every package is private,
+  # and one for each private package.
+  shared <- clients[!clients$package %in% private, , drop = FALSE]
+  targets <- c(
+    if (nrow(shared)) {
+      list(list(clients = shared, dir = .library_dir(), salt = NULL))
+    },
+    lapply(private, function(pkg) {
+      list(
+        clients = clients[clients$package == pkg, , drop = FALSE],
+        dir = .private_dir(pkg),
+        salt = .salt(pkg)
+      )
+    })
+  )
+  for (i in seq_along(targets)) {
+    t <- targets[[i]]
+    targets[[i]]$build <- force ||
+      versions != "manifest" ||
+      length(develop) > 0L ||
+      !.up_to_date(
+        t$dir,
+        t$clients,
+        julia_version,
         cpu_target,
         julia_args,
-        bundle
+        bundle || !is.null(t$salt),
+        if (is.null(t$salt)) "" else t$salt
       )
-  ) {
+  }
+  # Packages put back into the shared library lose their private one.
+  unprivate <- setdiff(.private_packages(clients$package), private)
+  path <- file.path(targets[[1L]]$dir, .library_file())
+  todo <- Filter(function(t) t$build, targets)
+  if (!length(todo)) {
+    .remove_private(unprivate)
     message(
-      "The compiled Julia library is up to date (",
-      path,
-      "); use `force = TRUE` to rebuild it."
+      "The compiled Julia ",
+      if (length(targets) > 1L) "libraries are" else "library is",
+      " up to date (",
+      paste(
+        vapply(targets, function(t) file.path(t$dir, .library_file()), ""),
+        collapse = ", "
+      ),
+      "); use `force = TRUE` to rebuild ",
+      if (length(targets) > 1L) "them." else "it."
     )
     .bind_requested()
     return(invisible(path))
   }
 
   if (isTRUE(ask)) {
+    what <- vapply(
+      todo,
+      function(t) {
+        paste0(
+          paste(t$clients$package, collapse = ", "),
+          if (!is.null(t$salt)) " (in a library of its own)"
+        )
+      },
+      ""
+    )
     choice <- utils::menu(
       c("Yes", "No"),
       title = paste0(
         "Compile the Julia code of ",
-        paste(clients$package, collapse = ", "),
+        paste(what, collapse = "; "),
         " with ",
         julia,
         "? Julia downloads their Julia dependencies into its package depot, ",
-        "and compiling takes several minutes. The library is written to ",
-        dir,
+        "and compiling takes several minutes. The ",
+        if (length(todo) > 1L) "libraries are" else "library is",
+        " written to ",
+        tools::R_user_dir("jlbind", "data"),
         "."
       )
     )
@@ -140,13 +201,68 @@ install_library <- function(
     }
   }
 
+  # One build at a time: each can take much of the computer's memory.
+  for (t in todo) {
+    .install_build(
+      t$clients,
+      t$dir,
+      julia,
+      versions,
+      develop,
+      cpu_target,
+      julia_args,
+      bundle && is.null(t$salt),
+      t$salt
+    )
+  }
+  .remove_private(unprivate)
+
+  noun <- if (length(todo) > 1L) "libraries" else "library"
+  if (length(.loaded_libraries())) {
+    message(
+      "Built the compiled Julia ",
+      noun,
+      ". Restart R to use ",
+      if (length(todo) > 1L) "them" else "it",
+      " in place of the libraries loaded in this session."
+    )
+  } else {
+    message("Built the compiled Julia ", noun, ".")
+  }
+  .bind_requested()
+  invisible(path)
+}
+
+# Builds `clients` into `dir` in place of the library there, for
+# install_library(); the other arguments are those of .build().
+.install_build <- function(
+  clients,
+  dir,
+  julia,
+  versions,
+  develop,
+  cpu_target,
+  julia_args,
+  bundle,
+  salt
+) {
   # Built next to its final place, so it is moved in with a rename, and only
   # once the build has succeeded.
   root <- dirname(dir)
   dir.create(root, recursive = TRUE, showWarnings = FALSE)
   out <- tempfile("build-", tmpdir = root)
   on.exit(unlink(out, recursive = TRUE), add = TRUE)
-  .build(clients, out, julia, versions, develop, cpu_target, julia_args, bundle)
+  .build(
+    clients,
+    out,
+    julia,
+    versions,
+    develop,
+    cpu_target,
+    julia_args,
+    bundle,
+    salt
+  )
 
   # A loaded library cannot be deleted on Windows, but it can be renamed, so
   # the old build is moved aside first; whatever cannot be removed now is
@@ -166,22 +282,81 @@ install_library <- function(
     stop("Could not move the library into ", dir, ".", call. = FALSE)
   }
   .prune_builds(root)
+  invisible(dir)
+}
 
-  if (!is.null(.state$dll)) {
-    message(
-      "Built the compiled Julia library. Restart R to use it in place of ",
-      "the library loaded in this session."
-    )
-  } else {
-    message("Built the compiled Julia library.")
-    .bind_requested()
+# The `private` packages of install_library(), out of `packages`: by default,
+# those that have a private library.
+.check_private <- function(private, packages) {
+  if (is.null(private)) {
+    return(.private_packages(packages))
   }
-  invisible(path)
+  if (!is.character(private) || anyNA(private)) {
+    stop("`private` must be a character vector.", call. = FALSE)
+  }
+  missing <- setdiff(private, packages)
+  if (length(missing)) {
+    stop(
+      "`private` names packages that are not being built: ",
+      paste(missing, collapse = ", "),
+      ".",
+      call. = FALSE
+    )
+  }
+  if (length(private) && .Platform$OS.type == "windows") {
+    stop(
+      "Private libraries need Linux or macOS; JuliaC cannot give a library ",
+      "a private Julia runtime on Windows yet.",
+      call. = FALSE
+    )
+  }
+  unique(private)
+}
+
+# Which of `packages` have a private library from install_library().
+.private_packages <- function(packages) {
+  packages[file.exists(file.path(.private_dir(packages), .library_file()))]
+}
+
+# Removes the private libraries of `packages`, which are built into the shared
+# library now. One loaded in this session is left for the next build, as it
+# cannot be removed on Windows; it is not used once the shared library has the
+# package, since a client binds to the library .library_path() gives.
+.remove_private <- function(packages) {
+  for (pkg in packages) {
+    dir <- .private_dir(pkg)
+    old <- tempfile("old-", tmpdir = dirname(dir))
+    if (file.rename(dir, old)) {
+      unlink(old, recursive = TRUE)
+    }
+  }
+  invisible(NULL)
+}
+
+# Where install_library() builds the private libraries.
+.private_root <- function() {
+  file.path(tools::R_user_dir("jlbind", "data"), "private")
+}
+
+# Where install_library() builds the private library of `pkg`.
+.private_dir <- function(pkg) {
+  file.path(.private_root(), pkg)
+}
+
+# The salt of the private Julia runtime of a library built from `packages`:
+# JuliaC renames the runtime's symbols with it, so libraries in one process
+# need different ones. It must match `[A-Za-z_][A-Za-z0-9_]*` and have at most
+# 8 characters.
+.salt <- function(packages) {
+  record <- tempfile()
+  on.exit(unlink(record))
+  writeLines(sort(unique(packages), method = "radix"), record)
+  paste0("jl", substr(unname(tools::md5sum(record)), 1L, 6L))
 }
 
 #' Remove the Julia library
 #'
-#' Deletes the library built by [install_library()], with everything else
+#' Deletes the libraries built by [install_library()], with everything else
 #' jlbind stores in `tools::R_user_dir("jlbind", "data")`. Packages that use
 #' jlbind can't call their Julia code until you run [install_library()] again.
 #'
@@ -205,12 +380,21 @@ remove_library <- function(ask = interactive()) {
     message("There is no compiled Julia library to remove.")
     return(invisible(FALSE))
   }
-  loaded <- identical(.state$path, file.path(dir, .library_file()))
+  # The shared library counts as loaded once it was looked for.
+  paths <- c(
+    .state$path,
+    unlist(lapply(.loaded_libraries(), function(lib) lib$path))
+  )
+  loaded <- length(paths) > 0L &&
+    any(startsWith(
+      normalizePath(paths, mustWork = FALSE),
+      normalizePath(root, mustWork = FALSE)
+    ))
   # A loaded DLL cannot be deleted on Windows, and deleting the rest would
   # leave a library that cannot be used.
   if (loaded && .Platform$OS.type == "windows") {
     stop(
-      "The library is loaded in this R session. Restart R and run ",
+      "A library is loaded in this R session. Restart R and run ",
       "jlbind::remove_library() before loading a package that uses jlbind.",
       call. = FALSE
     )
@@ -259,6 +443,9 @@ remove_library <- function(ask = interactive()) {
 #'   `"./mypkg"` for the sources in the `mypkg` directory.
 #' @param out Directory to write the library to. Defaults to `.jlbind/` in the
 #'   sources of `packages`, which must then be a single path.
+#' @param private If `TRUE`, give the library a private Julia runtime, as
+#'   `private` does in [install_library()]. The library then loads alongside
+#'   the shared one, and the packages built into it bind to it.
 #' @inheritParams install_library
 #'
 #' @return The path to the library, invisibly.
@@ -281,12 +468,23 @@ build_library <- function(
   develop = NULL,
   cpu_target = NULL,
   julia_args = NULL,
-  bundle = FALSE
+  bundle = FALSE,
+  private = FALSE
 ) {
   versions <- match.arg(versions)
   cpu_target <- .cpu_target(cpu_target)
   julia_args <- .julia_args(julia_args)
   .check_bundle(bundle)
+  if (!isTRUE(private) && !isFALSE(private)) {
+    stop("`private` must be TRUE or FALSE.", call. = FALSE)
+  }
+  if (private && .Platform$OS.type == "windows") {
+    stop(
+      "Private libraries need Linux or macOS; JuliaC cannot give a library ",
+      "a private Julia runtime on Windows yet.",
+      call. = FALSE
+    )
+  }
   is_path <- .is_path(packages)
   if (is.null(out)) {
     if (length(packages) != 1L || !is_path) {
@@ -304,7 +502,17 @@ build_library <- function(
   )
   clients <- .client_table(infos)
   julia <- .find_julia(julia)
-  .build(clients, out, julia, versions, develop, cpu_target, julia_args, bundle)
+  .build(
+    clients,
+    out,
+    julia,
+    versions,
+    develop,
+    cpu_target,
+    julia_args,
+    bundle,
+    if (private) .salt(clients$package)
+  )
   invisible(file.path(normalizePath(out), .library_file()))
 }
 
@@ -429,7 +637,8 @@ build_library <- function(
 }
 
 # Compiles `clients` (a .client_table()) into `out`, with the metadata the
-# runtime checks clients against.
+# runtime checks clients against. With a `salt` (.salt()), the library is a
+# bundle with a private Julia runtime.
 .build <- function(
   clients,
   out,
@@ -438,7 +647,8 @@ build_library <- function(
   develop = NULL,
   cpu_target = "native",
   julia_args = character(),
-  bundle = FALSE
+  bundle = FALSE,
+  salt = NULL
 ) {
   if (anyDuplicated(clients$module)) {
     dup <- clients$module[duplicated(clients$module)][[1L]]
@@ -464,7 +674,7 @@ build_library <- function(
       ": false`. The library is larger and may compile code when it runs."
     )
   }
-  if (bundle && grepl("native", cpu_target, fixed = TRUE)) {
+  if (bundle && is.null(salt) && grepl("native", cpu_target, fixed = TRUE)) {
     message(
       "Building a bundle for CPU target \"",
       cpu_target,
@@ -482,6 +692,7 @@ build_library <- function(
       if (versions == "compat") "--update",
       if (!trim) "--no-trim",
       if (bundle) "--bundle",
+      if (!is.null(salt)) paste0("--privatize=", salt),
       shQuote(paste0("--cpu-target=", cpu_target)),
       if (length(julia_args)) {
         shQuote(paste0("--julia-arg=", julia_args))
@@ -533,7 +744,8 @@ build_library <- function(
       CpuTarget = cpu_target,
       CPU = if (is.na(cpu)) "" else cpu,
       JuliaArgs = paste(julia_args, collapse = " "),
-      Bundle = bundle
+      Bundle = bundle || !is.null(salt),
+      Private = if (is.null(salt)) "" else salt
     ),
     file.path(out, "build")
   )
@@ -633,7 +845,8 @@ build_library <- function(
 }
 
 # How the library in `dir` was built (a list with jlbind, Julia, Built, Trim,
-# Develop, CpuTarget, CPU, JuliaArgs and Bundle, NA where not recorded), or NULL
+# Develop, CpuTarget, CPU, JuliaArgs, Bundle and Private, NA where not
+# recorded), or NULL
 # if it records nothing.
 .read_build <- function(dir) {
   file <- file.path(dir, "build")
@@ -649,37 +862,49 @@ build_library <- function(
     "CpuTarget",
     "CPU",
     "JuliaArgs",
-    "Bundle"
+    "Bundle",
+    "Private"
   )
   as.list(read.dcf(file, fields = fields)[1L, ])
 }
 
 # Was the library in `dir` built by this version of jlbind and Julia version
 # `julia`, for `cpu_target`, with `julia_args`, as a bundle or not (`bundle`),
-# from exactly these versions of these clients, with the same binding package
-# files (counting the clients it left out), and with no local checkouts?
+# with the private runtime salt `private` ("" for none), from exactly these
+# versions of these clients, with the same binding package files (counting
+# the clients it left out), and with no local checkouts?
 .up_to_date <- function(
   dir,
   clients,
   julia,
   cpu_target = NA,
   julia_args = NULL,
-  bundle = NA
+  bundle = NA,
+  private = NA
 ) {
-  !length(.stale_reasons(dir, clients, julia, cpu_target, julia_args, bundle))
+  !length(.stale_reasons(
+    dir,
+    clients,
+    julia,
+    cpu_target,
+    julia_args,
+    bundle,
+    private
+  ))
 }
 
 # Why the library in `dir` is not what install_library() would build from
 # `clients` with Julia version `julia` for `cpu_target` with `julia_args`, as a
-# bundle or not (`bundle`) (each skipped if NA or NULL): a character vector,
-# empty if it is up to date.
+# bundle or not (`bundle`), with private runtime salt `private` (each skipped
+# if NA or NULL): a character vector, empty if it is up to date.
 .stale_reasons <- function(
   dir,
   clients,
   julia,
   cpu_target = NA,
   julia_args = NULL,
-  bundle = NA
+  bundle = NA,
+  private = NA
 ) {
   built <- .read_clients(dir)
   build <- .read_build(dir)
@@ -692,7 +917,7 @@ build_library <- function(
   }
   status <- .client_status(clients, built, .read_excluded(dir))
   c(
-    .build_reasons(build, julia, cpu_target, julia_args, bundle),
+    .build_reasons(build, julia, cpu_target, julia_args, bundle, private),
     paste0(status$package, ": ", status$status)[
       !status$status %in% c("ok", "left out")
     ]
@@ -700,15 +925,17 @@ build_library <- function(
 }
 
 # Why a library built as `build` (.read_build()) is out of date regardless of
-# its clients, for Julia version `julia`, `cpu_target`, `julia_args` and
-# `bundle` (each skipped if NA or NULL). A bundle doesn't use the installed
-# Julia, so another version of it is no reason.
+# its clients, for Julia version `julia`, `cpu_target`, `julia_args`,
+# `bundle` and private runtime salt `private` (each skipped if NA or NULL). A
+# bundle doesn't use the installed Julia, so another version of it is no
+# reason.
 .build_reasons <- function(
   build,
   julia,
   cpu_target = NA,
   julia_args = NULL,
-  bundle = NA
+  bundle = NA,
+  private = NA
 ) {
   # Libraries from before `julia_args` were built with none.
   built_args <- build$JuliaArgs
@@ -717,6 +944,11 @@ build_library <- function(
   }
   # Likewise, libraries from before `bundle` aren't bundles.
   bundled <- identical(unname(build$Bundle), "TRUE")
+  # And libraries from before `private` have no private runtime.
+  salt <- build$Private
+  if (is.null(salt) || is.na(salt)) {
+    salt <- ""
+  }
   julia_args <- if (!is.null(julia_args)) paste(julia_args, collapse = " ")
   jlbind <- as.character(utils::packageVersion("jlbind"))
   c(
@@ -730,6 +962,13 @@ build_library <- function(
     },
     if (!is.na(bundle) && !identical(bundled, bundle)) {
       if (bundled) "built as a bundle" else "not built as a bundle"
+    },
+    if (!is.na(private) && !identical(unname(salt), private)) {
+      if (nzchar(private)) {
+        "built without its own Julia runtime"
+      } else {
+        "built with its own Julia runtime"
+      }
     },
     if (!is.na(cpu_target) && !identical(build$CpuTarget, cpu_target)) {
       paste0(

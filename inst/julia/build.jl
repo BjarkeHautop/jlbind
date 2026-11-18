@@ -25,6 +25,10 @@
 # <option> to the Julia that compiles the library, after jlbind's own.
 # `--bundle` copies the Julia runtime into <output directory>/jlbind-bundle, so
 # the library runs without Julia installed and the directory can be moved.
+# `--privatize=<salt>` also gives the bundled runtime private symbol names
+# derived from <salt> (`[A-Za-z_][A-Za-z0-9_]*`, at most 8 characters), so the
+# library can share a process with other Julia libraries; it implies
+# `--bundle`. Each library in a process needs its own salt.
 
 import Pkg
 import TOML
@@ -49,7 +53,10 @@ const HERE = @__DIR__
 const OUT = abspath(ARGS[1])
 const UPDATE = "--update" in ARGS
 const TRIM = !("--no-trim" in ARGS)
-const BUNDLE = "--bundle" in ARGS
+const PRIVATIZE = let a = findlast(startswith("--privatize="), ARGS)
+    a === nothing ? nothing : String(chopprefix(ARGS[a], "--privatize="))
+end
+const BUNDLE = "--bundle" in ARGS || PRIVATIZE !== nothing
 const CPU_TARGET = let a = findlast(startswith("--cpu-target="), ARGS)
     a === nothing ? nothing : String(chopprefix(ARGS[a], "--cpu-target="))
 end
@@ -286,7 +293,11 @@ link = JuliaC.LinkRecipe(;
 )
 JuliaC.link_products(link)
 if BUNDLE
-    JuliaC.bundle_products(JuliaC.BundleRecipe(; link_recipe = link, output_dir = BUNDLE_DIR))
+    JuliaC.bundle_products(JuliaC.BundleRecipe(;
+        link_recipe = link,
+        output_dir = BUNDLE_DIR,
+        privatize = something(PRIVATIZE, false),
+    ))
     mv(link.outname, joinpath(OUT, basename(link.outname)); force = true)
     rm(joinpath(OUT, "julia_bindir"); force = true)
 else

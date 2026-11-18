@@ -12,23 +12,19 @@ read that first.
 ## One library for all clients
 
 jlbind compiles Julia code with
-[JuliaC.jl](https://github.com/JuliaLang/JuliaC.jl). An R process can load only
-one compiled Julia library[^privatize], so your client shares Julia dependency
-versions with every other client the user has installed. [Using packages built
-on jlbind](using-clients.html) describes how those versions are chosen, what
-happens when clients conflict, and how to build a separate library for clients
-that are never used in the same R session.
+[JuliaC.jl](https://github.com/JuliaLang/JuliaC.jl). Clients share one library
+and one Julia runtime, so your client shares Julia dependency versions with
+every other client the user has installed. [Using packages built on
+jlbind](using-clients.html) describes how those versions are chosen, what
+happens when clients conflict, and how a user can give a client a [private
+library](using-clients.html#private-libraries) with its own copy of the runtime
+(JuliaC's `--privatize`) or build a separate library for clients that are never
+used in the same R session.
 
-[^privatize]: JuliaC can *privatize* a library, giving it its own copy of the
-    Julia runtime, but jlbind doesn't use this. Each client would then ship a
-    bundle with its own runtime and compiled copy of Base, where a shared
-    library adds only each client's own code. On Linux with Julia 1.14, a bundle
-    was over 80 MB for a larger client, and about 9 MB for a tiny client after
-    removing the runtime libraries it doesn't use by hand. Each runtime would
-    also have its own garbage-collected heap and threads in memory, and Julia
-    objects couldn't be passed between clients. Privatization also doesn't work
-    on Windows yet
-    ([JuliaC.jl#151](https://github.com/JuliaLang/JuliaC.jl/pull/151)).
+A private library is the user's choice and costs disk space and memory, so write
+your client to work in the shared library. On Linux with Julia 1.14, a private
+library takes 60 to 80 MB for the bundled runtime, and keeps its own
+garbage-collected heap and threads.
 
 ## What `use_jlbind()` adds
 
@@ -106,7 +102,10 @@ package's files or your package's version have changed since it was built.
 
 ::: {.callout-note title="The development library is only used when your package loads first"}
 A library that has loaded cannot be replaced, so the `.jlbind/` library is used
-only if your package is the first jlbind client loaded in the R session.
+only if your package is the first jlbind client loaded in the R session. On
+Linux and macOS, `build_library(private = TRUE)` gives the development library
+its own copy of the Julia runtime, so it loads alongside the shared library
+whatever the order.
 :::
 
 If you need to use a library stored elsewhere, set the `JLBIND_LIBRARY`
@@ -301,7 +300,9 @@ increment(counter, 2)
 `r_class()` sets the R class of the external pointer, so your package can define
 methods such as `print()` for it. An argument declared as `RRef{Counter}` also
 checks that the reference points to a `Counter`, rather than accepting an
-arbitrary Julia object.
+arbitrary Julia object. A reference works with the library that made it, so with
+a client in a [private library](using-clients.html#private-libraries), its
+references work with that client's functions only.
 
 ### Saving Julia objects
 

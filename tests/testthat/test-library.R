@@ -25,7 +25,8 @@ test_that("install_library() leaves an up-to-date library alone", {
       julia,
       cpu_target,
       julia_args,
-      bundle
+      bundle,
+      ...
     ) {
       options <<- list(
         cpu_target = cpu_target,
@@ -105,7 +106,8 @@ test_that("install_library() can be cancelled", {
       julia,
       cpu_target,
       julia_args,
-      bundle
+      bundle,
+      ...
     ) {
       FALSE
     },
@@ -138,7 +140,8 @@ test_that("install_library() replaces the old library and prunes stale ones", {
       julia,
       cpu_target,
       julia_args,
-      bundle
+      bundle,
+      ...
     ) {
       FALSE
     },
@@ -153,7 +156,8 @@ test_that("install_library() replaces the old library and prunes stale ones", {
       develop,
       cpu_target,
       julia_args,
-      bundle
+      bundle,
+      ...
     ) {
       built <<- list(clients = clients$package, versions = versions)
       dir.create(out)
@@ -189,7 +193,8 @@ test_that("install_library() keeps the old library if the new one fails", {
       julia,
       cpu_target,
       julia_args,
-      bundle
+      bundle,
+      ...
     ) {
       FALSE
     },
@@ -204,7 +209,8 @@ test_that("install_library() keeps the old library if the new one fails", {
       develop,
       cpu_target,
       julia_args,
-      bundle
+      bundle,
+      ...
     ) {
       NULL
     }
@@ -284,7 +290,8 @@ test_that("build_library() builds a source package into its .jlbind/", {
       develop,
       cpu_target,
       julia_args,
-      bundle
+      bundle,
+      ...
     ) {
       args <<- list(package = clients$package, out = out)
       dir.create(out)

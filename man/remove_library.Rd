@@ -14,7 +14,7 @@ remove_library(ask = interactive())
 invisibly.
 }
 \description{
-Deletes the library built by \code{\link[=install_library]{install_library()}}, with everything else
+Deletes the libraries built by \code{\link[=install_library]{install_library()}}, with everything else
 jlbind stores in \code{tools::R_user_dir("jlbind", "data")}. Packages that use
 jlbind can't call their Julia code until you run \code{\link[=install_library]{install_library()}} again.
 }

@@ -1,23 +1,35 @@
-# The process holds one Julia runtime, running one compiled library, so the
-# library is loaded once, the first time a client binds, and every client binds
-# its routines to it.
+# The process holds one shared Julia runtime, running one compiled library,
+# so that library is loaded once, the first time a client binds to it, and
+# every client binds its routines to it. A client can instead have a library
+# of its own with a private copy of the Julia runtime (install_library(private
+# = ), build_library(private = TRUE)), which loads alongside the shared one.
 #
-# .state$dll        the loaded library's DLLInfo, NULL until loaded
-# .state$path       where the library was looked for
-# .state$clients    the clients the library was built from (.read_clients())
-# .state$excluded   the clients it left out (.read_excluded())
-# .state$build      how it was built (.read_build())
-# .state$problem    why the library could not be loaded, if it was not
+# The state of a library is an environment: `.state` itself for the shared
+# library, and one in `.state$private`, by path, for each private library.
+#
+# $dll        the loaded library's DLLInfo, NULL until loaded
+# $path       where the library was looked for
+# $clients    the clients the library was built from (.read_clients())
+# $excluded   the clients it left out (.read_excluded())
+# $build      how it was built (.read_build())
+# $problem    why the library could not be loaded, if it was not
+#
+# and in `.state` alone:
+#
 # .state$requested  the clients that asked to be bound
 # .state$bound      the clients that are bound
 # .state$problems   why each client that asked could not be bound, by name
+# .state$libraries  the state of the library each client asked for, by name
 .state <- new.env(parent = emptyenv())
 .state$requested <- character()
 .state$bound <- character()
 .state$problems <- list()
+.state$private <- list()
+.state$libraries <- list()
 
 # The library to load: JLBIND_LIBRARY, else one built into the sources of
-# `pkg` (.dev_library()), else the one install_library() builds.
+# `pkg` (.dev_library()), else the private library install_library() built
+# for `pkg`, else the shared one it builds.
 .library_path <- function(pkg = NULL) {
   override <- Sys.getenv("JLBIND_LIBRARY", unset = "")
   if (nzchar(override)) {
@@ -27,7 +39,45 @@
   if (!is.null(dev)) {
     return(dev)
   }
+  private <- if (!is.null(pkg)) .private_library(pkg)
+  if (!is.null(private)) {
+    return(private)
+  }
   file.path(.library_dir(), .library_file())
+}
+
+# The private library install_library() built for `pkg`, or NULL.
+.private_library <- function(pkg) {
+  path <- file.path(.private_dir(pkg), .library_file())
+  if (file.exists(path)) path
+}
+
+# Whether the library at `path` has a private Julia runtime, as recorded when
+# it was built.
+.is_private <- function(path) {
+  private <- .read_build(dirname(path))$Private
+  !is.null(private) && !is.na(private) && nzchar(private)
+}
+
+# The state of the library at `path`: its own for a private library, else the
+# shared library's (which may be another library already loaded).
+.library_state <- function(path) {
+  if (!.is_private(path)) {
+    return(.state)
+  }
+  key <- normalizePath(path, mustWork = FALSE)
+  lib <- .state$private[[key]]
+  if (is.null(lib)) {
+    lib <- new.env(parent = emptyenv())
+    .state$private[[key]] <- lib
+  }
+  lib
+}
+
+# The states of the libraries that are loaded.
+.loaded_libraries <- function() {
+  libs <- c(list(.state), unname(.state$private))
+  Filter(function(lib) !is.null(lib$dll), libs)
 }
 
 # Where build_library() writes by default in a package's sources. It is at the
@@ -39,11 +89,11 @@
 # sources when it was loaded with pkgload::load_all(), and an installed
 # package has no .dev_dir.
 .dev_library <- function(pkg) {
-  path <- file.path(
-    find.package(pkg),
-    .dev_dir,
-    .library_file()
-  )
+  dir <- find.package(pkg, quiet = TRUE)
+  if (!length(dir)) {
+    return(NULL)
+  }
+  path <- file.path(dir[[1L]], .dev_dir, .library_file())
   if (file.exists(path)) path
 }
 
@@ -62,16 +112,17 @@
   }
   dir <- dirname(path)
   src <- dirname(dir)
-  loaded <- !is.null(.state$dll)
+  lib <- .library_state(path)
+  loaded <- !is.null(lib$dll)
   # Another client's library may have loaded first; then this one is not
   # used anyway.
-  if (loaded && !identical(.state$path, path)) {
+  if (loaded && !identical(lib$path, path)) {
     return(invisible(NULL))
   }
   # Once loaded, the library on disk may have been rebuilt since, so the
   # sources are compared with the one that is running.
   reasons <- if (loaded) {
-    .dev_stale_reasons(src, .state$clients, .state$build, .state$excluded)
+    .dev_stale_reasons(src, lib$clients, lib$build, lib$excluded)
   } else {
     .dev_stale_reasons(
       src,
@@ -93,7 +144,7 @@
     "."
   )
   if (loaded) {
-    warning(why, " ", .rebuild_hint(pkg), call. = FALSE)
+    warning(why, " ", .rebuild_hint(pkg, lib), call. = FALSE)
     return(invisible(NULL))
   }
   built <- .read_clients(dir)$Package
@@ -125,7 +176,8 @@
       develop = develop,
       cpu_target = cpu_target,
       julia_args = julia_args,
-      bundle = identical(unname(build$Bundle), "TRUE")
+      bundle = identical(unname(build$Bundle), "TRUE"),
+      private = .is_private(path)
     ),
     error = identity
   )
@@ -161,16 +213,19 @@
   )
 }
 
-# Loads the library unless it is already loaded; TRUE if it is. `pkg` is the
-# client asking for it.
-.load_library <- function(pkg = NULL) {
-  if (!is.null(.state$dll)) {
+# Loads the library at `path`, with state `lib`, unless it is already loaded;
+# TRUE if it is. `pkg` is the client asking for it.
+.load_library <- function(
+  pkg = NULL,
+  path = .library_path(pkg),
+  lib = .library_state(path)
+) {
+  if (!is.null(lib$dll)) {
     return(TRUE)
   }
-  path <- .library_path(pkg)
-  .state$path <- path
+  lib$path <- path
   if (!file.exists(path)) {
-    .state$problem <- paste0(
+    lib$problem <- paste0(
       "The compiled Julia library has not been built (it was looked for at ",
       path,
       "). Run jlbind::install_library() to build it; this needs Julia >= 1.13."
@@ -181,7 +236,7 @@
   # instruction, so it is not loaded.
   mismatch <- .cpu_mismatch(.read_build(dirname(path)))
   if (!is.null(mismatch)) {
-    .state$problem <- paste0(
+    lib$problem <- paste0(
       "The compiled Julia library (",
       path,
       ") was ",
@@ -198,7 +253,7 @@
   .add_julia_bindir(path)
   dll <- tryCatch(dyn.load(path, local = TRUE, now = TRUE), error = identity)
   if (inherits(dll, "error")) {
-    .state$problem <- paste0(
+    lib$problem <- paste0(
       "The compiled Julia library (",
       path,
       ") could not be loaded; the Julia it was built with may have been ",
@@ -209,12 +264,31 @@
     return(FALSE)
   }
   .set_threads(dll)
-  .state$dll <- dll
-  .state$clients <- .read_clients(dirname(path))
-  .state$excluded <- .read_excluded(dirname(path))
-  .state$build <- .read_build(dirname(path))
-  .state$problem <- NULL
+  lib$dll <- dll
+  lib$clients <- .read_clients(dirname(path))
+  lib$excluded <- .read_excluded(dirname(path))
+  lib$build <- .read_build(dirname(path))
+  lib$problem <- NULL
   TRUE
+}
+
+# The addresses of `symbols` in the library `dll` (a DLLInfo), as a list of
+# external pointers. They are looked up through the DLLInfo, as every library
+# has the DLL name `jlbind`.
+.dll_symbols <- function(dll, symbols) {
+  lapply(symbols, function(symbol) {
+    info <- tryCatch(getNativeSymbolInfo(symbol, dll), error = function(e) NULL)
+    if (is.null(info)) {
+      stop(
+        "Symbol '",
+        symbol,
+        "' not found in the compiled Julia library, which was built from ",
+        "other Julia code.",
+        call. = FALSE
+      )
+    }
+    info$address
+  })
 }
 
 # Sets the Julia thread count from JULIA_NUM_THREADS. Must run before the
@@ -224,7 +298,8 @@
   if (threads == 1L) {
     return(invisible(NULL))
   }
-  status <- .Call(jlbind_set_threads, dll[["name"]], threads)
+  set <- .dll_symbols(dll, "jlbind_set_julia_threads")[[1L]]
+  status <- .Call(jlbind_set_threads, set, threads)
   if (status != 0L) {
     warning(
       "Could not set ",
@@ -299,15 +374,19 @@
 #' another version of the package, the package isn't bound and its functions
 #' give an error; [check_bound()] says why.
 #'
-#' The library is the one from [install_library()], unless `JLBIND_LIBRARY`
-#' names another, or the first package bound was loaded with
-#' `pkgload::load_all()` and has one from [build_library()]. That library is
+#' The library is the shared one from [install_library()], unless
+#' `JLBIND_LIBRARY` names another, the package was loaded with
+#' `pkgload::load_all()` and has one from [build_library()], or
+#' [install_library()] built a private library for it. A development library
+#' is used if it is private or the package is the first one bound, and it is
 #' rebuilt as the package loads if it is out of date with the package's
 #' sources, as when its Julia code has changed. A library that has already
-#' loaded cannot be replaced, so after a change, restart R.
+#' loaded cannot be replaced, so after a change, restart R. A private library
+#' loads alongside the shared one.
 #'
 #' To run Julia with more threads, set `JULIA_NUM_THREADS` (a number or
-#' `"auto"`) before loading the first package that uses jlbind.
+#' `"auto"`) before loading the first package that uses jlbind. Each library
+#' starts that many.
 #'
 #' @param pkg The package name.
 #'
@@ -328,19 +407,23 @@ bind_client <- function(pkg) {
   .state$bound <- setdiff(.state$bound, pkg)
   ns <- asNamespace(pkg)
   problem <- .client_problem(ns, pkg)
+  path <- .library_path(pkg)
+  lib <- .library_state(path)
+  .state$libraries[[pkg]] <- lib
+  .state$problems[[pkg]] <- NULL
   if (is.null(problem)) {
     # Until bound, its entrypoints are null, which give an error that points
     # to check_bound().
     .set_entries(ns, pkg, NULL)
-    if (!.load_library(pkg)) {
+    if (!.load_library(pkg, path, lib)) {
       return(invisible(FALSE))
     }
-    problem <- .bind_problem(pkg)
+    problem <- .bind_problem(pkg, lib)
   }
   if (is.null(problem)) {
-    res <- tryCatch(.set_entries(ns, pkg, .state$dll), error = identity)
+    res <- tryCatch(.set_entries(ns, pkg, lib$dll), error = identity)
     if (inherits(res, "error")) {
-      problem <- paste(conditionMessage(res), .rebuild_hint(pkg))
+      problem <- paste(conditionMessage(res), .rebuild_hint(pkg, lib))
     }
   }
   .state$problems[[pkg]] <- problem
@@ -377,13 +460,12 @@ bind_client <- function(pkg) {
 # identifier.
 .set_entries <- function(ns, pkg, dll) {
   entries <- ns$.jlbind_entries
-  symbols <- paste0(ns$.jlbind_module, "_", entries)
-  found <- .Call(
-    jlbind_entries,
-    if (!is.null(dll)) dll[["name"]],
-    symbols,
-    pkg
-  )
+  addresses <- if (is.null(dll)) {
+    vector("list", length(entries))
+  } else {
+    .dll_symbols(dll, paste0(ns$.jlbind_module, "_", entries))
+  }
+  found <- .Call(jlbind_entries, addresses, pkg)
   env <- ns$.jlbind
   env$.call <- jlbind_call$address
   for (i in seq_along(entries)) {
@@ -392,16 +474,17 @@ bind_client <- function(pkg) {
   invisible(NULL)
 }
 
-# Why the loaded library cannot serve `pkg`, or NULL if it can. A library
-# that records no clients (one built some other way) is trusted.
-.bind_problem <- function(pkg) {
-  built <- .state$clients
+# Why the loaded library with state `lib` cannot serve `pkg`, or NULL if it
+# can. A library that records no clients (one built some other way) is
+# trusted.
+.bind_problem <- function(pkg, lib = .state) {
+  built <- lib$clients
   if (is.null(built)) {
     return(NULL)
   }
   version <- as.character(getNamespaceVersion(pkg))
   row <- built[built$Package == pkg, , drop = FALSE]
-  excluded <- .state$excluded
+  excluded <- lib$excluded
   if (nrow(row) == 0L && pkg %in% excluded$Package) {
     with <- excluded$Conflicts[excluded$Package == pkg]
     with <- if (nzchar(with)) strsplit(with, ", ", fixed = TRUE)[[1L]]
@@ -416,7 +499,7 @@ bind_client <- function(pkg) {
       "The compiled Julia library was built without ",
       pkg,
       ". ",
-      .rebuild_hint(pkg)
+      .rebuild_hint(pkg, lib)
     ))
   }
   if (!identical(row$Version[[1L]], version)) {
@@ -428,17 +511,20 @@ bind_client <- function(pkg) {
       ", not the installed version ",
       version,
       ". ",
-      .rebuild_hint(pkg)
+      .rebuild_hint(pkg, lib)
     ))
   }
   NULL
 }
 
-# How to get a library that serves `pkg` in place of the loaded one, which
-# cannot be replaced in a running process.
-.rebuild_hint <- function(pkg) {
-  path <- .state$path
-  if (identical(path, file.path(.library_dir(), .library_file()))) {
+# How to get a library that serves `pkg` in place of the one with state
+# `lib`, which cannot be replaced in a running process once loaded.
+.rebuild_hint <- function(pkg, lib = .state) {
+  path <- lib$path
+  if (
+    identical(path, file.path(.library_dir(), .library_file())) ||
+      (!is.null(pkg) && identical(path, .private_library(pkg)))
+  ) {
     return("Run jlbind::install_library() to rebuild it, then restart R.")
   }
   # .refresh_dev_library() rebuilds a package's own library as it loads.
@@ -446,7 +532,7 @@ bind_client <- function(pkg) {
     !is.null(path) &&
       !is.null(pkg) &&
       identical(path, .dev_library(pkg)) &&
-      identical(.state$clients$Package, pkg)
+      identical(lib$clients$Package, pkg)
   ) {
     return(paste0(
       "Restart R and run devtools::load_all() again, which rebuilds it."
@@ -502,8 +588,13 @@ check_bound <- function(pkg) {
       call. = FALSE
     )
   }
+  problem <- .state$problems[[pkg]]
+  if (is.null(problem)) {
+    lib <- .state$libraries[[pkg]]
+    problem <- if (is.null(lib)) .state$problem else lib$problem
+  }
   stop(
-    if (is.null(.state$dll)) .state$problem else .state$problems[[pkg]],
+    problem,
     "\nRun jlbind::jlbind_sitrep() for a report on the setup.",
     call. = FALSE
   )

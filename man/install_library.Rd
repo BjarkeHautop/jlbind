@@ -13,7 +13,8 @@ install_library(
   develop = NULL,
   cpu_target = NULL,
   julia_args = NULL,
-  bundle = FALSE
+  bundle = FALSE,
+  private = NULL
 )
 }
 \arguments{
@@ -46,14 +47,21 @@ info), which these can override (e.g. \code{"-g1"}), but not the options it
 relies on: \code{--trim}, \verb{--output-*} and \code{--compile-ccallable}. By default,
 \code{JLBIND_JULIA_ARGS} split at spaces.}
 
-\item{bundle}{If \code{TRUE}, copy the Julia runtime next to the library, so that
-it runs without Julia installed. This makes the library much larger, and is
-only useful for giving a library to people without Julia, who set
-\code{JLBIND_LIBRARY} to it. They also need a \code{cpu_target} other than \code{"native"}.}
+\item{bundle}{If \code{TRUE}, copy the Julia runtime next to the shared library,
+so that it runs without Julia installed. This makes the library much
+larger, and is only useful for giving a library to people without Julia,
+who set \code{JLBIND_LIBRARY} to it. They also need a \code{cpu_target} other than
+\code{"native"}.}
+
+\item{private}{Names of packages among \code{packages} to give a library of
+their own, with a private Julia runtime, on Linux and macOS. By default,
+the packages that already have one. \code{character()} puts every package in
+the shared library.}
 }
 \value{
-The path to the library (invisibly), or \code{NULL} if there was nothing
-to build.
+The path to the shared library (invisibly), or \code{NULL} if there was
+nothing to build. With every package private, the path to the first
+private library.
 }
 \description{
 Compiles the Julia code of every installed package that uses jlbind into one
@@ -63,13 +71,21 @@ later. The first build downloads and compiles the Julia dependencies, which
 can take a few minutes.
 }
 \details{
-All packages share one Julia environment. By default, the dependencies get
-the versions in the first package's \code{Manifest.toml}. If two packages
-conflict, the one listed later by \code{\link[=jlbind_clients]{jlbind_clients()}} is left out, and
-\code{\link[=check_bound]{check_bound()}} says why. See \code{vignette("using-clients", "jlbind")} for
-details.
+All packages in the shared library share one Julia environment. By default,
+the dependencies get the versions in the first package's \code{Manifest.toml}.
+If two packages conflict, the one listed later by \code{\link[=jlbind_clients]{jlbind_clients()}} is left
+out, and \code{\link[=check_bound]{check_bound()}} says why. See \code{vignette("using-clients", "jlbind")}
+for details.
 
-The library is rebuilt only if it is out of date: built from other versions
+A package listed in \code{private} instead gets a library of its own, with its
+own copy of the Julia runtime, which loads alongside the shared library.
+Its Julia dependencies are then resolved for it alone, so it works with
+packages it conflicts with. Each private library takes more disk space and
+memory, and runs Julia separately: its Julia objects work only with the
+functions of its own package. Packages keep their private library on later
+builds until \code{private} says otherwise.
+
+A library is rebuilt only if it is out of date: built from other versions
 of the packages or their Julia code, by another version of jlbind or Julia,
 or with other options. If a library is already loaded, restart R to use the
 new one.
@@ -90,5 +106,9 @@ install_library(packages = c("pkgA", "pkgB"))
 
 # For an R library shared by computers with different CPUs
 install_library(cpu_target = "generic")
+
+# pkgB in a library of its own, as its Julia dependencies conflict with
+# those of pkgA
+install_library(private = "pkgB")
 }
 }

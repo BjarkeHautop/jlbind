@@ -147,10 +147,9 @@ e.g. `@rcall jl_shift(...)`, and write `shift()` yourself, calling `jl_shift()`.
 
 ## Share your package
 
-An R process can load only one compiled Julia library, so jlbind compiles the
-Julia code of all installed clients into one library on each user's machine.
-Tell your users, for example in your README, to run this after installing your
-package:
+Clients share one Julia runtime in an R process, so jlbind compiles the Julia
+code of all installed clients into one library on each user's machine. Tell your
+users, for example in your README, to run this after installing your package:
 
 ```r
 jlbind::install_library()

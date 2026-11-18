@@ -16,28 +16,33 @@ Invisibly, a list with:
 \item \code{julia}: a list with \code{path} (\code{NA} if Julia was not found), \code{source}
 (\code{"argument"}, \code{"JULIA"} or \code{"PATH"}), \code{version} (\code{NA} if it could not
 be run) and \code{ok} (whether it is Julia 1.13 or later).
-\item \code{library}: a list with \code{path}, \code{how} (\code{"loaded"}, \code{"failed to load"},
-\code{"JLBIND_LIBRARY"} or \code{"default"}), \code{exists}, \code{build} (how it was
-built: the jlbind and Julia versions, when, whether it is trimmed, the
-CPU target and the CPU it was built on, any extra Julia arguments and
-whether it is a bundle, or \code{NULL}), \code{problems} (why it
-should be rebuilt or cannot load; empty
-if none) and \code{objects} (how many Julia objects R holds references to,
-or \code{NULL} if no library is loaded).
+\item \code{library}: the shared library, a list with \code{path}, \code{how} (\code{"loaded"},
+\code{"failed to load"}, \code{"JLBIND_LIBRARY"} or \code{"default"}), \code{exists},
+\code{build} (how it was built: the jlbind and Julia versions, when, whether
+it is trimmed, the CPU target and the CPU it was built on, any extra
+Julia arguments, whether it is a bundle and the salt of a private
+runtime, or \code{NULL}), \code{problems} (why it should be rebuilt or cannot
+load; empty if none) and \code{objects} (how many Julia objects R holds
+references to, or \code{NULL} if it isn't loaded).
+\item \code{private}: the private libraries packages use, each a list like
+\code{library}, with \code{how} \code{"loaded"}, \code{"failed to load"} or \code{"private"}.
 \item \code{clients}: a data frame with one row per package that uses jlbind or
-that the library was built for, with the columns \code{package}, \code{version}
-(installed), \code{built} (the version in the library), \code{status} (\code{"ok"},
+that a library was built for, with the columns \code{package}, \code{version}
+(installed), \code{built} (the version in its library), \code{status} (\code{"ok"},
 \code{"left out"}, \code{"not in the library"}, \code{"built for version <v>"},
-\code{"Julia code changed"} or \code{"not installed"}) and \code{bound}.
-\item \code{threads}: a list with \code{count} (from \code{JULIA_NUM_THREADS}) and \code{fixed}
-(\code{TRUE} once a library is loaded, after which the count cannot change).
+\code{"Julia code changed"} or \code{"not installed"}), \code{bound} and \code{library}
+(the path of its library).
+\item \code{threads}: a list with \code{count} (from \code{JULIA_NUM_THREADS}, in each
+library) and \code{fixed} (\code{TRUE} once a library is loaded, after which the
+count cannot change).
 }
 }
 \description{
 Prints a report to run when a package that uses jlbind doesn't work. It
-shows the Julia that builds the library, the library that is loaded (or
-would be) and what it was built from, the installed packages that use
-jlbind and whether the library is current for each, and the Julia thread
+shows the Julia that builds the libraries, the shared library that is
+loaded (or would be) and what it was built from, any private libraries
+(see \code{private} in \code{\link[=install_library]{install_library()}}), the installed packages that use
+jlbind and whether their library is current for each, and the Julia thread
 count. It also works before a library has loaded.
 }
 \examples{
