@@ -249,7 +249,7 @@ object_count <- function() {
   if (stale && nrow(clients)) {
     line(
       "  ",
-      if (lib$how == "default") {
+      if (identical(lib$path, file.path(.library_dir(), .library_file()))) {
         "Run jlbind::install_library() to rebuild the library"
       } else {
         "Rebuild the library with jlbind::build_library()"

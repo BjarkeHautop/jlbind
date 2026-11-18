@@ -228,3 +228,27 @@ test_that("a bundle is stale only for `bundle`, not for the installed Julia", {
   )
   expect_equal(.stale_reasons(dir, clients, "1.14.1"), character())
 })
+
+test_that("a stale default library is rebuilt with install_library()", {
+  local_state()
+  clients <- fake_clients("a")
+  dir <- fake_library(clients, bindir = R.home())
+  local_mocked_bindings(
+    jlbind_clients = function(lib.loc = NULL) clients,
+    .julia_version = function(julia) package_version("1.14.1"),
+    .library_dir = function() dir,
+    object_count = function() 0
+  )
+  withr::local_envvar(JLBIND_LIBRARY = NA)
+  # Loaded, as once a client has bound to it.
+  .state$dll <- list(name = "jlbind")
+  .state$path <- file.path(dir, .library_file())
+  out <- capture.output(jlbind_sitrep("my/julia"))
+  expect_match(out, "built with Julia 1.14.0, not 1.14.1", all = FALSE)
+  expect_match(
+    out,
+    "Run jlbind::install_library() to rebuild the library, then restart R",
+    fixed = TRUE,
+    all = FALSE
+  )
+})
