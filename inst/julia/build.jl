@@ -285,6 +285,35 @@ JuliaC.compile_products(image)
 # runtime through a relative RUNPATH. Windows has none: the R package puts the
 # bundle's `bin` on the DLL search path before loading.
 const BUNDLE_DIR = joinpath(OUT, "jlbind-bundle")
+
+# JuliaC bundles the libraries of every standard library in the system image of
+# the Julia compiling the library, such as OpenBLAS (36 MB), whether or not the
+# compiled image uses them. This removes the libraries of the standard libraries
+# outside the image's environment (PackageCompiler's `filter_stdlibs`), keeping
+# those the Julia runtime declares it needs. Needs Julia >= 1.14, which declares
+# them; with Julia 1.13 the bundle is left whole.
+function prune_bundle(dir, image)
+    JuliaC._JULIA_DECLARES_RUNTIME_LIBRARIES || return
+    PC = JuliaC.PackageCompiler
+    used = PC.gather_stdlibs_project(PC.create_pkg_context(image.instantiated_project))
+    sysimage = [m.name for m in Base._sysimage_modules]
+    bundled = unique([used; intersect(PC._STDLIBS, sysimage)])
+    names(libs) = Set{String}(basename.(libs))
+    keep = names([
+        JuliaC.runtime_libraries(; codegen = !TRIM);
+        [l for s in used for l in JuliaC.stdlib_libraries(s)]
+    ])
+    unused = [l for s in setdiff(bundled, used) for l in JuliaC.stdlib_libraries(s)]
+    drop = setdiff(names(unused), keep)
+    removed = 0
+    for (root, _, files) in walkdir(dir), f in files
+        f in drop || continue
+        p = joinpath(root, f)
+        removed += islink(p) ? 0 : filesize(p)
+        rm(p)
+    end
+    removed > 0 && println("Removed $(round(removed / 2^20; digits = 1)) MiB of unused libraries from the bundle.")
+end
 rm(BUNDLE_DIR; force = true, recursive = true)
 link = JuliaC.LinkRecipe(;
     image_recipe = image,
@@ -298,6 +327,7 @@ if BUNDLE
         output_dir = BUNDLE_DIR,
         privatize = something(PRIVATIZE, false),
     ))
+    prune_bundle(BUNDLE_DIR, image)
     mv(link.outname, joinpath(OUT, basename(link.outname)); force = true)
     rm(joinpath(OUT, "julia_bindir"); force = true)
 else

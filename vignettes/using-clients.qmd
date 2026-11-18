@@ -140,7 +140,10 @@ in the same R session as the clients it conflicts with.
 
 Each private library runs Julia separately, at a cost:
 
-- It takes more disk space: the bundled runtime adds about 60 to 80 MB.
+- It takes more disk space: the bundled runtime adds about 25 MB, or about 85 MB
+  for a client whose dependencies include `LinearAlgebra`, which brings OpenBLAS
+  ([Libraries for people without Julia](#libraries-for-people-without-julia)
+  says how to remove more by hand).
 - It takes more memory, with its own Julia heap and threads.
 - Julia objects that `pkgB` returns (such as the references from
   [`RRef`](technical-details.html#julia-objects-in-r)) work with the functions
@@ -267,20 +270,25 @@ Give them the whole directory, built on the same operating system and CPU
 architecture as theirs. Then they should set `JLBIND_LIBRARY` to the library in
 it before loading them.
 
-The size depends on how much of the runtime you keep. Julia's whole runtime
-includes libraries that many packages never use, such as OpenBLAS. These sizes
-are for the whole directory, with `cpu_target = "generic"` on the computer
-above, for CausalStructures.jl and for a tiny package:
+A bundle holds the runtime libraries Julia declares it needs, and those of the
+standard libraries in the packages' Julia environment. With Julia 1.14 or later,
+jlbind leaves out the other standard libraries' libraries that JuliaC copies,
+such as OpenBLAS (36 MB) for packages whose environment has no `LinearAlgebra`.
+These sizes are for the whole directory, with `cpu_target = "generic"` on the
+computer above with a development build of Julia 1.15, for CausalStructures.jl
+(whose dependencies include `LinearAlgebra`) and for a tiny package:
 
   | Library                     | CausalStructures.jl | Tiny package |
   | --------------------------- | ------------------: | -----------: |
-  | Not bundled (needs Julia)   |              8.8 MB |       2.0 MB |
-  | Bundled                     |               87 MB |        68 MB |
-  | Bundled and removed by hand |               15 MB |       8.9 MB |
+  | Not bundled (needs Julia)   |               11 MB |       2.0 MB |
+  | Bundled                     |               85 MB |        29 MB |
+  | Bundled and removed by hand |               17 MB |       8.8 MB |
 
 To get the last row, delete `jlbind-bundle/share`, and everything in
 `jlbind-bundle/lib` and `jlbind-bundle/lib/julia` except `libjulia`,
 `libjulia-internal`, `libunwind`, `libz`, `libzstd`, `libatomic`, `libgcc_s` and
-`libopenlibm`, then run `strip` on the library. jlbind doesn't do this for you,
-because a package can need more of them; one using `LinearAlgebra` needs
-OpenBLAS, for example. Test every package after removing anything.
+`libopenlibm`, then run `strip` on the library. Julia opens the other libraries
+when a package first uses them, so a package can need more of them: one calling
+`LinearAlgebra` needs OpenBLAS, and one using regular expressions needs
+`libpcre2-8`. A call that needs a removed library gives an error that names it.
+Test every package after removing anything.

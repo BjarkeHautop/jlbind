@@ -108,6 +108,9 @@ Three layers, spread across R, Julia and C:
   relative RUNPATH (on Windows, `.add_julia_bindir()` puts it on the PATH).
   `--privatize=<salt>` (from `.salt()`) also has JuliaC rename the bundled
   runtime's symbols, so the library loads alongside others (Linux/macOS only).
+  `prune_bundle()` removes the libraries JuliaC bundles for stdlibs that are
+  only in the compiling Julia's system image (e.g. OpenBLAS), not in the image's
+  environment (Julia >= 1.14).
 - **R side (`R/`)** — `library.R`: `install_library()` / `build_library()`
   (finds clients, runs `build.jl`, stores the library under
   `R_user_dir("jlbind", "data")/library/` with the client versions and binding

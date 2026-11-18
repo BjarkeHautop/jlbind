@@ -22,9 +22,9 @@ library](using-clients.html#private-libraries) with its own copy of the runtime
 used in the same R session.
 
 A private library is the user's choice and costs disk space and memory, so write
-your client to work in the shared library. On Linux with Julia 1.14, a private
-library takes 60 to 80 MB for the bundled runtime, and keeps its own
-garbage-collected heap and threads.
+your client to work in the shared library. On Linux, a private library takes
+about 25 MB for the bundled runtime (85 MB with `LinearAlgebra`, for OpenBLAS),
+and keeps its own garbage-collected heap and threads.
 
 ## What `use_jlbind()` adds
 
