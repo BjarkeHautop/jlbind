@@ -1,7 +1,18 @@
 # A library directory as .build() leaves it, for the clients in `built` (a
 # .client_table()), built with `julia`.
-fake_library <- function(built, julia = "1.14.0", bindir = R.home()) {
-  dir <- withr::local_tempdir(.local_envir = parent.frame())
+# A library built from the clients `built`, in `dir`; a private one with the
+# salt `private`.
+fake_library <- function(
+  built,
+  julia = "1.14.0",
+  bindir = R.home(),
+  dir = NULL,
+  private = ""
+) {
+  if (is.null(dir)) {
+    dir <- withr::local_tempdir(.local_envir = parent.frame())
+  }
+  dir.create(dir, recursive = TRUE, showWarnings = FALSE)
   file.create(file.path(dir, .library_file()))
   write.dcf(
     data.frame(
@@ -18,7 +29,8 @@ fake_library <- function(built, julia = "1.14.0", bindir = R.home()) {
       Julia = julia,
       Built = "2026-10-01 12:00:00 UTC",
       Trim = TRUE,
-      Develop = ""
+      Develop = "",
+      Private = private
     ),
     file.path(dir, "build")
   )
@@ -227,4 +239,48 @@ test_that("a bundle is stale only for `bundle`, not for the installed Julia", {
     "built as a bundle"
   )
   expect_equal(.stale_reasons(dir, clients, "1.14.1"), character())
+})
+
+test_that("a stale library from install_library() is rebuilt with it", {
+  local_state()
+  withr::local_envvar(
+    R_USER_DATA_DIR = withr::local_tempdir(),
+    JLBIND_LIBRARY = NA
+  )
+  clients <- fake_clients(c("a", "b"))
+  shared <- fake_library(clients[1, ], dir = .library_dir())
+  fake_library(clients[2, ], "1.14.1", dir = .private_dir("b"), private = "jlb")
+  local_mocked_bindings(
+    jlbind_clients = function(lib.loc = NULL) clients,
+    .julia_version = function(julia) package_version("1.14.1"),
+    .object_count = function(lib) 0
+  )
+  rebuild <- "Run jlbind::install_library() to rebuild the library"
+
+  # The shared library is stale, and loaded, as once a client has bound to it.
+  .state$dll <- list(name = "jlbind")
+  .state$path <- file.path(shared, .library_file())
+  out <- capture.output(jlbind_sitrep("my/julia"))
+  expect_match(out, "built with Julia 1.14.0, not 1.14.1", all = FALSE)
+  expect_match(
+    out,
+    paste0(rebuild, ", then restart R"),
+    fixed = TRUE,
+    all = FALSE
+  )
+
+  # Only the private library is stale.
+  .state$dll <- NULL
+  .state$path <- NULL
+  fake_library(clients[1, ], "1.14.1", dir = shared)
+  fake_library(clients[2, ], dir = .private_dir("b"), private = "jlb")
+  out <- capture.output({
+    report <- jlbind_sitrep("my/julia")
+  })
+  expect_equal(
+    report$clients$library[[2]],
+    file.path(.private_dir("b"), .library_file())
+  )
+  expect_match(out, rebuild, fixed = TRUE, all = FALSE)
+  expect_no_match(out, "build_library()", fixed = TRUE)
 })
