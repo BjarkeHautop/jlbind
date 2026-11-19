@@ -33,8 +33,20 @@
 # local directory, or a git URL with an optional `#<rev>`, as for a pull request
 # not yet released (such as Windows support for `--privatize`).
 
+import Libdl
 import Pkg
 import TOML
+
+# R on Windows starts programs through their 8.3 short path (`JULIA~1`), which
+# the loaded libjulia keeps. JuliaC places bundled libraries by their path
+# relative to libjulia's directory, so with the long paths Julia lists them by,
+# they would all land in `bin/julia`, where neither the loader nor `--privatize`
+# finds them. Run again through the long path (`Sys.BINDIR`), once.
+if Sys.iswindows() && !haskey(ENV, "JLBIND_LONG_PATH") &&
+        dirname(Libdl.dlpath("libjulia")) != Sys.BINDIR
+    cmd = `$(Base.julia_cmd()) $(PROGRAM_FILE) $ARGS`
+    exit(something(run(ignorestatus(addenv(cmd, "JLBIND_LONG_PATH" => "1"))).exitcode, 1))
+end
 
 # Pkg's output is captured and shown only if it fails other than by
 # conflicting [compat] bounds, which choose_clients() reports itself, so a
