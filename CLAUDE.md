@@ -137,12 +137,12 @@ jlbind update. `R/jlbind-wrappers.R` defines `.jlbind_module`, `.jlbind_entries`
 `.External(.jlbind$.call, .jlbind$<name>, args...)`. `bind_client()`
 (`.set_entries()`) fills `.jlbind` with external pointers to `<Module>_<name>`
 from `jlbind_entries()` in `src/call.c` (null ones while unbound, which give the
-"not available" error); the symbols are looked up in R through the library's
-`DLLInfo` (`.dll_symbols()`), since every library has the DLL name `jlbind`, and
-`.call` with the address of `jlbind_call()`, which passes the arguments as an
-array and raises a `jlbind_error` as an R error. `.call` is stored as the bare
-address, not a `NativeSymbolInfo`, because R CMD check flags a client's calls to
-another package's `NativeSymbolInfo`.
+"not available" error), which looks the symbols up with `dlsym`/`GetProcAddress`
+on the handle of the library's `DLLInfo` (`.dll_entries()`), since every library
+has the DLL name `jlbind`, and `.call` with the address of `jlbind_call()`,
+which passes the arguments as an array and raises a `jlbind_error` as an R
+error. `.call` is stored as the bare address, not a `NativeSymbolInfo`, because
+R CMD check flags a client's calls to another package's `NativeSymbolInfo`.
 
 jlbind's own `src/state.c` has the ALTREP class that lets a reference be saved
 (see `r_saved_by` in `refs.jl`): R must find the class when loading a file,
