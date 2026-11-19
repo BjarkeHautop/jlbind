@@ -14,9 +14,6 @@ jlbind compiles Julia code into a shared library with
 no overhead (see
 [Performance](https://bjarkehautop.github.io/jlbind/vignettes/articles/performance.html)).
 
-Several R packages using jlbind can be installed side by side: their Julia code
-is compiled into one shared library.
-
 ## Installation
 
 ```r
@@ -46,7 +43,9 @@ take a few minutes. Run it again whenever you install or update one of them.
 
 See [Using packages built on
 jlbind](https://bjarkehautop.github.io/jlbind/vignettes/using-clients.html) for
-threads, troubleshooting and Julia dependency versions.
+threads, troubleshooting and what to do when packages conflict, and [Build
+options](https://bjarkehautop.github.io/jlbind/vignettes/build-options.html) for
+CPU targets and libraries for computers without Julia.
 
 ## Writing a package that uses jlbind
 
@@ -69,8 +68,8 @@ that calls it.
 
 See [Get started with
 jlbind](https://bjarkehautop.github.io/jlbind/vignettes/jlbind.html) for a
-walkthrough, and [Technical
-details](https://bjarkehautop.github.io/jlbind/vignettes/technical-details.html)
+walkthrough, and [Writing
+bindings](https://bjarkehautop.github.io/jlbind/vignettes/technical-details.html)
 for types, errors and compilation constraints.
 
 ## Packages using jlbind

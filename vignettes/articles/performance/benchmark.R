@@ -9,7 +9,11 @@
 #
 #   Rscript vignettes/articles/performance/benchmark.R
 #
-# and commit the CSV files it writes next to this script.
+# and commit the CSV files it writes next to this script. Name interfaces to
+# rerun only those, keeping the other rows of the CSV files, with the Julia
+# they record:
+#
+#   Rscript vignettes/articles/performance/benchmark.R jlbind
 
 out_dir <- "vignettes/articles/performance"
 startup_reps <- 10
@@ -46,6 +50,22 @@ interfaces <- list(
     list(greet = juliaFun("greet"), shift = juliaFun("shift"))
   }
 )
+
+only <- commandArgs(trailingOnly = TRUE)
+if (length(only)) {
+  stopifnot(all(only %in% names(interfaces)))
+  interfaces <- interfaces[only]
+  old_versions <- read.csv(file.path(out_dir, "versions.csv"))
+  julia <- sub(
+    "^julia version ",
+    "",
+    system2(Sys.getenv("JULIA", "julia"), "--version", stdout = TRUE)
+  )
+  recorded <- old_versions$value[old_versions$item == "Julia"]
+  if (julia != recorded) {
+    stop("Julia is ", julia, ", but the other results used ", recorded, ".")
+  }
+}
 
 # Time from loading the interface to the first result, in a fresh R process
 # (R's own startup excluded).
@@ -123,6 +143,21 @@ versions <- callr::r(function() {
     )
   )
 })
+
+# Keeps the rows of the interfaces not rerun from the CSV file `name`.
+merged <- function(new, name) {
+  old <- read.csv(file.path(out_dir, name))
+  out <- rbind(old[!old$interface %in% names(interfaces), ], new)
+  out[order(match(out$interface, c("jlbind", "JuliaCall", "JuliaConnectoR"))), ]
+}
+
+if (length(only)) {
+  startup_times <- merged(startup_times, "startup.csv")
+  call_times <- merged(call_times, "calls.csv")
+  rerun <- versions$item %in% names(interfaces)
+  old_versions$value[rerun] <- versions$value[rerun]
+  versions <- old_versions
+}
 
 write.csv(startup_times, file.path(out_dir, "startup.csv"), row.names = FALSE)
 write.csv(call_times, file.path(out_dir, "calls.csv"), row.names = FALSE)

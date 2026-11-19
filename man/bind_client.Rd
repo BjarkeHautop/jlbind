@@ -20,15 +20,19 @@ another version of the package, the package isn't bound and its functions
 give an error; \code{\link[=check_bound]{check_bound()}} says why.
 }
 \details{
-The library is the one from \code{\link[=install_library]{install_library()}}, unless \code{JLBIND_LIBRARY}
-names another, or the first package bound was loaded with
-\code{pkgload::load_all()} and has one from \code{\link[=build_library]{build_library()}}. That library is
+The library is the shared one from \code{\link[=install_library]{install_library()}}, unless
+\code{JLBIND_LIBRARY} names another, the package was loaded with
+\code{pkgload::load_all()} and has one from \code{\link[=build_library]{build_library()}}, or
+\code{\link[=install_library]{install_library()}} built a private library for it. A development library
+is used if it is private or the package is the first one bound, and it is
 rebuilt as the package loads if it is out of date with the package's
 sources, as when its Julia code has changed. A library that has already
-loaded cannot be replaced, so after a change, restart R.
+loaded cannot be replaced, so after a change, restart R. A private library
+loads alongside the shared one.
 
 To run Julia with more threads, set \code{JULIA_NUM_THREADS} (a number or
-\code{"auto"}) before loading the first package that uses jlbind.
+\code{"auto"}) before loading the first package that uses jlbind. Each library
+starts that many.
 }
 \examples{
 \dontrun{

@@ -25,7 +25,8 @@ test_that("install_library() leaves an up-to-date library alone", {
       julia,
       cpu_target,
       julia_args,
-      bundle
+      bundle,
+      ...
     ) {
       options <<- list(
         cpu_target = cpu_target,
@@ -105,7 +106,8 @@ test_that("install_library() can be cancelled", {
       julia,
       cpu_target,
       julia_args,
-      bundle
+      bundle,
+      ...
     ) {
       FALSE
     },
@@ -138,7 +140,8 @@ test_that("install_library() replaces the old library and prunes stale ones", {
       julia,
       cpu_target,
       julia_args,
-      bundle
+      bundle,
+      ...
     ) {
       FALSE
     },
@@ -153,7 +156,8 @@ test_that("install_library() replaces the old library and prunes stale ones", {
       develop,
       cpu_target,
       julia_args,
-      bundle
+      bundle,
+      ...
     ) {
       built <<- list(clients = clients$package, versions = versions)
       dir.create(out)
@@ -189,7 +193,8 @@ test_that("install_library() keeps the old library if the new one fails", {
       julia,
       cpu_target,
       julia_args,
-      bundle
+      bundle,
+      ...
     ) {
       FALSE
     },
@@ -204,7 +209,8 @@ test_that("install_library() keeps the old library if the new one fails", {
       develop,
       cpu_target,
       julia_args,
-      bundle
+      bundle,
+      ...
     ) {
       NULL
     }
@@ -246,17 +252,28 @@ test_that("remove_library() deletes the library and the builds next to it", {
 })
 
 test_that("remove_library() says a loaded library goes on working", {
-  local_state()
-  dir <- file.path(withr::local_tempdir(), "library")
-  dir.create(dir)
-  local_mocked_bindings(.library_dir = function() dir)
-  .state$path <- file.path(dir, .library_file())
-  if (.Platform$OS.type == "windows") {
-    expect_error(remove_library(ask = FALSE), "Restart R")
-    expect_true(dir.exists(dir))
-  } else {
-    expect_message(remove_library(ask = FALSE), "keep working")
+  withr::local_envvar(R_USER_DATA_DIR = withr::local_tempdir())
+  expect_loaded <- function() {
+    dir.create(.library_dir(), recursive = TRUE, showWarnings = FALSE)
+    if (.Platform$OS.type == "windows") {
+      expect_error(remove_library(ask = FALSE), "Restart R")
+      expect_true(dir.exists(.library_dir()))
+    } else {
+      expect_message(remove_library(ask = FALSE), "keep working")
+    }
   }
+  local_state()
+  .state$path <- file.path(.library_dir(), .library_file())
+  expect_loaded()
+
+  # Only a private library is loaded.
+  .state$path <- NULL
+  dir.create(.private_dir("b"), recursive = TRUE)
+  private <- new.env()
+  private$dll <- list(name = "jlbind")
+  private$path <- file.path(.private_dir("b"), .library_file())
+  .state$private <- list(private)
+  expect_loaded()
 })
 
 test_that("only old libraries and abandoned builds are pruned", {
@@ -284,7 +301,8 @@ test_that("build_library() builds a source package into its .jlbind/", {
       develop,
       cpu_target,
       julia_args,
-      bundle
+      bundle,
+      ...
     ) {
       args <<- list(package = clients$package, out = out)
       dir.create(out)

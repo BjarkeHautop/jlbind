@@ -9,27 +9,24 @@ vignette: >
 jlbind lets R packages call Julia code compiled ahead of time into a shared
 library, without a Julia session. This vignette explains how that library works
 and how to use an R package built with jlbind. To add Julia functions to your
-own R package, see [Get started with jlbind](jlbind.html) and [Technical
-details](technical-details.html). For how jlbind compares with other ways of
+own R package, see [Get started with jlbind](jlbind.html) and [Writing
+bindings](technical-details.html). For how jlbind compares with other ways of
 calling Julia from R, see
 [Performance](https://bjarkehautop.github.io/jlbind/vignettes/articles/performance.html).
 
 ## How it works
 
-An R process can load only one compiled Julia library. Julia has one runtime per
-process, and that runtime uses a single compiled image. If two R packages loaded
-separate copies of the library, they could conflict and crash the R session.
+Julia runs one runtime per process, with one compiled image, so the clients
+loaded in an R session (the R packages that use jlbind) share one compiled
+library. jlbind builds that library for each user, combining the Julia code of
+all installed clients. When you run `install_library()`, jlbind finds the
+installed clients, compiles their binding packages into one library, and saves
+it under `tools::R_user_dir("jlbind", "data")`. Loading a client loads that
+library and connects the client to it.
 
-To avoid this, jlbind builds one shared library for each user, combining the
-Julia code of all installed R packages that use jlbind (*clients*). When you run
-`install_library()`, jlbind finds the installed clients, compiles their binding
-packages into one library, and saves it under
-`tools::R_user_dir("jlbind", "data")`. Loading a client loads that library and
-connects the client to it.
-
-A client can only be bound to a library built from the version of that client
-currently installed. If you update a package without rebuilding the library, its
-functions will report that the library needs to be rebuilt.
+A client is bound to a library built from the version of that client currently
+installed. If you update a package without rebuilding the library, its functions
+report that the library needs to be rebuilt.
 
 ## Using a package built on jlbind
 
@@ -86,7 +83,7 @@ variable or by passing `julia =` to `install_library()`.
 
 The library is compiled for the building machine's CPU, and jlbind won't load it
 on another. If one R library is used from computers with different CPUs, see
-[Build options](#build-options).
+[CPU target](build-options.html#cpu-target).
 
 ### Threads
 
@@ -99,30 +96,73 @@ JULIA_NUM_THREADS=auto # or a number, such as 4
 ```
 
 The thread count is fixed when the library is loaded, so restart R after
-changing it.
+changing it. Each [private library](#private-libraries) starts its own threads,
+as many as `JULIA_NUM_THREADS` says.
 
-### Dependency versions
+## When clients conflict
 
-All clients share a single set of Julia dependencies. By default, the build
-starts from the versions in the `Manifest.toml` of the first client that has
-one, and keeps them for the other clients where their `[compat]` bounds allow.
-Pass `versions = "compat"` to ignore the manifests and let Julia's resolver
-choose versions from the clients' `[compat]` bounds alone.
+All clients in the shared library use one set of Julia dependencies. By default,
+the build starts from the versions in the `Manifest.toml` of the first client
+that has one, and keeps them for the other clients where their `[compat]` bounds
+allow. Pass `versions = "compat"` to ignore the manifests and let Julia's
+resolver choose versions from the clients' `[compat]` bounds alone.
 
 If a client's `[compat]` bounds conflict with those of the clients listed before
-it by `jlbind_clients()`, it is left out of the build; `check_bound()` says
-which clients it conflicts with.
+it by `jlbind_clients()`, the build leaves it out; `check_bound()` says which
+clients it conflicts with. You then have three options:
 
-You can control which clients are included by specifying them explicitly:
+  | Option                                                          | Clients in one R session                    | Disk space                     | Systems        |
+  | ----------------------------------------------------------      | ---------------------------------------     | -----------------------------  | -------------- |
+  | [Choose the clients](#choose-the-clients)                       | Those in the shared library                 | One library                    | All            |
+  | [Private library](#private-libraries)                           | All                                         | About 30–85 MB more per client | Linux, macOS   |
+  | [Separate libraries](#separate-libraries-for-separate-sessions) | Those in the library chosen for the session | One library each               | All            |
+
+### Choose the clients
+
+Name the clients to build the shared library from, in the order to resolve them:
 
 ```r
 jlbind::install_library(packages = c("pkgA", "pkgC"))
 ```
 
-::: {.callout-important collapse="true" title="Clients with incompatible dependencies cannot share a library"}
-If you need both clients but never need them in the same R session, build a
-separate library for each. Set `JLBIND_LIBRARY` before loading the client to
-select the library for that session.
+### Private libraries
+
+On Linux and macOS[^windows], a client can get a library of its own:
+
+```r
+jlbind::install_library(private = "pkgB")
+```
+
+[^windows]: JuliaC gives a library a private Julia runtime on Linux and macOS.
+    Windows support is in progress in
+    [JuliaC.jl#151](https://github.com/JuliaLang/JuliaC.jl/pull/151).
+
+This builds the shared library from the other clients, and a private library for
+`pkgB`, with its dependencies resolved for it alone. A private library has its
+own copy of the Julia runtime, whose symbols are renamed (JuliaC's
+`--privatize`), so it loads alongside the shared library and any other private
+ones, and you can use `pkgB` in the same R session as the clients it conflicts
+with.
+
+Each private library runs Julia separately, which costs:
+
+- Disk space, for its copy of the runtime: see the [sizes of bundled
+  runtimes](build-options.html#bundle-sizes).
+- Memory, for its own Julia heap and [threads](#threads).
+- Sharing: Julia objects that `pkgB` returns (such as the references from
+  [`RRef`](technical-details.html#julia-objects-in-r)) work with the functions
+  of `pkgB` only. A reference that was saved and loaded again works with any
+  package that supports it.
+
+Later builds keep a client's private library, so `install_library()` alone
+rebuilds both. To put every client back into the shared library, pass
+`private = character()`. `jlbind_sitrep()` lists the private libraries.
+
+### Separate libraries for separate sessions
+
+Clients that you use in different R sessions can each have a separate library.
+Set `JLBIND_LIBRARY` before loading the client to select the library for that
+session.
 
 For example, build the two libraries:
 
@@ -138,117 +178,9 @@ Then select one in an R session:
 Sys.setenv(JLBIND_LIBRARY = "~/jlbind/pkgA/jlbind.so")
 library(pkgA)
 ```
-:::
 
 ## Build options
 
-jlbind compiles the library with these options, which keep it small and fast.
-Most users don't need to change them.
-
-  | Option                | What it does                       | How to change it                                                                                                                                                         |
-  | --------------------- | ---------------------------------- | ----------------                                                                                                                                                         |
-  | `--output-lib`        | Builds a shared library            | Fixed                                                                                                                                                                    |
-  | `--compile-ccallable` | Exports the clients' functions     | Fixed                                                                                                                                                                    |
-  | `--trim=safe`         | Removes code that can't be reached | One client setting [`Config/jlbind/trim: false`](technical-details.html#compilation-constraints-trimming) turns it off for the whole library, which makes it much larger |
-  | `--cpu-target=native` | Compiles for this computer's CPU   | `cpu_target` or `JULIA_CPU_TARGET`                                                                                                                                       |
-  | `-g0`                 | Leaves out debug info              | `julia_args` or `JLBIND_JULIA_ARGS`                                                                                                                                      |
-
-When trimming, JuliaC also passes `--experimental`, `--strip-ir` and
-`--strip-metadata`.
-
-### CPU target
-
-Use `cpu_target` if one R library is used from computers with different CPUs,
-such as cluster nodes sharing a home directory:
-
-```r
-jlbind::install_library(cpu_target = "generic")
-```
-
-This table compares the options on an x86-64 Linux computer (AMD Zen 4) with
-Julia 1.14. Library size is the compiled library file for
-[CausalStructures.jl](https://github.com/BjarkeHautop/CausalStructures.jl), a
-package of graph algorithms; the Julia runtime it loads adds about 6 MB. Run
-times are relative to `"native"`, so 2× takes twice as long. Graph code is
-CausalStructures.jl, and the other columns are small numeric kernels. Results
-will differ for other packages and computers. The [benchmark
-code](https://github.com/BjarkeHautop/jlbind/tree/main/experiments/library-size)
-is in the jlbind repository.
-
-  | `cpu_target`                 | Runs on           | Library size | Graph code | SIMD loops | `exp`/`sin` |
-  | --------------------         | ----------------- | -----------: | ---------: | ---------: | ----------: |
-  | `"native"` (default)         | This CPU model    |       8.9 MB |         1× |         1× |          1× |
-  | `"generic"`                  | Any CPU           |       8.8 MB |         1× |   1.7–2.8× |        1.1× |
-  | Several targets              | The CPUs you list |        21 MB |   1.0–1.1× |   1.0–1.1× |        0.9× |
-  | `"generic;native,clone_all"` | This CPU model    |      13.7 MB |         1× |         1× |        2.1× |
-
-Sorting and a scalar ODE solver took about the same time with all of them.
-
-The several targets measured here are those of Julia's own system image, which
-keep numeric code fast across x86-64 CPUs:
-
-```r
-jlbind::install_library(
-  cpu_target = paste(
-    "generic",
-    "sandybridge,-xsaveopt,clone_all",
-    "haswell,-rdrnd,base(1)",
-    "x86-64-v4,-rdrnd,base(1)",
-    sep = ";"
-  )
-)
-```
-
-Build options count towards whether the library is up to date, so calling
-`install_library()` without them rebuilds the library with the defaults. To keep
-a target for every build, set `JULIA_CPU_TARGET`, for example in your
-`.Renviron` file:
-
-```sh
-JULIA_CPU_TARGET=generic
-```
-
-### Julia arguments
-
-For advanced use, `julia_args` passes extra options to Julia when it compiles
-the library, such as `"-O3"`, or `"-g1"` to keep the debug info that jlbind
-removes with `-g0`. You can also set them in `JLBIND_JULIA_ARGS`, separated by
-spaces. They can't change the options jlbind relies on: `--trim`, `--output-*`
-and `--compile-ccallable`.
-
-### Libraries for people without Julia
-
-The library loads the runtime of the Julia that built it, so that Julia must
-stay installed. With `bundle = TRUE`, jlbind copies Julia's runtime next to the
-library, using JuliaC's `--bundle`, so that it runs without Julia:
-
-```r
-jlbind::build_library(
-  c("pkgA", "pkgB"),
-  "~/jlbind/bundle",
-  cpu_target = "generic",
-  bundle = TRUE
-)
-```
-
-Give them the whole directory, built on the same operating system and CPU
-architecture as theirs. Then they should set `JLBIND_LIBRARY` to the library in
-it before loading them.
-
-The size depends on how much of the runtime you keep. Julia's whole runtime
-includes libraries that many packages never use, such as OpenBLAS. These sizes
-are for the whole directory, with `cpu_target = "generic"` on the computer
-above, for CausalStructures.jl and for a tiny package:
-
-  | Library                     | CausalStructures.jl | Tiny package |
-  | --------------------------- | ------------------: | -----------: |
-  | Not bundled (needs Julia)   |              8.8 MB |       2.0 MB |
-  | Bundled                     |               87 MB |        68 MB |
-  | Bundled and removed by hand |               15 MB |       8.9 MB |
-
-To get the last row, delete `jlbind-bundle/share`, and everything in
-`jlbind-bundle/lib` and `jlbind-bundle/lib/julia` except `libjulia`,
-`libjulia-internal`, `libunwind`, `libz`, `libzstd`, `libatomic`, `libgcc_s` and
-`libopenlibm`, then run `strip` on the library. jlbind doesn't do this for you,
-because a package can need more of them; one using `LinearAlgebra` needs
-OpenBLAS, for example. Test every package after removing anything.
+[Build options](build-options.html) covers which CPUs to compile for, extra
+Julia arguments, and bundling the Julia runtime so that a library runs on a
+computer without Julia.

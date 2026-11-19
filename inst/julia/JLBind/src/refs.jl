@@ -147,6 +147,22 @@ function _tag()
     return _TAG[]
 end
 
+# The runtime that made a reference, as the pointer's protected value: a symbol
+# naming this runtime, unique in the process. Each library with a private Julia
+# runtime has its own registry, whose handles mean nothing to another, so a
+# reference from another runtime is rejected rather than looked up here. The
+# tag stays the same for all of them, as a reference that was saved and loaded
+# again has no object yet, and any runtime rebuilds it from its state.
+const _RUNTIME = Ref{SEXP}(C_NULL)
+
+function _runtime()
+    if _RUNTIME[] == C_NULL
+        id = string(UInt(pointer_from_objref(OBJECTS)); base = 16)
+        _RUNTIME[] = ccall(@R(Rf_install), SEXP, (Cstring,), "jlbind_runtime_" * id)
+    end
+    return _RUNTIME[]
+end
+
 _address(x::SEXP) = Int64(UInt(ccall(@R(R_ExternalPtrAddr), Ptr{Cvoid}, (SEXP,), x)))
 
 function _finalize(x::SEXP)::Cvoid
@@ -207,7 +223,7 @@ function _ref_sexp(@nospecialize(x), class::String, package::Union{String,Nothin
     h = _store(x)
     out = protect(ccall(
         @R(R_MakeExternalPtr), SEXP, (Ptr{Cvoid}, SEXP, SEXP),
-        Ptr{Cvoid}(UInt(h)), _tag(), nil(),
+        Ptr{Cvoid}(UInt(h)), _tag(), _runtime(),
     ))
     _register_finalizer(out)
     if package !== nothing
@@ -231,6 +247,7 @@ function _restored(::Type{T}, x::SEXP, class::String)::T where {T}
             @R(R_SetExternalPtrAddr), Cvoid, (SEXP, Ptr{Cvoid}),
             x, Ptr{Cvoid}(UInt(_store(obj))),
         )
+        ccall(@R(R_SetExternalPtrProtected), Cvoid, (SEXP, SEXP), x, _runtime())
         _register_finalizer(x)
         return obj
     end
@@ -250,7 +267,14 @@ function from_sexp(::Type{RRef{T}}, x::SEXP)::T where {T}
        ccall(@R(R_ExternalPtrTag), SEXP, (SEXP,), x) != _tag()
         throw(ArgumentError("expected a `" * class * "` object"))
     end
-    obj = get(OBJECTS, _address(x), nothing)
+    address = _address(x)
+    address == 0 && return _restored(T, x, class)
+    ccall(@R(R_ExternalPtrProtected), SEXP, (SEXP,), x) == _runtime() ||
+        throw(ArgumentError(
+            "this `" * class * "` object belongs to another of the Julia " *
+            "libraries loaded, which runs separately",
+        ))
+    obj = get(OBJECTS, address, nothing)
     obj === nothing && return _restored(T, x, class)
     obj isa T || throw(ArgumentError("expected a `" * class * "` object"))
     return obj

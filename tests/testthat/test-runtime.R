@@ -218,24 +218,29 @@ test_that("bind_client() records why a client could not be bound", {
   # Without a library, the reason is that it could not be loaded.
   .state$dll <- NULL
   .state$bound <- character()
+  .state$problems <- list()
   .state$problem <- "No library."
   expect_error(check_bound("stats"), "No library.", fixed = TRUE)
 })
 
 test_that("jlbind_call() checks its entry", {
   call <- jlbind_call$address
-  unbound <- .Call(jlbind_entries, NULL, "f", "demo")[[1L]]
+  unbound <- .dll_entries(NULL, "f", "demo")[[1L]]
   expect_error(
     .External(call, unbound, 1),
     'library of demo is not available; run jlbind::check_bound("demo")',
     fixed = TRUE
   )
   expect_error(.External(call, "f", 1), "Not a jlbind entrypoint")
-  # jlbind's own registered routines stand in for library symbols.
+  # jlbind's own DLL and routines stand in for a library and its symbols.
+  dll <- getLoadedDLLs()[["jlbind"]]
   expect_error(
-    .Call(jlbind_entries, "jlbind", c("jlbind_entries", "nope"), "demo"),
+    .dll_entries(dll, c("jlbind_entries", "nope"), "demo"),
     "Symbol 'nope' not found"
   )
+  found <- .dll_entries(dll, "jlbind_entries", "demo")
+  expect_length(found, 1L)
+  expect_false(identical(found[[1L]], unbound))
 })
 
 test_that("bind_client() fills a client's entrypoints", {
@@ -256,7 +261,7 @@ test_that("bind_client() fills a client's entrypoints", {
   )
   # Looked up as M_f and M_g, which jlbind's DLL does not have.
   expect_error(
-    .set_entries(ns, "demo", list(name = "jlbind")),
+    .set_entries(ns, "demo", getLoadedDLLs()[["jlbind"]]),
     "Symbol 'M_f' not found"
   )
 })
@@ -326,7 +331,8 @@ test_that("an out-of-date development library is rebuilt before loading", {
       develop,
       cpu_target,
       julia_args,
-      bundle
+      bundle,
+      ...
     ) {
       built <<- list(
         packages = packages,
@@ -359,7 +365,7 @@ test_that("an out-of-date development library is rebuilt before loading", {
   .state$build <- .read_build(dir)
   .state$excluded <- NULL
   fake_dev_library(src, dir)
-  local_mocked_bindings(.rebuild_hint = function(pkg) "Restart R.")
+  local_mocked_bindings(.rebuild_hint = function(pkg, lib) "Restart R.")
   expect_warning(.refresh_dev_library("demo"), "Julia code changed")
   .state$clients <- .read_clients(dir)
   expect_silent(.refresh_dev_library("demo"))
