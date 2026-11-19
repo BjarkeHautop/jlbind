@@ -544,6 +544,10 @@ bind_client <- function(pkg) {
 #' `is_bound()` returns `TRUE` or `FALSE`. `check_bound()` gives an error that
 #' explains why the package isn't bound.
 #'
+#' Use `is_bound()` to skip what needs the library when it isn't available:
+#' `skip_if_not(jlbind::is_bound("mypkg"))` in tests, and
+#' `@examplesIf jlbind::is_bound("mypkg")` in roxygen examples.
+#'
 #' @param pkg Name of a package that uses jlbind.
 #'
 #' @return `is_bound()`: `TRUE` or `FALSE`. `check_bound()`: `TRUE`

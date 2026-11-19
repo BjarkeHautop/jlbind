@@ -20,6 +20,11 @@ check_bound(pkg)
 \code{is_bound()} returns \code{TRUE} or \code{FALSE}. \code{check_bound()} gives an error that
 explains why the package isn't bound.
 }
+\details{
+Use \code{is_bound()} to skip what needs the library when it isn't available:
+\code{skip_if_not(jlbind::is_bound("mypkg"))} in tests, and
+\verb{@examplesIf jlbind::is_bound("mypkg")} in roxygen examples.
+}
 \examples{
 # Not bound, as no package named mypkg has been loaded
 is_bound("mypkg")

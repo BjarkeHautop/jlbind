@@ -162,9 +162,16 @@ In tests, skip anything that needs the library:
 skip_if_not(jlbind::is_bound("mypkg"))
 ```
 
-In examples, wrap such calls in `if (jlbind::is_bound("mypkg"))`. Then run
-`jlbind::use_jlbind_ci()` to check your package both with and without Julia on
-GitHub Actions.
+In examples, use roxygen's `@examplesIf`:
+
+```r
+#' @examplesIf jlbind::is_bound("mypkg")
+#' x <- my_function(1:3)
+#' x
+```
+
+Then run `jlbind::use_jlbind_ci()` to check your package both with and without
+Julia on GitHub Actions.
 
 ## Next steps
 
