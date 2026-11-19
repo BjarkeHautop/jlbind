@@ -1,7 +1,7 @@
 ---
-title: "Technical details"
+title: "Writing bindings"
 vignette: >
-  %\VignetteIndexEntry{Technical details}
+  %\VignetteIndexEntry{Writing bindings}
   %\VignetteEngine{quarto::html}
   %\VignetteEncoding{UTF-8}
 ---
@@ -14,17 +14,13 @@ read that first.
 jlbind compiles Julia code with
 [JuliaC.jl](https://github.com/JuliaLang/JuliaC.jl). Clients share one library
 and one Julia runtime, so your client shares Julia dependency versions with
-every other client the user has installed. [Using packages built on
-jlbind](using-clients.html) describes how those versions are chosen, what
-happens when clients conflict, and how a user can give a client a [private
-library](using-clients.html#private-libraries) with its own copy of the runtime
-(JuliaC's `--privatize`) or build a separate library for clients that are never
-used in the same R session.
+every other client the user has installed. Keep your `[compat]` bounds as wide
+as your code allows, so that it resolves alongside them.
 
-A private library is the user's choice and costs disk space and memory, so write
-your client to work in the shared library. On Linux, a private library takes
-about 25 MB for the bundled runtime (85 MB with `LinearAlgebra`, for OpenBLAS),
-and keeps its own garbage-collected heap and threads.
+When clients conflict, users can [choose between them, give one a private
+library, or use separate libraries](using-clients.html#when-clients-conflict). A
+private library has its own copy of the Julia runtime, which takes [disk
+space](build-options.html#bundle-sizes) and memory.
 
 ## What `use_jlbind()` adds
 
@@ -124,8 +120,8 @@ Julia dependency versions known to compile with your package. [CRAN's
 policy](https://cran.r-project.org/web/packages/policies.html) asks that
 downloaded libraries be a fixed version rather than the latest.
 
-The build uses the manifest of only the first client that has one (see
-[Dependency versions](using-clients.html#dependency-versions)), so keep your
+The build uses the manifest of only the first client that has one (see [When
+clients conflict](using-clients.html#when-clients-conflict)), so keep your
 `[compat]` bounds accurate too.
 :::
 

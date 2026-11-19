@@ -51,7 +51,7 @@ relies on: \code{--trim}, \verb{--output-*} and \code{--compile-ccallable}. By d
 so that it runs without Julia installed. This makes the library much
 larger, and is only useful for giving a library to people without Julia,
 who set \code{JLBIND_LIBRARY} to it. They also need a \code{cpu_target} other than
-\code{"native"}.}
+\code{"native"}. See \code{vignette("build-options", "jlbind")}.}
 
 \item{private}{Names of packages among \code{packages} to give a library of
 their own, with a private Julia runtime, on Linux and macOS. By default,
@@ -74,16 +74,11 @@ can take a few minutes.
 All packages in the shared library share one Julia environment. By default,
 the dependencies get the versions in the first package's \code{Manifest.toml}.
 If two packages conflict, the one listed later by \code{\link[=jlbind_clients]{jlbind_clients()}} is left
-out, and \code{\link[=check_bound]{check_bound()}} says why. See \code{vignette("using-clients", "jlbind")}
-for details.
-
-A package listed in \code{private} instead gets a library of its own, with its
-own copy of the Julia runtime, which loads alongside the shared library.
-Its Julia dependencies are then resolved for it alone, so it works with
-packages it conflicts with. Each private library takes more disk space and
-memory, and runs Julia separately: its Julia objects work only with the
-functions of its own package. Packages keep their private library on later
-builds until \code{private} says otherwise.
+out, and \code{\link[=check_bound]{check_bound()}} says why. To use it anyway, give it a library of
+its own with \code{private}, which has its own copy of the Julia runtime and
+takes more disk space and memory, or build it into a separate library with
+\code{\link[=build_library]{build_library()}} for separate R sessions. See
+\code{vignette("using-clients", "jlbind")} for details.
 
 A library is rebuilt only if it is out of date: built from other versions
 of the packages or their Julia code, by another version of jlbind or Julia,
@@ -92,7 +87,9 @@ new one.
 
 The library is compiled for this computer's CPU, and jlbind won't load it on
 another. If one R library is used from computers with different CPUs, as on
-a cluster, use \code{cpu_target = "generic"}.
+a cluster, use \code{cpu_target = "generic"}, or name CPUs they all support, such
+as \code{"x86-64-v3"}. See \code{vignette("build-options", "jlbind")} for how
+these compare.
 }
 \examples{
 \dontrun{

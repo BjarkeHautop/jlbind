@@ -168,7 +168,7 @@ GitHub Actions.
 
 ## Next steps
 
-- [Technical details](technical-details.html) covers what you'll likely need
+- [Writing bindings](technical-details.html) covers what you'll likely need
   next: the [types](technical-details.html#types) R and Julia can exchange,
   [keeping Julia objects in R](technical-details.html#julia-objects-in-r),
   [errors](technical-details.html#errors), the [compilation
@@ -177,7 +177,8 @@ GitHub Actions.
   libraries](technical-details.html#development-libraries), including how to pin
   Julia dependency versions.
 - [Using packages built on jlbind](using-clients.html) describes what your users
-  see, including threads and how clients share Julia dependencies.
+  see, including threads, how clients share Julia dependencies, and [what users
+  can do when clients conflict](using-clients.html#when-clients-conflict).
 - [`hellojl`](https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/hellojl)
   and
   [`counterjl`](https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/counterjl)
