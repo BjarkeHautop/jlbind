@@ -330,11 +330,15 @@ visitors who prefer it, before Quarto reads the stored choice.
     <ul class="dropdown-menu" aria-labelledby="nav-menu-articles">
 <li>
     <a class="dropdown-item" href="../vignettes/technical-details.html">
- <span class="dropdown-text">Technical details</span></a>
+ <span class="dropdown-text">Writing bindings</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../vignettes/using-clients.html">
  <span class="dropdown-text">Using packages built on jlbind</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/build-options.html">
+ <span class="dropdown-text">Build options</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
@@ -398,8 +402,9 @@ visitors who prefer it, before Quarto reads the stored choice.
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">develop =</span> <span class="cn">NULL</span>,</span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">cpu_target =</span> <span class="cn">NULL</span>,</span>
 <span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">julia_args =</span> <span class="cn">NULL</span>,</span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">bundle =</span> <span class="cn">FALSE</span></span>
-<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">bundle =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>  <span class="at">private =</span> <span class="cn">NULL</span></span>
+<span id="cb1-12"><a href="#cb1-12" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 </section><section id="arguments" class="level2"><h2 class="anchored" data-anchor-id="arguments">Arguments</h2>
@@ -473,15 +478,23 @@ For advanced use: extra Julia command-line options for compiling the library, su
 <code>bundle</code>
 </td>
 <td>
-If <code>TRUE</code>, copy the Julia runtime next to the library, so that it runs without Julia installed. This makes the library much larger, and is only useful for giving a library to people without Julia, who set <code>JLBIND_LIBRARY</code> to it. They also need a <code>cpu_target</code> other than <code>"native"</code>.
+If <code>TRUE</code>, copy the Julia runtime next to the shared library, so that it runs without Julia installed. This makes the library much larger, and is only useful for giving a library to people without Julia, who set <code>JLBIND_LIBRARY</code> to it. They also need a <code>cpu_target</code> other than <code>"native"</code>. See <code><a href="../vignettes/build-options.html">vignette("build-options", "jlbind")</a></code>.
+</td>
+</tr>
+<tr>
+<td>
+<code>private</code>
+</td>
+<td>
+Names of packages among <code>packages</code> to give a library of their own, with a private Julia runtime, on Linux and macOS. By default, the packages that already have one. <code>character()</code> puts every package in the shared library.
 </td>
 </tr>
 </tbody></table></section><section id="details" class="level2"><h2 class="anchored" data-anchor-id="details">Details</h2>
-<p>All packages share one Julia environment. By default, the dependencies get the versions in the first package’s <code>Manifest.toml</code>. If two packages conflict, the one listed later by <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./jlbind_clients.html">jlbind_clients</a>()</code> is left out, and <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="./is_bound.html">check_bound</a>()</code> says why. See <code><a href="../vignettes/using-clients.html">vignette("using-clients", "jlbind")</a></code> for details.</p>
-<p>The library is rebuilt only if it is out of date: built from other versions of the packages or their Julia code, by another version of jlbind or Julia, or with other options. If a library is already loaded, restart R to use the new one.</p>
-<p>The library is compiled for this computer’s CPU, and jlbind won’t load it on another. If one R library is used from computers with different CPUs, as on a cluster, use <code>cpu_target = "generic"</code>.</p>
+<p>All packages in the shared library share one Julia environment. By default, the dependencies get the versions in the first package’s <code>Manifest.toml</code>. If two packages conflict, the one listed later by <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./jlbind_clients.html">jlbind_clients</a>()</code> is left out, and <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="./is_bound.html">check_bound</a>()</code> says why. To use it anyway, give it a library of its own with <code>private</code>, which has its own copy of the Julia runtime and takes more disk space and memory, or build it into a separate library with <code><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="./build_library.html">build_library</a>()</code> for separate R sessions. See <code><a href="../vignettes/using-clients.html">vignette("using-clients", "jlbind")</a></code> for details.</p>
+<p>A library is rebuilt only if it is out of date: built from other versions of the packages or their Julia code, by another version of jlbind or Julia, or with other options. If a library is already loaded, restart R to use the new one.</p>
+<p>The library is compiled for this computer’s CPU, and jlbind won’t load it on another. If one R library is used from computers with different CPUs, as on a cluster, use <code>cpu_target = "generic"</code>, or name CPUs they all support, such as <code>"x86-64-v3"</code>. See <code><a href="../vignettes/build-options.html">vignette("build-options", "jlbind")</a></code> for how these compare.</p>
 </section><section id="value" class="level2"><h2 class="anchored" data-anchor-id="value">Value</h2>
-<p>The path to the library (invisibly), or <code>NULL</code> if there was nothing to build.</p>
+<p>The path to the shared library (invisibly), or <code>NULL</code> if there was nothing to build. With every package private, the path to the first private library.</p>
 </section><section id="examples" class="level2"><h2 class="anchored" data-anchor-id="examples">Examples</h2>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb2"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./install_library.html">install_library</a></span>()</span>
@@ -493,7 +506,11 @@ If <code>TRUE</code>, copy the Julia runtime next to the library, so that it run
 <span id="cb2-7"><a href="#cb2-7" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./install_library.html">install_library</a></span>(<span class="at">packages =</span> <span class="fu">c</span>(<span class="st">"pkgA"</span>, <span class="st">"pkgB"</span>))</span>
 <span id="cb2-8"><a href="#cb2-8" aria-hidden="true" tabindex="-1"></a></span>
 <span id="cb2-9"><a href="#cb2-9" aria-hidden="true" tabindex="-1"></a><span class="co"># For an R library shared by computers with different CPUs</span></span>
-<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./install_library.html">install_library</a></span>(<span class="at">cpu_target =</span> <span class="st">"generic"</span>)</span></code></pre></div>
+<span id="cb2-10"><a href="#cb2-10" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./install_library.html">install_library</a></span>(<span class="at">cpu_target =</span> <span class="st">"generic"</span>)</span>
+<span id="cb2-11"><a href="#cb2-11" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb2-12"><a href="#cb2-12" aria-hidden="true" tabindex="-1"></a><span class="co"># pkgB in a library of its own, as its Julia dependencies conflict with</span></span>
+<span id="cb2-13"><a href="#cb2-13" aria-hidden="true" tabindex="-1"></a><span class="co"># those of pkgA</span></span>
+<span id="cb2-14"><a href="#cb2-14" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./install_library.html">install_library</a></span>(<span class="at">private =</span> <span class="st">"pkgB"</span>)</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 
@@ -1328,7 +1345,8 @@ If <code>TRUE</code>, copy the Julia runtime next to the library, so that it run
   <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>,
-  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>
+  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">private</span> <span class="at">=</span> <span class="cn">NULL</span>
 )</code><span class="quartodown-tip-brief">Build the Julia library</span>
 </div>
 <div data-for="t2">
@@ -1336,6 +1354,19 @@ If <code>TRUE</code>, copy the Julia runtime next to the library, so that it run
 </div>
 <div data-for="t3">
 <code class="quartodown-tip-sig"><span class="fu">check_bound</span>(pkg)</code><span class="quartodown-tip-brief">Check whether a package is bound to the Julia library</span>
+</div>
+<div data-for="t4">
+<code class="quartodown-tip-sig"><span class="fu">build_library</span>(
+  <span class="at">packages</span> <span class="at">=</span> <span class="st">"."</span>,
+  <span class="at">out</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">julia</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">versions</span> <span class="at">=</span> <span class="fu">c</span>(<span class="st">"manifest"</span>, <span class="st">"compat"</span>),
+  <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">private</span> <span class="at">=</span> <span class="cn">FALSE</span>
+)</code><span class="quartodown-tip-brief">Build a Julia library from specific packages</span>
 </div>
 </div>
 </body>

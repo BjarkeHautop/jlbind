@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="generator" content="quarto-1.11.9">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
-<title>Technical details – jlbind 0.0.0.9000</title>
+<title>Writing bindings – jlbind 0.0.0.9000</title>
 <style>
 /* Default styles provided by pandoc.
 ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -110,13 +110,13 @@ visitors who prefer it, before Quarto reads the stored choice.
     // No localStorage: keep Quarto's light default.
   }
 })();
-</script><meta property="og:title" content="Technical details – jlbind 0.0.0.9000">
+</script><meta property="og:title" content="Writing bindings – jlbind 0.0.0.9000">
 <meta property="og:description" content="Bind R Packages to Compiled Julia Code">
 <meta property="og:image" content="https://bjarkehautop.github.io/jlbind/man/figures/logo.png">
 <meta property="og:site_name" content="jlbind 0.0.0.9000">
 <meta property="og:image:height" content="600">
 <meta property="og:image:width" content="520">
-<meta name="twitter:title" content="Technical details – jlbind 0.0.0.9000">
+<meta name="twitter:title" content="Writing bindings – jlbind 0.0.0.9000">
 <meta name="twitter:description" content="Bind R Packages to Compiled Julia Code">
 <meta name="twitter:image" content="https://bjarkehautop.github.io/jlbind/man/figures/logo.png">
 <meta name="twitter:card" content="summary">
@@ -330,11 +330,15 @@ visitors who prefer it, before Quarto reads the stored choice.
     <ul class="dropdown-menu" aria-labelledby="nav-menu-articles">
 <li>
     <a class="dropdown-item" href="../vignettes/technical-details.html">
- <span class="dropdown-text">Technical details</span></a>
+ <span class="dropdown-text">Writing bindings</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../vignettes/using-clients.html">
  <span class="dropdown-text">Using packages built on jlbind</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/build-options.html">
+ <span class="dropdown-text">Build options</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
@@ -390,7 +394,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 </div>
 <!-- main -->
 <main class="content" id="quarto-document-content" tabindex="-1"><header id="title-block-header" class="quarto-title-block default"><div class="quarto-title">
-<img src="../man/figures/logo-light.svg" class="quartodown-logo light-content" alt=""><img src="../man/figures/logo.svg" class="quartodown-logo dark-content" alt=""><h1 class="title">Technical details</h1>
+<img src="../man/figures/logo-light.svg" class="quartodown-logo light-content" alt=""><img src="../man/figures/logo.svg" class="quartodown-logo dark-content" alt=""><h1 class="title">Writing bindings</h1>
 </div>
 
 
@@ -409,7 +413,8 @@ visitors who prefer it, before Quarto reads the stored choice.
 </p>
 <p>This vignette covers what <a href="jlbind.html">Get started with jlbind</a> leaves out, so read that first.</p>
 <section id="one-library-for-all-clients" class="level2"><h2 class="anchored" data-anchor-id="one-library-for-all-clients">One library for all clients</h2>
-<p>jlbind compiles Julia code with <a href="https://github.com/JuliaLang/JuliaC.jl">JuliaC.jl</a>. An R process can load only one compiled Julia library<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>, so your client shares Julia dependency versions with every other client the user has installed. <a href="using-clients.html">Using packages built on jlbind</a> describes how those versions are chosen, what happens when clients conflict, and how to build a separate library for clients that are never used in the same R session.</p>
+<p>jlbind compiles Julia code with <a href="https://github.com/JuliaLang/JuliaC.jl">JuliaC.jl</a>. Clients share one library and one Julia runtime, so your client shares Julia dependency versions with every other client the user has installed. Keep your <code>[compat]</code> bounds as wide as your code allows, so that it resolves alongside them.</p>
+<p>When clients conflict, users can <a href="using-clients.html#when-clients-conflict">choose between them, give one a private library, or use separate libraries</a>. A private library has its own copy of the Julia runtime, which takes <a href="build-options.html#bundle-sizes">disk space</a> and memory.</p>
 </section><section id="what-use_jlbind-adds" class="level2"><h2 class="anchored" data-anchor-id="what-use_jlbind-adds">What <code>use_jlbind()</code> adds</h2>
 <ul>
 <li>
@@ -524,7 +529,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 </div>
 </div>
 <div class="callout-body-container callout-body">
-<p>A library that has loaded cannot be replaced, so the <code>.jlbind/</code> library is used only if your package is the first jlbind client loaded in the R session.</p>
+<p>A library that has loaded cannot be replaced, so the <code>.jlbind/</code> library is used only if your package is the first jlbind client loaded in the R session. On Linux and macOS, <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/build_library.html">build_library</a>(private = TRUE)</code> gives the development library its own copy of the Julia runtime, so it loads alongside the shared library whatever the order.</p>
 </div>
 </div>
 <p>If you need to use a library stored elsewhere, set the <code>JLBIND_LIBRARY</code> environment variable to its path before loading the package.</p>
@@ -544,7 +549,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 </div>
 <div class="callout-body-container callout-body">
 <p>Include a <code>Manifest.toml</code> next to the binding package’s <code>Project.toml</code> with the Julia dependency versions known to compile with your package. <a href="https://cran.r-project.org/web/packages/policies.html">CRAN’s policy</a> asks that downloaded libraries be a fixed version rather than the latest.</p>
-<p>The build uses the manifest of only the first client that has one (see <a href="using-clients.html#dependency-versions">Dependency versions</a>), so keep your <code>[compat]</code> bounds accurate too.</p>
+<p>The build uses the manifest of only the first client that has one (see <a href="using-clients.html#when-clients-conflict">When clients conflict</a>), so keep your <code>[compat]</code> bounds accurate too.</p>
 </div>
 </div>
 </section><section id="types" class="level2"><h2 class="anchored" data-anchor-id="types">Types</h2>
@@ -858,7 +863,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 2</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p><code>r_class()</code> sets the R class of the external pointer, so your package can define methods such as <code>print()</code> for it. An argument declared as <code>RRef{Counter}</code> also checks that the reference points to a <code>Counter</code>, rather than accepting an arbitrary Julia object.</p>
+<p><code>r_class()</code> sets the R class of the external pointer, so your package can define methods such as <code>print()</code> for it. An argument declared as <code>RRef{Counter}</code> also checks that the reference points to a <code>Counter</code>, rather than accepting an arbitrary Julia object. A reference works with the library that made it, so with a client in a <a href="using-clients.html#private-libraries">private library</a>, its references work with that client’s functions only.</p>
 </section><section id="saving-julia-objects" class="level3"><h3 class="anchored" data-anchor-id="saving-julia-objects">Saving Julia objects</h3>
 <p>R writes an external pointer as a null pointer, so by default a reference does not survive <code>saveRDS()</code>, <code>save()</code>, <code>serialize()</code>, or being sent to a parallel worker; using it afterwards gives an error. To make a type savable, you need to do two things.</p>
 <p>In Julia, define <code>JLBind.r_saved_by()</code>, which names your R package, and <code>JLBind.r_restore()</code>, which rebuilds the object from the saved data:</p>
@@ -980,11 +985,7 @@ Shape types and their areas
 <p>Optional arguments are not a problem: <code>@rcall</code> calls the function in a separate branch for <code>nothing</code> (or <code>missing</code>) and for a value of each argument declared as a <code>Union{Nothing,T}</code> (or <code>Union{Missing,T}</code>), so each call has concrete types. This needs the <code>Union</code> written out in the declaration, not an alias for it.</p>
 
 
-</section></section><div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
-
-<ol>
-<li id="fn1"><p>JuliaC can <em>privatize</em> a library, giving it its own copy of the Julia runtime, but jlbind doesn’t use this. Each client would then ship a bundle with its own runtime and compiled copy of Base, where a shared library adds only each client’s own code. On Linux with Julia 1.14, a bundle was over 80 MB for a larger client, and about 9 MB for a tiny client after removing the runtime libraries it doesn’t use by hand. Each runtime would also have its own garbage-collected heap and threads in memory, and Julia objects couldn’t be passed between clients. Privatization also doesn’t work on Windows yet (<a href="https://github.com/JuliaLang/JuliaC.jl/pull/151">JuliaC.jl#151</a>).<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-</ol></section></div></main><!-- /main --><style>
+</section></section></main><!-- /main --><style>
 .quartodown-theme-switching * {
   transition: none !important;
 }
@@ -1813,7 +1814,8 @@ Shape types and their areas
   <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>,
-  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>
+  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">private</span> <span class="at">=</span> <span class="cn">FALSE</span>
 )</code><span class="quartodown-tip-brief">Build a Julia library from specific packages</span>
 </div>
 <div data-for="t2">
@@ -1829,7 +1831,8 @@ Shape types and their areas
   <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>,
-  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>
+  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">private</span> <span class="at">=</span> <span class="cn">NULL</span>
 )</code><span class="quartodown-tip-brief">Build the Julia library</span>
 </div>
 <div data-for="t4">

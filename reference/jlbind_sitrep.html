@@ -330,11 +330,15 @@ visitors who prefer it, before Quarto reads the stored choice.
     <ul class="dropdown-menu" aria-labelledby="nav-menu-articles">
 <li>
     <a class="dropdown-item" href="../vignettes/technical-details.html">
- <span class="dropdown-text">Technical details</span></a>
+ <span class="dropdown-text">Writing bindings</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../vignettes/using-clients.html">
  <span class="dropdown-text">Using packages built on jlbind</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/build-options.html">
+ <span class="dropdown-text">Build options</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
@@ -385,7 +389,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <small class="dont-index">Source: <a href="https://github.com/BjarkeHautop/jlbind/blob/HEAD/R/sitrep.R"><code>R/sitrep.R</code></a></small>
 </p>
 <section id="description" class="level2"><h2 class="anchored" data-anchor-id="description">Description</h2>
-<p>Prints a report to run when a package that uses jlbind doesn’t work. It shows the Julia that builds the library, the library that is loaded (or would be) and what it was built from, the installed packages that use jlbind and whether the library is current for each, and the Julia thread count. It also works before a library has loaded.</p>
+<p>Prints a report to run when a package that uses jlbind doesn’t work. It shows the Julia that builds the libraries, the shared library that is loaded (or would be) and what it was built from, any private libraries (see <code>private</code> in <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./install_library.html">install_library</a>()</code>), the installed packages that use jlbind and whether their library is current for each, and the Julia thread count. It also works before a library has loaded.</p>
 </section><section id="usage" class="level2"><h2 class="anchored" data-anchor-id="usage">Usage</h2>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./jlbind_sitrep.html">jlbind_sitrep</a></span>(<span class="at">julia =</span> <span class="cn">NULL</span>)</span></code></pre></div>
@@ -406,13 +410,16 @@ Path to the <code>julia</code> executable. By default, the <code>JULIA</code> en
 <p><code>julia</code>: a list with <code>path</code> (<code>NA</code> if Julia was not found), <code>source</code> (<code>"argument"</code>, <code>"JULIA"</code> or <code>"PATH"</code>), <code>version</code> (<code>NA</code> if it could not be run) and <code>ok</code> (whether it is Julia 1.13 or later).</p>
 </li>
 <li>
-<p><code>library</code>: a list with <code>path</code>, <code>how</code> (<code>"loaded"</code>, <code>"failed to load"</code>, <code>"JLBIND_LIBRARY"</code> or <code>"default"</code>), <code>exists</code>, <code>build</code> (how it was built: the jlbind and Julia versions, when, whether it is trimmed, the CPU target and the CPU it was built on, any extra Julia arguments and whether it is a bundle, or <code>NULL</code>), <code>problems</code> (why it should be rebuilt or cannot load; empty if none) and <code>objects</code> (how many Julia objects R holds references to, or <code>NULL</code> if no library is loaded).</p>
+<p><code>library</code>: the shared library, a list with <code>path</code>, <code>how</code> (<code>"loaded"</code>, <code>"failed to load"</code>, <code>"JLBIND_LIBRARY"</code> or <code>"default"</code>), <code>exists</code>, <code>build</code> (how it was built: the jlbind and Julia versions, when, whether it is trimmed, the CPU target and the CPU it was built on, any extra Julia arguments, whether it is a bundle and the salt of a private runtime, or <code>NULL</code>), <code>problems</code> (why it should be rebuilt or cannot load; empty if none) and <code>objects</code> (how many Julia objects R holds references to, or <code>NULL</code> if it isn’t loaded).</p>
 </li>
 <li>
-<p><code>clients</code>: a data frame with one row per package that uses jlbind or that the library was built for, with the columns <code>package</code>, <code>version</code> (installed), <code>built</code> (the version in the library), <code>status</code> (<code>"ok"</code>, <code>"left out"</code>, <code>"not in the library"</code>, <code>"built for version &lt;v&gt;"</code>, <code>"Julia code changed"</code> or <code>"not installed"</code>) and <code>bound</code>.</p>
+<p><code>private</code>: the private libraries packages use, each a list like <code>library</code>, with <code>how</code> <code>"loaded"</code>, <code>"failed to load"</code> or <code>"private"</code>.</p>
 </li>
 <li>
-<p><code>threads</code>: a list with <code>count</code> (from <code>JULIA_NUM_THREADS</code>) and <code>fixed</code> (<code>TRUE</code> once a library is loaded, after which the count cannot change).</p>
+<p><code>clients</code>: a data frame with one row per package that uses jlbind or that a library was built for, with the columns <code>package</code>, <code>version</code> (installed), <code>built</code> (the version in its library), <code>status</code> (<code>"ok"</code>, <code>"left out"</code>, <code>"not in the library"</code>, <code>"built for version &lt;v&gt;"</code>, <code>"Julia code changed"</code> or <code>"not installed"</code>), <code>bound</code> and <code>library</code> (the path of its library).</p>
+</li>
+<li>
+<p><code>threads</code>: a list with <code>count</code> (from <code>JULIA_NUM_THREADS</code>, in each library) and <code>fixed</code> (<code>TRUE</code> once a library is loaded, after which the count cannot change).</p>
 </li>
 </ul></section><section id="examples" class="level2"><h2 class="anchored" data-anchor-id="examples">Examples</h2>
 <div class="cell">
@@ -1251,8 +1258,24 @@ Path to the <code>julia</code> executable. By default, the <code>JULIA</code> en
 <p>Site built with <a href="https://github.com/BjarkeHautop/quartodown">quartodown</a> and <a href="https://quarto.org/">Quarto</a>.</p>
 </div>
   </div>
-</footer><div class="quartodown-tip-payload" hidden><div data-for="t1">
+</footer><div class="quartodown-tip-payload" hidden>
+<div data-for="t1">
 <code class="quartodown-tip-sig"><span class="fu">jlbind_sitrep</span>(<span class="at">julia</span> <span class="at">=</span> <span class="cn">NULL</span>)</code><span class="quartodown-tip-brief">Report on the jlbind setup</span>
-</div></div>
+</div>
+<div data-for="t2">
+<code class="quartodown-tip-sig"><span class="fu">install_library</span>(
+  <span class="at">packages</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">julia</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">ask</span> <span class="at">=</span> <span class="fu">interactive</span>(),
+  <span class="at">force</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">versions</span> <span class="at">=</span> <span class="fu">c</span>(<span class="st">"manifest"</span>, <span class="st">"compat"</span>),
+  <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>,
+  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">private</span> <span class="at">=</span> <span class="cn">NULL</span>
+)</code><span class="quartodown-tip-brief">Build the Julia library</span>
+</div>
+</div>
 </body>
 </html>

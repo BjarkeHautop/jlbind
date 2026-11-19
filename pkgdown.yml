@@ -2,6 +2,7 @@ urls:
   reference: https://bjarkehautop.github.io/jlbind/reference
   article: https://bjarkehautop.github.io/jlbind/vignettes
 articles:
+  build-options: build-options.html
   jlbind: jlbind.html
   technical-details: technical-details.html
   using-clients: using-clients.html

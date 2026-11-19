@@ -330,11 +330,15 @@ visitors who prefer it, before Quarto reads the stored choice.
     <ul class="dropdown-menu" aria-labelledby="nav-menu-articles">
 <li>
     <a class="dropdown-item" href="../vignettes/technical-details.html">
- <span class="dropdown-text">Technical details</span></a>
+ <span class="dropdown-text">Writing bindings</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../vignettes/using-clients.html">
  <span class="dropdown-text">Using packages built on jlbind</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/build-options.html">
+ <span class="dropdown-text">Build options</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
@@ -401,8 +405,8 @@ visitors who prefer it, before Quarto reads the stored choice.
 The package name.
 </td>
 </tr></tbody></table></section><section id="details" class="level2"><h2 class="anchored" data-anchor-id="details">Details</h2>
-<p>The library is the one from <code><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="./install_library.html">install_library</a>()</code>, unless <code>JLBIND_LIBRARY</code> names another, or the first package bound was loaded with <code>pkgload::<a href="https://pkgload.r-lib.org/reference/load_all.html">load_all</a>()</code> and has one from <code><a class="quartodown-tip-ref" data-quartodown-tip="t5" href="./build_library.html">build_library</a>()</code>. That library is rebuilt as the package loads if it is out of date with the package’s sources, as when its Julia code has changed. A library that has already loaded cannot be replaced, so after a change, restart R.</p>
-<p>To run Julia with more threads, set <code>JULIA_NUM_THREADS</code> (a number or <code>"auto"</code>) before loading the first package that uses jlbind.</p>
+<p>The library is the shared one from <code><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="./install_library.html">install_library</a>()</code>, unless <code>JLBIND_LIBRARY</code> names another, the package was loaded with <code>pkgload::<a href="https://pkgload.r-lib.org/reference/load_all.html">load_all</a>()</code> and has one from <code><a class="quartodown-tip-ref" data-quartodown-tip="t5" href="./build_library.html">build_library</a>()</code>, or <code><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="./install_library.html">install_library</a>()</code> built a private library for it. A development library is used if it is private or the package is the first one bound, and it is rebuilt as the package loads if it is out of date with the package’s sources, as when its Julia code has changed. A library that has already loaded cannot be replaced, so after a change, restart R. A private library loads alongside the shared one.</p>
+<p>To run Julia with more threads, set <code>JULIA_NUM_THREADS</code> (a number or <code>"auto"</code>) before loading the first package that uses jlbind. Each library starts that many.</p>
 </section><section id="value" class="level2"><h2 class="anchored" data-anchor-id="value">Value</h2>
 <p>Invisibly, <code>TRUE</code> if the package is bound and <code>FALSE</code> if not.</p>
 </section><section id="examples" class="level2"><h2 class="anchored" data-anchor-id="examples">Examples</h2>
@@ -1254,7 +1258,8 @@ The package name.
   <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>,
-  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>
+  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">private</span> <span class="at">=</span> <span class="cn">NULL</span>
 )</code><span class="quartodown-tip-brief">Build the Julia library</span>
 </div>
 <div data-for="t5">
@@ -1266,7 +1271,8 @@ The package name.
   <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>,
-  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>
+  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">private</span> <span class="at">=</span> <span class="cn">FALSE</span>
 )</code><span class="quartodown-tip-brief">Build a Julia library from specific packages</span>
 </div>
 </div>

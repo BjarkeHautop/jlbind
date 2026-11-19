@@ -332,11 +332,15 @@ visitors who prefer it, before Quarto reads the stored choice.
     <ul class="dropdown-menu" aria-labelledby="nav-menu-articles">
 <li>
     <a class="dropdown-item" href="./vignettes/technical-details.html">
- <span class="dropdown-text">Technical details</span></a>
+ <span class="dropdown-text">Writing bindings</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="./vignettes/using-clients.html">
  <span class="dropdown-text">Using packages built on jlbind</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="./vignettes/build-options.html">
+ <span class="dropdown-text">Build options</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
@@ -377,7 +381,6 @@ visitors who prefer it, before Quarto reads the stored choice.
 </h1>
 <p>Call Julia code from R without starting a Julia session.</p>
 <p>jlbind compiles Julia code into a shared library with <a href="https://github.com/JuliaLang/JuliaC.jl">JuliaC.jl</a> (by default with <code>--trim=safe</code>), and R calls it through R’s official C API. Thus, there is almost no overhead (see <a href="https://bjarkehautop.github.io/jlbind/vignettes/articles/performance.html">Performance</a>).</p>
-<p>Several R packages using jlbind can be installed side by side: their Julia code is compiled into one shared library.</p>
 <section id="installation" class="level2"><h2 class="anchored" data-anchor-id="installation">Installation</h2>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="co"># install.packages("pak")</span></span>
@@ -393,7 +396,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>This compiles the Julia code of every installed package that uses jlbind and may take a few minutes. Run it again whenever you install or update one of them.</p>
-<p>See <a href="https://bjarkehautop.github.io/jlbind/vignettes/using-clients.html">Using packages built on jlbind</a> for threads, troubleshooting and Julia dependency versions.</p>
+<p>See <a href="https://bjarkehautop.github.io/jlbind/vignettes/using-clients.html">Using packages built on jlbind</a> for threads, troubleshooting and what to do when packages conflict, and <a href="https://bjarkehautop.github.io/jlbind/vignettes/build-options.html">Build options</a> for CPU targets and libraries for computers without Julia.</p>
 </section><section id="writing-a-package-that-uses-jlbind" class="level2"><h2 class="anchored" data-anchor-id="writing-a-package-that-uses-jlbind">Writing a package that uses jlbind</h2>
 <p>Set up a package with <code>jlbind::<a class="quartodown-tip-ref" data-quartodown-tip="t2" href="reference/use_jlbind.html">use_jlbind</a>()</code>, then declare the Julia functions R can call in the generated binding package under <code>inst/julia/</code>:</p>
 <div class="code-copy-outer-scaffold">
@@ -408,7 +411,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>Run <code>jlbind::<a class="quartodown-tip-ref" data-quartodown-tip="t3" href="reference/update_entrypoints.html">update_entrypoints</a>()</code>, which generates the R function <code>greet(name)</code> that calls it.</p>
-<p>See <a href="https://bjarkehautop.github.io/jlbind/vignettes/jlbind.html">Get started with jlbind</a> for a walkthrough, and <a href="https://bjarkehautop.github.io/jlbind/vignettes/technical-details.html">Technical details</a> for types, errors and compilation constraints.</p>
+<p>See <a href="https://bjarkehautop.github.io/jlbind/vignettes/jlbind.html">Get started with jlbind</a> for a walkthrough, and <a href="https://bjarkehautop.github.io/jlbind/vignettes/technical-details.html">Writing bindings</a> for types, errors and compilation constraints.</p>
 </section><section id="packages-using-jlbind" class="level2"><h2 class="anchored" data-anchor-id="packages-using-jlbind">Packages using jlbind</h2>
 <ul>
 <li>
@@ -1260,7 +1263,8 @@ visitors who prefer it, before Quarto reads the stored choice.
   <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>,
-  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>
+  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">private</span> <span class="at">=</span> <span class="cn">NULL</span>
 )</code><span class="quartodown-tip-brief">Build the Julia library</span>
 </div>
 <div data-for="t2">

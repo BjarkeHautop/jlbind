@@ -330,11 +330,15 @@ visitors who prefer it, before Quarto reads the stored choice.
     <ul class="dropdown-menu" aria-labelledby="nav-menu-articles">
 <li>
     <a class="dropdown-item" href="../vignettes/technical-details.html">
- <span class="dropdown-text">Technical details</span></a>
+ <span class="dropdown-text">Writing bindings</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../vignettes/using-clients.html">
  <span class="dropdown-text">Using packages built on jlbind</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/build-options.html">
+ <span class="dropdown-text">Build options</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
@@ -364,17 +368,17 @@ visitors who prefer it, before Quarto reads the stored choice.
   <ul class="collapse">
 <li><a href="#if-something-doesnt-work-correctly" id="toc-if-something-doesnt-work-correctly" class="nav-link" data-scroll-target="#if-something-doesnt-work-correctly">If something doesn’t work correctly</a></li>
   <li><a href="#threads" id="toc-threads" class="nav-link" data-scroll-target="#threads">Threads</a></li>
-  <li><a href="#dependency-versions" id="toc-dependency-versions" class="nav-link" data-scroll-target="#dependency-versions">Dependency versions</a></li>
   </ul>
 </li>
   <li>
-<a href="#build-options" id="toc-build-options" class="nav-link" data-scroll-target="#build-options">Build options</a>
+<a href="#when-clients-conflict" id="toc-when-clients-conflict" class="nav-link" data-scroll-target="#when-clients-conflict">When clients conflict</a>
   <ul class="collapse">
-<li><a href="#cpu-target" id="toc-cpu-target" class="nav-link" data-scroll-target="#cpu-target">CPU target</a></li>
-  <li><a href="#julia-arguments" id="toc-julia-arguments" class="nav-link" data-scroll-target="#julia-arguments">Julia arguments</a></li>
-  <li><a href="#libraries-for-people-without-julia" id="toc-libraries-for-people-without-julia" class="nav-link" data-scroll-target="#libraries-for-people-without-julia">Libraries for people without Julia</a></li>
+<li><a href="#choose-the-clients" id="toc-choose-the-clients" class="nav-link" data-scroll-target="#choose-the-clients">Choose the clients</a></li>
+  <li><a href="#private-libraries" id="toc-private-libraries" class="nav-link" data-scroll-target="#private-libraries">Private libraries</a></li>
+  <li><a href="#separate-libraries-for-separate-sessions" id="toc-separate-libraries-for-separate-sessions" class="nav-link" data-scroll-target="#separate-libraries-for-separate-sessions">Separate libraries for separate sessions</a></li>
   </ul>
 </li>
+  <li><a href="#build-options" id="toc-build-options" class="nav-link" data-scroll-target="#build-options">Build options</a></li>
   </ul></nav>
 </div>
 <!-- main -->
@@ -396,11 +400,10 @@ visitors who prefer it, before Quarto reads the stored choice.
 </header><p class="source-note">
 <small class="dont-index">Source: <a href="https://github.com/BjarkeHautop/jlbind/blob/HEAD/vignettes/using-clients.qmd"><code>vignettes/using-clients.qmd</code></a></small>
 </p>
-<p>jlbind lets R packages call Julia code compiled ahead of time into a shared library, without a Julia session. This vignette explains how that library works and how to use an R package built with jlbind. To add Julia functions to your own R package, see <a href="jlbind.html">Get started with jlbind</a> and <a href="technical-details.html">Technical details</a>. For how jlbind compares with other ways of calling Julia from R, see <a href="https://bjarkehautop.github.io/jlbind/vignettes/articles/performance.html">Performance</a>.</p>
+<p>jlbind lets R packages call Julia code compiled ahead of time into a shared library, without a Julia session. This vignette explains how that library works and how to use an R package built with jlbind. To add Julia functions to your own R package, see <a href="jlbind.html">Get started with jlbind</a> and <a href="technical-details.html">Writing bindings</a>. For how jlbind compares with other ways of calling Julia from R, see <a href="https://bjarkehautop.github.io/jlbind/vignettes/articles/performance.html">Performance</a>.</p>
 <section id="how-it-works" class="level2"><h2 class="anchored" data-anchor-id="how-it-works">How it works</h2>
-<p>An R process can load only one compiled Julia library. Julia has one runtime per process, and that runtime uses a single compiled image. If two R packages loaded separate copies of the library, they could conflict and crash the R session.</p>
-<p>To avoid this, jlbind builds one shared library for each user, combining the Julia code of all installed R packages that use jlbind (<em>clients</em>). When you run <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/install_library.html">install_library</a>()</code>, jlbind finds the installed clients, compiles their binding packages into one library, and saves it under <code>tools::R_user_dir("jlbind", "data")</code>. Loading a client loads that library and connects the client to it.</p>
-<p>A client can only be bound to a library built from the version of that client currently installed. If you update a package without rebuilding the library, its functions will report that the library needs to be rebuilt.</p>
+<p>Julia runs one runtime per process, with one compiled image, so the clients loaded in an R session (the R packages that use jlbind) share one compiled library. jlbind builds that library for each user, combining the Julia code of all installed clients. When you run <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/install_library.html">install_library</a>()</code>, jlbind finds the installed clients, compiles their binding packages into one library, and saves it under <code>tools::R_user_dir("jlbind", "data")</code>. Loading a client loads that library and connects the client to it.</p>
+<p>A client is bound to a library built from the version of that client currently installed. If you update a package without rebuilding the library, its functions report that the library needs to be rebuilt.</p>
 </section><section id="using-a-package-built-on-jlbind" class="level2"><h2 class="anchored" data-anchor-id="using-a-package-built-on-jlbind">Using a package built on jlbind</h2>
 <p>You need <a href="https://julialang.org/install/">Julia</a> 1.13 or later to build the shared library.</p>
 <p>After installing or updating an R package that uses jlbind, run:</p>
@@ -440,216 +443,89 @@ visitors who prefer it, before Quarto reads the stored choice.
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>You can select the Julia installation to use by setting the <code>JULIA</code> environment variable or by passing <code>julia =</code> to <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/install_library.html">install_library</a>()</code>.</p>
-<p>The library is compiled for the building machine’s CPU, and jlbind won’t load it on another. If one R library is used from computers with different CPUs, see <a href="#build-options">Build options</a>.</p>
+<p>The library is compiled for the building machine’s CPU, and jlbind won’t load it on another. If one R library is used from computers with different CPUs, see <a href="build-options.html#cpu-target">CPU target</a>.</p>
 </section><section id="threads" class="level3"><h3 class="anchored" data-anchor-id="threads">Threads</h3>
 <p>Julia runs with one thread by default. To use multiple threads, set <code>JULIA_NUM_THREADS</code> before loading the first package that uses jlbind, for example in your <code>.Renviron</code> file:</p>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb5"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="va">JULIA_NUM_THREADS</span><span class="op">=</span>auto <span class="co"># or a number, such as 4</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p>The thread count is fixed when the library is loaded, so restart R after changing it.</p>
-</section><section id="dependency-versions" class="level3"><h3 class="anchored" data-anchor-id="dependency-versions">Dependency versions</h3>
-<p>All clients share a single set of Julia dependencies. By default, the build starts from the versions in the <code>Manifest.toml</code> of the first client that has one, and keeps them for the other clients where their <code>[compat]</code> bounds allow. Pass <code>versions = "compat"</code> to ignore the manifests and let Julia’s resolver choose versions from the clients’ <code>[compat]</code> bounds alone.</p>
-<p>If a client’s <code>[compat]</code> bounds conflict with those of the clients listed before it by <code><a class="quartodown-tip-ref" data-quartodown-tip="t5" href="../reference/jlbind_clients.html">jlbind_clients</a>()</code>, it is left out of the build; <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/is_bound.html">check_bound</a>()</code> says which clients it conflicts with.</p>
-<p>You can control which clients are included by specifying them explicitly:</p>
+<p>The thread count is fixed when the library is loaded, so restart R after changing it. Each <a href="#private-libraries">private library</a> starts its own threads, as many as <code>JULIA_NUM_THREADS</code> says.</p>
+</section></section><section id="when-clients-conflict" class="level2"><h2 class="anchored" data-anchor-id="when-clients-conflict">When clients conflict</h2>
+<p>All clients in the shared library use one set of Julia dependencies. By default, the build starts from the versions in the <code>Manifest.toml</code> of the first client that has one, and keeps them for the other clients where their <code>[compat]</code> bounds allow. Pass <code>versions = "compat"</code> to ignore the manifests and let Julia’s resolver choose versions from the clients’ <code>[compat]</code> bounds alone.</p>
+<p>If a client’s <code>[compat]</code> bounds conflict with those of the clients listed before it by <code><a class="quartodown-tip-ref" data-quartodown-tip="t5" href="../reference/jlbind_clients.html">jlbind_clients</a>()</code>, the build leaves it out; <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/is_bound.html">check_bound</a>()</code> says which clients it conflicts with. You then have three options:</p>
+<table class="caption-top table">
+<thead><tr class="header">
+<th>Option</th>
+<th>Clients in one R session</th>
+<th>Disk space</th>
+<th>Systems</th>
+</tr></thead>
+<tbody>
+<tr class="odd">
+<td><a href="#choose-the-clients">Choose the clients</a></td>
+<td>Those in the shared library</td>
+<td>One library</td>
+<td>All</td>
+</tr>
+<tr class="even">
+<td><a href="#private-libraries">Private library</a></td>
+<td>All</td>
+<td>About 30–85 MB more per client</td>
+<td>Linux, macOS</td>
+</tr>
+<tr class="odd">
+<td><a href="#separate-libraries-for-separate-sessions">Separate libraries</a></td>
+<td>Those in the library chosen for the session</td>
+<td>One library each</td>
+<td>All</td>
+</tr>
+</tbody>
+</table>
+<section id="choose-the-clients" class="level3"><h3 class="anchored" data-anchor-id="choose-the-clients">Choose the clients</h3>
+<p>Name the clients to build the shared library from, in the order to resolve them:</p>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/install_library.html">install_library</a></span>(<span class="at">packages =</span> <span class="fu">c</span>(<span class="st">"pkgA"</span>, <span class="st">"pkgC"</span>))</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<div class="callout callout-style-default callout-important callout-titled">
-<div class="callout-header d-flex align-content-center collapsed" data-bs-toggle="collapse" data-bs-target=".callout-2-contents" aria-controls="callout-2" aria-expanded="false" aria-label="Toggle callout">
-<div class="callout-icon-container">
-<i class="callout-icon"></i>
+</section><section id="private-libraries" class="level3"><h3 class="anchored" data-anchor-id="private-libraries">Private libraries</h3>
+<p>On Linux and macOS<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>, a client can get a library of its own:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/install_library.html">install_library</a></span>(<span class="at">private =</span> <span class="st">"pkgB"</span>)</span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<div class="callout-title-container flex-fill">
-<span class="screen-reader-only">Important</span>Clients with incompatible dependencies cannot share a library
-</div>
-<div class="callout-btn-toggle d-inline-block border-0 py-1 ps-1 pe-0 float-end"><i class="callout-toggle"></i></div>
-</div>
-<div id="callout-2" class="callout-2-contents callout-collapse collapse">
-<div class="callout-body-container callout-body">
-<p>If you need both clients but never need them in the same R session, build a separate library for each. Set <code>JLBIND_LIBRARY</code> before loading the client to select the library for that session.</p>
+<p>This builds the shared library from the other clients, and a private library for <code>pkgB</code>, with its dependencies resolved for it alone. A private library has its own copy of the Julia runtime, whose symbols are renamed (JuliaC’s <code>--privatize</code>), so it loads alongside the shared library and any other private ones, and you can use <code>pkgB</code> in the same R session as the clients it conflicts with.</p>
+<p>Each private library runs Julia separately, which costs:</p>
+<ul>
+<li>Disk space, for its copy of the runtime: see the <a href="build-options.html#bundle-sizes">sizes of bundled runtimes</a>.</li>
+<li>Memory, for its own Julia heap and <a href="#threads">threads</a>.</li>
+<li>Sharing: Julia objects that <code>pkgB</code> returns (such as the references from <a href="technical-details.html#julia-objects-in-r"><code>RRef</code></a>) work with the functions of <code>pkgB</code> only. A reference that was saved and loaded again works with any package that supports it.</li>
+</ul>
+<p>Later builds keep a client’s private library, so <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/install_library.html">install_library</a>()</code> alone rebuilds both. To put every client back into the shared library, pass <code>private = character()</code>. <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../reference/jlbind_sitrep.html">jlbind_sitrep</a>()</code> lists the private libraries.</p>
+</section><section id="separate-libraries-for-separate-sessions" class="level3"><h3 class="anchored" data-anchor-id="separate-libraries-for-separate-sessions">Separate libraries for separate sessions</h3>
+<p>Clients that you use in different R sessions can each have a separate library. Set <code>JLBIND_LIBRARY</code> before loading the client to select the library for that session.</p>
 <p>For example, build the two libraries:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="../reference/build_library.html">build_library</a></span>(<span class="st">"pkgA"</span>, <span class="st">"~/jlbind/pkgA"</span>)</span>
-<span id="cb7-2"><a href="#cb7-2" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="../reference/build_library.html">build_library</a></span>(<span class="st">"pkgB"</span>, <span class="st">"~/jlbind/pkgB"</span>)</span></code></pre></div>
+<div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="../reference/build_library.html">build_library</a></span>(<span class="st">"pkgA"</span>, <span class="st">"~/jlbind/pkgA"</span>)</span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="../reference/build_library.html">build_library</a></span>(<span class="st">"pkgB"</span>, <span class="st">"~/jlbind/pkgB"</span>)</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>Then select one in an R session:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a><span class="co"># jlbind.dll on Windows, jlbind.dylib on macOS</span></span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a><span class="fu">Sys.setenv</span>(<span class="at">JLBIND_LIBRARY =</span> <span class="st">"~/jlbind/pkgA/jlbind.so"</span>)</span>
-<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pkgA)</span></code></pre></div>
+<div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># jlbind.dll on Windows, jlbind.dylib on macOS</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">Sys.setenv</span>(<span class="at">JLBIND_LIBRARY =</span> <span class="st">"~/jlbind/pkgA/jlbind.so"</span>)</span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pkgA)</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-</div>
-</div>
 </div>
 </section></section><section id="build-options" class="level2"><h2 class="anchored" data-anchor-id="build-options">Build options</h2>
-<p>jlbind compiles the library with these options, which keep it small and fast. Most users don’t need to change them.</p>
-<table class="caption-top table">
-<thead><tr class="header">
-<th>Option</th>
-<th>What it does</th>
-<th>How to change it</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td><code>--output-lib</code></td>
-<td>Builds a shared library</td>
-<td>Fixed</td>
-</tr>
-<tr class="even">
-<td><code>--compile-ccallable</code></td>
-<td>Exports the clients’ functions</td>
-<td>Fixed</td>
-</tr>
-<tr class="odd">
-<td><code>--trim=safe</code></td>
-<td>Removes code that can’t be reached</td>
-<td>One client setting <a href="technical-details.html#compilation-constraints-trimming"><code>Config/jlbind/trim: false</code></a> turns it off for the whole library, which makes it much larger</td>
-</tr>
-<tr class="even">
-<td><code>--cpu-target=native</code></td>
-<td>Compiles for this computer’s CPU</td>
-<td>
-<code>cpu_target</code> or <code>JULIA_CPU_TARGET</code>
-</td>
-</tr>
-<tr class="odd">
-<td><code>-g0</code></td>
-<td>Leaves out debug info</td>
-<td>
-<code>julia_args</code> or <code>JLBIND_JULIA_ARGS</code>
-</td>
-</tr>
-</tbody>
-</table>
-<p>When trimming, JuliaC also passes <code>--experimental</code>, <code>--strip-ir</code> and <code>--strip-metadata</code>.</p>
-<section id="cpu-target" class="level3"><h3 class="anchored" data-anchor-id="cpu-target">CPU target</h3>
-<p>Use <code>cpu_target</code> if one R library is used from computers with different CPUs, such as cluster nodes sharing a home directory:</p>
-<div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/install_library.html">install_library</a></span>(<span class="at">cpu_target =</span> <span class="st">"generic"</span>)</span></code></pre></div>
-<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-<p>This table compares the options on an x86-64 Linux computer (AMD Zen 4) with Julia 1.14. Library size is the compiled library file for <a href="https://github.com/BjarkeHautop/CausalStructures.jl">CausalStructures.jl</a>, a package of graph algorithms; the Julia runtime it loads adds about 6 MB. Run times are relative to <code>"native"</code>, so 2× takes twice as long. Graph code is CausalStructures.jl, and the other columns are small numeric kernels. Results will differ for other packages and computers. The <a href="https://github.com/BjarkeHautop/jlbind/tree/main/experiments/library-size">benchmark code</a> is in the jlbind repository.</p>
-<table class="caption-top table">
-<colgroup>
-<col style="width: 25%">
-<col style="width: 21%">
-<col style="width: 15%">
-<col style="width: 12%">
-<col style="width: 12%">
-<col style="width: 13%">
-</colgroup>
-<thead><tr class="header">
-<th><code>cpu_target</code></th>
-<th>Runs on</th>
-<th style="text-align: right;">Library size</th>
-<th style="text-align: right;">Graph code</th>
-<th style="text-align: right;">SIMD loops</th>
-<th style="text-align: right;">
-<code>exp</code>/<code>sin</code>
-</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td>
-<code>"native"</code> (default)</td>
-<td>This CPU model</td>
-<td style="text-align: right;">8.9 MB</td>
-<td style="text-align: right;">1×</td>
-<td style="text-align: right;">1×</td>
-<td style="text-align: right;">1×</td>
-</tr>
-<tr class="even">
-<td><code>"generic"</code></td>
-<td>Any CPU</td>
-<td style="text-align: right;">8.8 MB</td>
-<td style="text-align: right;">1×</td>
-<td style="text-align: right;">1.7–2.8×</td>
-<td style="text-align: right;">1.1×</td>
-</tr>
-<tr class="odd">
-<td>Several targets</td>
-<td>The CPUs you list</td>
-<td style="text-align: right;">21 MB</td>
-<td style="text-align: right;">1.0–1.1×</td>
-<td style="text-align: right;">1.0–1.1×</td>
-<td style="text-align: right;">0.9×</td>
-</tr>
-<tr class="even">
-<td><code>"generic;native,clone_all"</code></td>
-<td>This CPU model</td>
-<td style="text-align: right;">13.7 MB</td>
-<td style="text-align: right;">1×</td>
-<td style="text-align: right;">1×</td>
-<td style="text-align: right;">2.1×</td>
-</tr>
-</tbody>
-</table>
-<p>Sorting and a scalar ODE solver took about the same time with all of them.</p>
-<p>The several targets measured here are those of Julia’s own system image, which keep numeric code fast across x86-64 CPUs:</p>
-<div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/install_library.html">install_library</a></span>(</span>
-<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="at">cpu_target =</span> <span class="fu">paste</span>(</span>
-<span id="cb10-3"><a href="#cb10-3" aria-hidden="true" tabindex="-1"></a>    <span class="st">"generic"</span>,</span>
-<span id="cb10-4"><a href="#cb10-4" aria-hidden="true" tabindex="-1"></a>    <span class="st">"sandybridge,-xsaveopt,clone_all"</span>,</span>
-<span id="cb10-5"><a href="#cb10-5" aria-hidden="true" tabindex="-1"></a>    <span class="st">"haswell,-rdrnd,base(1)"</span>,</span>
-<span id="cb10-6"><a href="#cb10-6" aria-hidden="true" tabindex="-1"></a>    <span class="st">"x86-64-v4,-rdrnd,base(1)"</span>,</span>
-<span id="cb10-7"><a href="#cb10-7" aria-hidden="true" tabindex="-1"></a>    <span class="at">sep =</span> <span class="st">";"</span></span>
-<span id="cb10-8"><a href="#cb10-8" aria-hidden="true" tabindex="-1"></a>  )</span>
-<span id="cb10-9"><a href="#cb10-9" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
-<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-<p>Build options count towards whether the library is up to date, so calling <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/install_library.html">install_library</a>()</code> without them rebuilds the library with the defaults. To keep a target for every build, set <code>JULIA_CPU_TARGET</code>, for example in your <code>.Renviron</code> file:</p>
-<div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb11"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="va">JULIA_CPU_TARGET</span><span class="op">=</span>generic</span></code></pre></div>
-<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-</section><section id="julia-arguments" class="level3"><h3 class="anchored" data-anchor-id="julia-arguments">Julia arguments</h3>
-<p>For advanced use, <code>julia_args</code> passes extra options to Julia when it compiles the library, such as <code>"-O3"</code>, or <code>"-g1"</code> to keep the debug info that jlbind removes with <code>-g0</code>. You can also set them in <code>JLBIND_JULIA_ARGS</code>, separated by spaces. They can’t change the options jlbind relies on: <code>--trim</code>, <code>--output-*</code> and <code>--compile-ccallable</code>.</p>
-</section><section id="libraries-for-people-without-julia" class="level3"><h3 class="anchored" data-anchor-id="libraries-for-people-without-julia">Libraries for people without Julia</h3>
-<p>The library loads the runtime of the Julia that built it, so that Julia must stay installed. With <code>bundle = TRUE</code>, jlbind copies Julia’s runtime next to the library, using JuliaC’s <code>--bundle</code>, so that it runs without Julia:</p>
-<div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="../reference/build_library.html">build_library</a></span>(</span>
-<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">c</span>(<span class="st">"pkgA"</span>, <span class="st">"pkgB"</span>),</span>
-<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="st">"~/jlbind/bundle"</span>,</span>
-<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>  <span class="at">cpu_target =</span> <span class="st">"generic"</span>,</span>
-<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>  <span class="at">bundle =</span> <span class="cn">TRUE</span></span>
-<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
-<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-<p>Give them the whole directory, built on the same operating system and CPU architecture as theirs. Then they should set <code>JLBIND_LIBRARY</code> to the library in it before loading them.</p>
-<p>The size depends on how much of the runtime you keep. Julia’s whole runtime includes libraries that many packages never use, such as OpenBLAS. These sizes are for the whole directory, with <code>cpu_target = "generic"</code> on the computer above, for CausalStructures.jl and for a tiny package:</p>
-<table class="caption-top table">
-<thead><tr class="header">
-<th>Library</th>
-<th style="text-align: right;">CausalStructures.jl</th>
-<th style="text-align: right;">Tiny package</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td>Not bundled (needs Julia)</td>
-<td style="text-align: right;">8.8 MB</td>
-<td style="text-align: right;">2.0 MB</td>
-</tr>
-<tr class="even">
-<td>Bundled</td>
-<td style="text-align: right;">87 MB</td>
-<td style="text-align: right;">68 MB</td>
-</tr>
-<tr class="odd">
-<td>Bundled and removed by hand</td>
-<td style="text-align: right;">15 MB</td>
-<td style="text-align: right;">8.9 MB</td>
-</tr>
-</tbody>
-</table>
-<p>To get the last row, delete <code>jlbind-bundle/share</code>, and everything in <code>jlbind-bundle/lib</code> and <code>jlbind-bundle/lib/julia</code> except <code>libjulia</code>, <code>libjulia-internal</code>, <code>libunwind</code>, <code>libz</code>, <code>libzstd</code>, <code>libatomic</code>, <code>libgcc_s</code> and <code>libopenlibm</code>, then run <code>strip</code> on the library. jlbind doesn’t do this for you, because a package can need more of them; one using <code>LinearAlgebra</code> needs OpenBLAS, for example. Test every package after removing anything.</p>
+<p><a href="build-options.html">Build options</a> covers which CPUs to compile for, extra Julia arguments, and bundling the Julia runtime so that a library runs on a computer without Julia.</p>
 
 
-</section></section></main><!-- /main --><style>
+</section><div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>JuliaC gives a library a private Julia runtime on Linux and macOS. Windows support is in progress in <a href="https://github.com/JuliaLang/JuliaC.jl/pull/151">JuliaC.jl#151</a>.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol></section></div></main><!-- /main --><style>
 .quartodown-theme-switching * {
   transition: none !important;
 }
@@ -1479,7 +1355,8 @@ visitors who prefer it, before Quarto reads the stored choice.
   <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>,
-  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>
+  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">private</span> <span class="at">=</span> <span class="cn">NULL</span>
 )</code><span class="quartodown-tip-brief">Build the Julia library</span>
 </div>
 <div data-for="t2">
@@ -1497,7 +1374,8 @@ visitors who prefer it, before Quarto reads the stored choice.
   <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>,
-  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>
+  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">private</span> <span class="at">=</span> <span class="cn">FALSE</span>
 )</code><span class="quartodown-tip-brief">Build a Julia library from specific packages</span>
 </div>
 <div data-for="t5">

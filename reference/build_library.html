@@ -330,11 +330,15 @@ visitors who prefer it, before Quarto reads the stored choice.
     <ul class="dropdown-menu" aria-labelledby="nav-menu-articles">
 <li>
     <a class="dropdown-item" href="../vignettes/technical-details.html">
- <span class="dropdown-text">Technical details</span></a>
+ <span class="dropdown-text">Writing bindings</span></a>
   </li>  
         <li>
     <a class="dropdown-item" href="../vignettes/using-clients.html">
  <span class="dropdown-text">Using packages built on jlbind</span></a>
+  </li>  
+        <li>
+    <a class="dropdown-item" href="../vignettes/build-options.html">
+ <span class="dropdown-text">Build options</span></a>
   </li>  
         <li><hr class="dropdown-divider"></li>
         <li>
@@ -396,8 +400,9 @@ visitors who prefer it, before Quarto reads the stored choice.
 <span id="cb1-6"><a href="#cb1-6" aria-hidden="true" tabindex="-1"></a>  <span class="at">develop =</span> <span class="cn">NULL</span>,</span>
 <span id="cb1-7"><a href="#cb1-7" aria-hidden="true" tabindex="-1"></a>  <span class="at">cpu_target =</span> <span class="cn">NULL</span>,</span>
 <span id="cb1-8"><a href="#cb1-8" aria-hidden="true" tabindex="-1"></a>  <span class="at">julia_args =</span> <span class="cn">NULL</span>,</span>
-<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">bundle =</span> <span class="cn">FALSE</span></span>
-<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
+<span id="cb1-9"><a href="#cb1-9" aria-hidden="true" tabindex="-1"></a>  <span class="at">bundle =</span> <span class="cn">FALSE</span>,</span>
+<span id="cb1-10"><a href="#cb1-10" aria-hidden="true" tabindex="-1"></a>  <span class="at">private =</span> <span class="cn">FALSE</span></span>
+<span id="cb1-11"><a href="#cb1-11" aria-hidden="true" tabindex="-1"></a>)</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 </section><section id="arguments" class="level2"><h2 class="anchored" data-anchor-id="arguments">Arguments</h2>
@@ -463,7 +468,15 @@ For advanced use: extra Julia command-line options for compiling the library, su
 <code>bundle</code>
 </td>
 <td>
-If <code>TRUE</code>, copy the Julia runtime next to the library, so that it runs without Julia installed. This makes the library much larger, and is only useful for giving a library to people without Julia, who set <code>JLBIND_LIBRARY</code> to it. They also need a <code>cpu_target</code> other than <code>"native"</code>.
+If <code>TRUE</code>, copy the Julia runtime next to the shared library, so that it runs without Julia installed. This makes the library much larger, and is only useful for giving a library to people without Julia, who set <code>JLBIND_LIBRARY</code> to it. They also need a <code>cpu_target</code> other than <code>"native"</code>. See <code><a href="../vignettes/build-options.html">vignette("build-options", "jlbind")</a></code>.
+</td>
+</tr>
+<tr>
+<td>
+<code>private</code>
+</td>
+<td>
+If <code>TRUE</code>, give the library a private Julia runtime, as <code>private</code> does in <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./install_library.html">install_library</a>()</code>. The library then loads alongside the shared one, and the packages built into it bind to it.
 </td>
 </tr>
 </tbody></table></section><section id="value" class="level2"><h2 class="anchored" data-anchor-id="value">Value</h2>
@@ -1310,7 +1323,8 @@ If <code>TRUE</code>, copy the Julia runtime next to the library, so that it run
   <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>,
-  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>
+  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">private</span> <span class="at">=</span> <span class="cn">FALSE</span>
 )</code><span class="quartodown-tip-brief">Build a Julia library from specific packages</span>
 </div>
 <div data-for="t2">
@@ -1323,7 +1337,8 @@ If <code>TRUE</code>, copy the Julia runtime next to the library, so that it run
   <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
   <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>,
-  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>
+  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>,
+  <span class="at">private</span> <span class="at">=</span> <span class="cn">NULL</span>
 )</code><span class="quartodown-tip-brief">Build the Julia library</span>
 </div>
 </div>
