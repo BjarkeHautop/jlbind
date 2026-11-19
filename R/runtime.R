@@ -505,6 +505,16 @@ bind_client <- function(pkg) {
 # `lib`, which cannot be replaced in a running process once loaded.
 .rebuild_hint <- function(pkg, lib = .state) {
   path <- lib$path
+  build <- lib$build
+  if (is.null(build) && !is.null(path)) {
+    build <- .read_build(dirname(path))
+  }
+  if (.is_downloaded(build)) {
+    return(paste0(
+      "Run jlbind::install_library(method = \"download\") to download it ",
+      "again, or jlbind::install_library() to build it, then restart R."
+    ))
+  }
   if (
     identical(path, file.path(.library_dir(), .library_file())) ||
       (!is.null(pkg) && identical(path, .private_library(pkg)))

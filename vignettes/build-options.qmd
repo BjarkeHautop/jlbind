@@ -123,14 +123,18 @@ depends on `LinearAlgebra` or `OpenBLAS_jll`. Any dependency that declares
 calls BLAS; when it is unused, [remove it by hand](#removing-more-by-hand).
 These sizes are for the whole directory, with `cpu_target = "generic"` on the
 computer above, for CausalStructures.jl (whose dependencies declare
-`LinearAlgebra`, while its compiled code runs without BLAS) and for a tiny
-package:
+`LinearAlgebra`) and for a tiny package:
 
   | Library                       | CausalStructures.jl | Tiny package |
   | ----------------------------- | ------------------: | -----------: |
   | Not bundled (needs Julia)     |               11 MB |       2.0 MB |
   | Bundled, or a private library |               85 MB |        29 MB |
-  | Bundled and removed by hand   |               17 MB |       8.8 MB |
+  | Bundled and removed by hand   |        62 MB[^blas] |       8.8 MB |
+
+[^blas]: Keeping OpenBLAS (36 MB) and its Fortran runtime, which
+    CausalStructures.jl's network layouts call through `LinearAlgebra`. Its
+    archive (`.tar.gz`) is 22 MB. Without them, as for code that never calls
+    BLAS, it is 17 MB.
 
 ### Removing more by hand
 
@@ -141,4 +145,39 @@ To get the last row, delete `jlbind-bundle/share`, and everything in
 `tools::R_user_dir("jlbind", "data")`, the names of `libjulia` and
 `libjulia-internal` start with the library's salt, such as `jl0f5ce2_`. A call
 that needs a removed library gives an error that names it. Test every package
-after removing anything.
+after removing anything: code that calls BLAS, even through another package,
+also needs `libblastrampoline`, `libopenblas64_`, `libgfortran` and
+`libquadmath`.
+
+## Offering pre-built libraries
+
+A client can offer pre-built libraries that users install with
+`install_library(method = "download")`. For a package on GitHub:
+
+```r
+jlbind::use_jlbind_binaries()
+```
+
+This writes `.github/workflows/binaries.yaml`. For a release, run it by hand
+(`gh workflow run binaries.yaml`): on Linux, macOS and Windows, it builds the
+library with `build_binary()` and attaches it to a draft GitHub release. Then
+run
+
+```r
+jlbind::record_binaries()
+```
+
+which downloads the libraries and writes their URLs and SHA-256 hashes to
+`inst/jlbind/binaries` in your package. Commit that file and publish the release
+on that commit. Users' downloads are checked against these hashes, so they come
+from the package rather than the download site.
+
+`build_binary()` builds a [private
+library](using-clients.html#private-libraries) for any CPU (on x86-64, with code
+for newer CPUs as well, as Julia's own builds have), runs the package's tests
+against it without Julia, and archives it. To [remove what it doesn't
+use](#removing-more-by-hand), add `tools/prune-binary.R`, whose value is a
+function of the library's directory; the tests catch anything removed that is
+needed. On Windows, the workflow builds with the unreleased JuliaC of
+[JuliaC.jl#151](https://github.com/JuliaLang/JuliaC.jl/pull/151)
+(`JLBIND_JULIAC`), which can give a library a private runtime there.
