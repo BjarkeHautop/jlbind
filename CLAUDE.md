@@ -61,6 +61,12 @@ A second integration test builds a copy of `hellojl` with
 `Config/jlbind/trim: false` (an untrimmed, \~200 MB library); it runs only with
 `JLBIND_TEST_NOTRIM=true`.
 
+`tests/testthat/test-prebuilt.R` builds a pruned pre-built library of a copy of
+`hellojl` with `build_binary()` (its tests and prune script are in
+`tests/testthat/fixtures/prebuilt/`), installs it with
+`install_library(method = "download")` from a `file://` URL and calls it without
+Julia; it runs only with `JLBIND_TEST_BINARY=true`.
+
 jlbind needs Julia >= 1.13, but use 1.14 (its prereleases until it is out):
 Julia 1.13 sometimes compile a `--trim` library that crashes as the runtime
 initializes (`jl_egal_` in `lookup_leafcache`, from
@@ -90,7 +96,10 @@ Linux/Windows, both with the integration test enabled (the Linux job also sets
 `JLBIND_TEST_NOTRIM`), and once on Linux without Julia, which is what CRAN sees
 — everything except the integration test must pass without Julia.
 `test-coverage.yaml` runs covr with Julia 1.14 and `JLBIND_TEST_BUILD=true` and
-uploads to Codecov; `altdoc.yaml` builds and deploys the site.
+uploads to Codecov; `altdoc.yaml` builds and deploys the site. `prebuilt.yaml`
+runs `test-prebuilt.R` on Linux, macOS and Windows, on pull requests that change
+pre-built libraries (its `paths`; add new files there) or by hand
+(`gh workflow run prebuilt.yaml --ref <branch>`).
 
 ## Architecture
 
