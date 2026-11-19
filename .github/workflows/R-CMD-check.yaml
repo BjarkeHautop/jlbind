@@ -22,8 +22,8 @@ jobs:
           # With Julia, the integration test compiles the test clients in
           # tests/clients into a library and calls them. `notrim` also builds
           # an untrimmed library (JLBIND_TEST_NOTRIM).
-          - {os: ubuntu-latest,   r: 'release', julia: 'nightly', notrim: true}
-          - {os: windows-latest,  r: 'release', julia: 'nightly'}
+          - {os: ubuntu-latest,   r: 'release', julia: '~1.14.0-0', notrim: true}
+          - {os: windows-latest,  r: 'release', julia: '~1.14.0-0'}
           # What CRAN sees: no Julia.
           - {os: ubuntu-latest,   r: 'release', julia: ''}
 
