@@ -272,23 +272,12 @@
   TRUE
 }
 
-# The addresses of `symbols` in the library `dll` (a DLLInfo), as a list of
-# external pointers. They are looked up through the DLLInfo, as every library
-# has the DLL name `jlbind`.
-.dll_symbols <- function(dll, symbols) {
-  lapply(symbols, function(symbol) {
-    info <- tryCatch(getNativeSymbolInfo(symbol, dll), error = function(e) NULL)
-    if (is.null(info)) {
-      stop(
-        "Symbol '",
-        symbol,
-        "' not found in the compiled Julia library, which was built from ",
-        "other Julia code.",
-        call. = FALSE
-      )
-    }
-    info$address
-  })
+# The symbols `symbols` of the library `dll` (a DLLInfo, or NULL for null
+# ones) as entries of the client `pkg`: external pointers, which jlbind_call()
+# calls. They are looked up through the DLL's handle, as every library has the
+# DLL name `jlbind`.
+.dll_entries <- function(dll, symbols, pkg = "jlbind") {
+  .Call(jlbind_entries, dll[["handle"]], as.character(symbols), pkg)
 }
 
 # Sets the Julia thread count from JULIA_NUM_THREADS. Must run before the
@@ -298,7 +287,7 @@
   if (threads == 1L) {
     return(invisible(NULL))
   }
-  set <- .dll_symbols(dll, "jlbind_set_julia_threads")[[1L]]
+  set <- .dll_entries(dll, "jlbind_set_julia_threads")[[1L]]
   status <- .Call(jlbind_set_threads, set, threads)
   if (status != 0L) {
     warning(
@@ -460,12 +449,7 @@ bind_client <- function(pkg) {
 # identifier.
 .set_entries <- function(ns, pkg, dll) {
   entries <- ns$.jlbind_entries
-  addresses <- if (is.null(dll)) {
-    vector("list", length(entries))
-  } else {
-    .dll_symbols(dll, paste0(ns$.jlbind_module, "_", entries))
-  }
-  found <- .Call(jlbind_entries, addresses, pkg)
+  found <- .dll_entries(dll, paste0(ns$.jlbind_module, "_", entries), pkg)
   env <- ns$.jlbind
   env$.call <- jlbind_call$address
   for (i in seq_along(entries)) {

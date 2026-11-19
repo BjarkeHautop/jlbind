@@ -177,9 +177,8 @@ object_count <- function() {
 # How many Julia objects R holds references to in the library with state
 # `lib`, which is loaded.
 .object_count <- function(lib) {
-  address <- .dll_symbols(lib$dll, "JLBind_object_count")
-  count <- .Call(jlbind_entries, address, "jlbind")
-  .External(jlbind_call, count[[1L]])
+  count <- .dll_entries(lib$dll, "JLBind_object_count")[[1L]]
+  .External(jlbind_call, count)
 }
 
 .print_sitrep <- function(report) {

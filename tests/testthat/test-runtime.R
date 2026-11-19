@@ -225,7 +225,7 @@ test_that("bind_client() records why a client could not be bound", {
 
 test_that("jlbind_call() checks its entry", {
   call <- jlbind_call$address
-  unbound <- .Call(jlbind_entries, list(NULL), "demo")[[1L]]
+  unbound <- .dll_entries(NULL, "f", "demo")[[1L]]
   expect_error(
     .External(call, unbound, 1),
     'library of demo is not available; run jlbind::check_bound("demo")',
@@ -235,11 +235,12 @@ test_that("jlbind_call() checks its entry", {
   # jlbind's own DLL and routines stand in for a library and its symbols.
   dll <- getLoadedDLLs()[["jlbind"]]
   expect_error(
-    .dll_symbols(dll, c("jlbind_entries", "nope")),
+    .dll_entries(dll, c("jlbind_entries", "nope"), "demo"),
     "Symbol 'nope' not found"
   )
-  found <- .Call(jlbind_entries, .dll_symbols(dll, "jlbind_entries"), "demo")
+  found <- .dll_entries(dll, "jlbind_entries", "demo")
   expect_length(found, 1L)
+  expect_false(identical(found[[1L]], unbound))
 })
 
 test_that("bind_client() fills a client's entrypoints", {
@@ -260,7 +261,7 @@ test_that("bind_client() fills a client's entrypoints", {
   )
   # Looked up as M_f and M_g, which jlbind's DLL does not have.
   expect_error(
-    .set_entries(ns, "demo", list(name = "jlbind")),
+    .set_entries(ns, "demo", getLoadedDLLs()[["jlbind"]]),
     "Symbol 'M_f' not found"
   )
 })

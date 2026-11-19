@@ -55,12 +55,12 @@ static SEXP jlbind_state_hook(SEXP ref, SEXP package)
 }
 
 /* In call.c. */
-SEXP jlbind_entries(SEXP addresses, SEXP package);
+SEXP jlbind_entries(SEXP handle, SEXP symbols, SEXP package);
 SEXP jlbind_call(SEXP args);
 SEXP jlbind_set_threads(SEXP address, SEXP threads);
 
 static const R_CallMethodDef call_methods[] = {
-    {"jlbind_entries", (DL_FUNC)&jlbind_entries, 2},
+    {"jlbind_entries", (DL_FUNC)&jlbind_entries, 3},
     {"jlbind_set_threads", (DL_FUNC)&jlbind_set_threads, 2},
     {NULL, NULL, 0}};
 

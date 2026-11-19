@@ -18,20 +18,45 @@
 #include <Rinternals.h>
 #include <R_ext/Rdynload.h>
 
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <dlfcn.h>
+#endif
+
 typedef SEXP (*jlbind_fn)(SEXP *, int);
 
-/* Entries for the client `package` from `addresses`, a list of the library
- * symbols' addresses (external pointers, as from getNativeSymbolInfo()), each
- * NULL for a null entry, for a client that is not bound. The symbols are
- * looked up in R, through the library's DLLInfo, since every library loaded
- * has the DLL name `jlbind`, under which R_FindSymbol() searches only one. */
-SEXP jlbind_entries(SEXP addresses, SEXP package)
+static DL_FUNC find_symbol(void *dll, const char *name)
 {
-    R_xlen_t n = XLENGTH(addresses);
+#ifdef _WIN32
+    return (DL_FUNC)GetProcAddress((HMODULE)dll, name);
+#else
+    return (DL_FUNC)dlsym(dll, name);
+#endif
+}
+
+/* Entries for the client `package`: the library symbols `symbols` (a
+ * character vector), looked up in the library whose DLL handle is `handle`
+ * (the `handle` of its DLLInfo), as external pointers. With `handle` NULL,
+ * for a client that is not bound, they are null. The symbols are looked up
+ * through the handle, since every library loaded has the DLL name `jlbind`,
+ * under which R_FindSymbol() searches only one. */
+SEXP jlbind_entries(SEXP handle, SEXP symbols, SEXP package)
+{
+    void *dll = Rf_isNull(handle) ? NULL : R_ExternalPtrAddr(handle);
+    R_xlen_t n = XLENGTH(symbols);
     SEXP out = PROTECT(Rf_allocVector(VECSXP, n));
     for (R_xlen_t i = 0; i < n; i++) {
-        SEXP a = VECTOR_ELT(addresses, i);
-        DL_FUNC f = Rf_isNull(a) ? NULL : R_ExternalPtrAddrFn(a);
+        DL_FUNC f = NULL;
+        if (dll != NULL) {
+            const char *name = CHAR(STRING_ELT(symbols, i));
+            f = find_symbol(dll, name);
+            if (f == NULL)
+                Rf_errorcall(R_NilValue,
+                             "Symbol '%s' not found in the compiled Julia "
+                             "library, which was built from other Julia code.",
+                             name);
+        }
         SET_VECTOR_ELT(out, i, R_MakeExternalPtrFn(f, package, R_NilValue));
     }
     UNPROTECT(1);
@@ -39,7 +64,7 @@ SEXP jlbind_entries(SEXP addresses, SEXP package)
 }
 
 /* Sets the number of Julia threads with a library's
- * jlbind_set_julia_threads() (set_threads.c in JLBind) at `address`, before
+ * jlbind_set_julia_threads() (set_threads.c in JLBind), the entry `address`, before
  * its Julia starts: 0 if it did, else nonzero. */
 SEXP jlbind_set_threads(SEXP address, SEXP threads)
 {
