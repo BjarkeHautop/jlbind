@@ -506,7 +506,14 @@ visitors who prefer it, before Quarto reads the stored choice.
 <div class="sourceCode" id="cb11"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb11-1"><a href="#cb11-1" aria-hidden="true" tabindex="-1"></a><span class="fu">skip_if_not</span>(jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t5" href="../reference/is_bound.html">is_bound</a></span>(<span class="st">"mypkg"</span>))</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p>In examples, wrap such calls in <code>if (jlbind::is_bound("mypkg"))</code>. Then run <code>jlbind::<a class="quartodown-tip-ref" data-quartodown-tip="t7" href="../reference/use_jlbind_ci.html">use_jlbind_ci</a>()</code> to check your package both with and without Julia on GitHub Actions.</p>
+<p>In examples, use roxygen’s <code>@examplesIf</code>:</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a><span class="co">#' @examplesIf jlbind::is_bound("mypkg")</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a><span class="co">#' x &lt;- my_function(1:3)</span></span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a><span class="co">#' x</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>Then run <code>jlbind::<a class="quartodown-tip-ref" data-quartodown-tip="t7" href="../reference/use_jlbind_ci.html">use_jlbind_ci</a>()</code> to check your package both with and without Julia on GitHub Actions.</p>
 </section><section id="next-steps" class="level2"><h2 class="anchored" data-anchor-id="next-steps">Next steps</h2>
 <ul>
 <li>

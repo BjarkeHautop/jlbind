@@ -365,6 +365,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <li><a href="#description" id="toc-description" class="nav-link active" data-scroll-target="#description">Description</a></li>
   <li><a href="#usage" id="toc-usage" class="nav-link" data-scroll-target="#usage">Usage</a></li>
   <li><a href="#arguments" id="toc-arguments" class="nav-link" data-scroll-target="#arguments">Arguments</a></li>
+  <li><a href="#details" id="toc-details" class="nav-link" data-scroll-target="#details">Details</a></li>
   <li><a href="#value" id="toc-value" class="nav-link" data-scroll-target="#value">Value</a></li>
   <li><a href="#examples" id="toc-examples" class="nav-link" data-scroll-target="#examples">Examples</a></li>
   </ul></nav>
@@ -405,7 +406,9 @@ visitors who prefer it, before Quarto reads the stored choice.
 <td>
 Name of a package that uses jlbind.
 </td>
-</tr></tbody></table></section><section id="value" class="level2"><h2 class="anchored" data-anchor-id="value">Value</h2>
+</tr></tbody></table></section><section id="details" class="level2"><h2 class="anchored" data-anchor-id="details">Details</h2>
+<p>Use <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./is_bound.html">is_bound</a>()</code> to skip what needs the library when it isn’t available: <code>skip_if_not(jlbind::is_bound("mypkg"))</code> in tests, and <code>@examplesIf jlbind::is_bound("mypkg")</code> in roxygen examples.</p>
+</section><section id="value" class="level2"><h2 class="anchored" data-anchor-id="value">Value</h2>
 <p><code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="./is_bound.html">is_bound</a>()</code>: <code>TRUE</code> or <code>FALSE</code>. <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./is_bound.html">check_bound</a>()</code>: <code>TRUE</code> (invisibly) if the package is bound, otherwise an error.</p>
 </section><section id="examples" class="level2"><h2 class="anchored" data-anchor-id="examples">Examples</h2>
 <div class="cell">
