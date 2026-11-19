@@ -252,17 +252,28 @@ test_that("remove_library() deletes the library and the builds next to it", {
 })
 
 test_that("remove_library() says a loaded library goes on working", {
-  local_state()
-  dir <- file.path(withr::local_tempdir(), "library")
-  dir.create(dir)
-  local_mocked_bindings(.library_dir = function() dir)
-  .state$path <- file.path(dir, .library_file())
-  if (.Platform$OS.type == "windows") {
-    expect_error(remove_library(ask = FALSE), "Restart R")
-    expect_true(dir.exists(dir))
-  } else {
-    expect_message(remove_library(ask = FALSE), "keep working")
+  withr::local_envvar(R_USER_DATA_DIR = withr::local_tempdir())
+  expect_loaded <- function() {
+    dir.create(.library_dir(), recursive = TRUE, showWarnings = FALSE)
+    if (.Platform$OS.type == "windows") {
+      expect_error(remove_library(ask = FALSE), "Restart R")
+      expect_true(dir.exists(.library_dir()))
+    } else {
+      expect_message(remove_library(ask = FALSE), "keep working")
+    }
   }
+  local_state()
+  .state$path <- file.path(.library_dir(), .library_file())
+  expect_loaded()
+
+  # Only a private library is loaded.
+  .state$path <- NULL
+  dir.create(.private_dir("b"), recursive = TRUE)
+  private <- new.env()
+  private$dll <- list(name = "jlbind")
+  private$path <- file.path(.private_dir("b"), .library_file())
+  .state$private <- list(private)
+  expect_loaded()
 })
 
 test_that("only old libraries and abandoned builds are pruned", {

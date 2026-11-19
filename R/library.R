@@ -377,16 +377,16 @@ remove_library <- function(ask = interactive()) {
     message("There is no compiled Julia library to remove.")
     return(invisible(FALSE))
   }
-  # The shared library counts as loaded once it was looked for.
-  paths <- c(
-    .state$path,
-    unlist(lapply(.loaded_libraries(), function(lib) lib$path))
+  # The libraries removed: the shared one and the private ones.
+  removed <- file.path(
+    c(dir, .private_dir(list.files(.private_root()))),
+    .library_file()
   )
-  loaded <- length(paths) > 0L &&
-    any(startsWith(
-      normalizePath(paths, mustWork = FALSE),
-      normalizePath(root, mustWork = FALSE)
-    ))
+  # The shared library counts as loaded once it was looked for.
+  loaded <- any(
+    c(.state$path, vapply(.loaded_libraries(), function(lib) lib$path, "")) %in%
+      removed
+  )
   # A loaded DLL cannot be deleted on Windows, and deleting the rest would
   # leave a library that cannot be used.
   if (loaded && .Platform$OS.type == "windows") {
