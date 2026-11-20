@@ -421,8 +421,5 @@
       salt
     ))
   }
-  if (!is.na(build$CpuTarget) && grepl("native", build$CpuTarget)) {
-    return("it was built for the CPU of the computer that built it")
-  }
   NULL
 }

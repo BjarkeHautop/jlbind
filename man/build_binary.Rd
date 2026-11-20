@@ -9,6 +9,7 @@ build_binary(
   out = "binary",
   prune = NULL,
   check = TRUE,
+  cpu_target = "generic",
   julia = NULL
 )
 }
@@ -22,6 +23,11 @@ directory, or the path to an R script whose value is one.}
 
 \item{check}{If \code{TRUE}, run the package's tests against the library first.}
 
+\item{cpu_target}{The CPUs to compile for, as Julia's \code{--cpu-target}.
+\code{"generic"} runs on any CPU; other targets can make numeric code faster,
+but make the library larger or limit the CPUs it runs on. See
+\code{vignette("build-options", "jlbind")}.}
+
 \item{julia}{Path to the \code{julia} executable. By default, the \code{JULIA}
 environment variable, or \code{julia} on the \code{PATH}.}
 }
@@ -29,10 +35,9 @@ environment variable, or \code{julia} on the \code{PATH}.}
 The path to the archive, invisibly.
 }
 \description{
-Builds a private library (\code{\link[=build_library]{build_library()}} with \code{private = TRUE}) for any
-CPU from the package at \code{path} (on x86-64, with code for newer CPUs as well,
-as in Julia's own builds), prunes it with \code{prune}, runs the package's
-tests against it without Julia, and archives it as
+Builds a private library (\code{\link[=build_library]{build_library()}} with \code{private = TRUE}) from the
+package at \code{path}, prunes it with \code{prune}, runs the package's tests against
+it without Julia, and archives it as
 \verb{<out>/<package>_<version>_<OS>-<arch>.tar.gz}, for
 \code{install_library(method = "download")}. On Windows, \code{JLBIND_JULIAC} must name
 a JuliaC that can give a library a private runtime there, such as that of

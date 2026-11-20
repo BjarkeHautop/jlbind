@@ -95,7 +95,6 @@ test_that("a pre-built library for something else is not installed", {
   expect_rejected(fake_archive(abi = 0L), "version 0 of jlbind's interface")
   expect_rejected(fake_archive(abi = NA), "an older version")
   expect_rejected(fake_archive(bundle = FALSE), "no Julia runtime of its own")
-  expect_rejected(fake_archive(cpu_target = "native"), "for the CPU of")
   expect_rejected(fake_archive(salt = ""), "no private Julia runtime \\(build")
 })
 

@@ -97,9 +97,10 @@ jlbind::install_library(force = TRUE)
 You can select the Julia installation to use by setting the `JULIA` environment
 variable or by passing `julia =` to `install_library()`.
 
-The library is compiled for the building machine's CPU, and jlbind won't load it
-on another. If one R library is used from computers with different CPUs, see
-[CPU target](build-options.html#cpu-target).
+The library is compiled for the building machine's CPU, and may crash R on
+another; jlbind warns before loading it on another CPU model. If one R library
+is used from computers with different CPUs, see [CPU
+target](build-options.html#cpu-target).
 
 ### Threads
 

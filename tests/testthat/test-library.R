@@ -447,7 +447,7 @@ test_that(".build() only bundles when asked, and says so for a native bundle", {
   native <- build(bundle = TRUE)
   expect_true("--bundle" %in% native$args)
   expect_equal(native$build[, "Bundle"][[1]], "TRUE")
-  expect_match(native$msgs, "only loads on this CPU model")
+  expect_match(native$msgs, "may crash R on CPUs other than this one")
 
   expect_length(build(cpu_target = "generic", bundle = TRUE)$msgs, 0)
 })

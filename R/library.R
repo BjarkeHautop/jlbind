@@ -24,11 +24,12 @@
 #' downloaded instead, so you don't need Julia; see
 #' `vignette("using-clients", "jlbind")`.
 #'
-#' The library is compiled for this computer's CPU, and jlbind won't load it on
-#' another. If one R library is used from computers with different CPUs, as on
-#' a cluster, use `cpu_target = "generic"`, or name CPUs they all support, such
-#' as `"x86-64-v3"`. See `vignette("build-options", "jlbind")` for how
-#' these compare.
+#' The library is compiled for this computer's CPU, and may crash R on another;
+#' jlbind warns before loading it on another CPU model. If one R library is used
+#' from computers with different CPUs, as on a cluster, use
+#' `cpu_target = "generic"`, or name CPUs they all support, such as
+#' `"x86-64-v3"`. See `vignette("build-options", "jlbind")` for how these
+#' compare.
 #'
 #' @param packages Names of the installed packages to build. By default, every
 #'   package listed by [jlbind_clients()]. The others aren't bound.
@@ -760,12 +761,12 @@ build_library <- function(
       ": false`. The library is larger and may compile code when it runs."
     )
   }
-  if (bundle && is.null(salt) && grepl("native", cpu_target, fixed = TRUE)) {
+  if (bundle && is.null(salt) && .native_only(cpu_target)) {
     message(
       "Building a bundle for CPU target \"",
       cpu_target,
-      "\", which jlbind only loads on this CPU model. To give it to others, ",
-      "use another `cpu_target`, such as \"generic\"."
+      "\", which may crash R on CPUs other than this one. To give it to ",
+      "others, use another `cpu_target`, such as \"generic\"."
     )
   }
   dir.create(out, recursive = TRUE, showWarnings = FALSE)
@@ -1126,6 +1127,14 @@ build_library <- function(
   )
 }
 
+# Whether code compiled for the CPU target `target` runs only on the CPU
+# model that compiled it: its first target, which the others fall back to, is
+# "native". "generic;native,clone_all" runs on any CPU.
+.native_only <- function(target) {
+  first <- strsplit(target, ";", fixed = TRUE)[[1L]][1L]
+  identical(trimws(strsplit(first, ",", fixed = TRUE)[[1L]][1L]), "native")
+}
+
 # Why a library built as `build` (.read_build()) may crash on this computer:
 # it was compiled for the native CPU of a computer with another CPU model.
 # NULL if not, or if either CPU is unknown.
@@ -1134,7 +1143,7 @@ build_library <- function(
   if (
     is.null(target) ||
       is.na(target) ||
-      !grepl("native", target, fixed = TRUE) ||
+      !.native_only(target) ||
       is.null(build$CPU) ||
       is.na(build$CPU) ||
       !nzchar(build$CPU) ||

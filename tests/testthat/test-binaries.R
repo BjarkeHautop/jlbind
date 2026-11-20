@@ -13,13 +13,10 @@ test_that("use_jlbind_binaries() writes the release workflow", {
 })
 
 # Mocks build_library() to write a fake private library into `out`.
-local_fake_build <- function(env = parent.frame()) {
+local_fake_build <- function(target = "generic", env = parent.frame()) {
   local_mocked_bindings(
     build_library = function(packages, out, julia, cpu_target, private) {
-      stopifnot(
-        cpu_target == .binary_cpu_target(R.version$arch),
-        isTRUE(private)
-      )
+      stopifnot(identical(cpu_target, target), isTRUE(private))
       dir.create(file.path(out, "jlbind-bundle", "lib"), recursive = TRUE)
       writeLines("lib", file.path(out, .library_file()))
       writeLines("blas", file.path(out, "jlbind-bundle", "lib", "libblas.so"))
@@ -68,6 +65,26 @@ test_that("build_binary() builds, prunes and archives a private library", {
     "removed the library itself"
   )
   expect_error(build_binary(pkg, out, prune = 1), "must be a function")
+})
+
+test_that("build_binary() passes on its CPU target, and warns of \"native\"", {
+  pkg <- local_client()
+  target <- "generic;sandybridge,-xsaveopt,clone_all;haswell,-rdrnd,base(1)"
+  local_fake_build(target)
+  withr::local_envvar(JLBIND_JULIAC = "x")
+  local_mocked_bindings(Sys.which = function(names) "", .package = "base")
+  out <- withr::local_tempdir()
+  msgs <- testthat::capture_messages(
+    build_binary(pkg, out, check = FALSE, cpu_target = target)
+  )
+  expect_false(any(grepl("may crash", msgs, fixed = TRUE)))
+
+  local_fake_build("native")
+  local_mocked_bindings(.cpu_model = function(...) "This CPU")
+  msgs <- testthat::capture_messages(
+    build_binary(pkg, out, check = FALSE, cpu_target = "native")
+  )
+  expect_true(any(grepl("other than this one (This CPU)", msgs, fixed = TRUE)))
 })
 
 test_that("build_binary() needs a JuliaC that can privatize on Windows", {

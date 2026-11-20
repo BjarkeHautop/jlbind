@@ -233,20 +233,26 @@
     return(FALSE)
   }
   # A library compiled for another computer's CPU can crash R with an illegal
-  # instruction, so it is not loaded.
-  mismatch <- .cpu_mismatch(.read_build(dirname(path)))
+  # instruction. It is loaded anyway, as it may well run, but with a warning,
+  # since a crash leaves no error to explain it.
+  build <- .read_build(dirname(path))
+  mismatch <- .cpu_mismatch(build)
   if (!is.null(mismatch)) {
-    lib$problem <- paste0(
+    warning(
       "The compiled Julia library (",
       path,
       ") was ",
       mismatch,
-      ", so it is not loaded: it may crash R on this one. ",
-      .rebuild_hint(pkg),
+      ", so it may crash R on this one. If it does: ",
+      if (.is_downloaded(build)) {
+        "Run jlbind::install_library() to build it for this CPU, then restart R."
+      } else {
+        .rebuild_hint(pkg, lib)
+      },
       " For a library that runs on any CPU, build it with ",
-      "`cpu_target = \"generic\"`."
+      "`cpu_target = \"generic\"`.",
+      call. = FALSE
     )
-    return(FALSE)
   }
   # The library links against the Julia that built it, so it stops loading
   # if that Julia is removed (e.g. by a juliaup update).

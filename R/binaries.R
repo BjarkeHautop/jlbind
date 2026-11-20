@@ -6,10 +6,9 @@
 
 #' Build a pre-built library for a package
 #'
-#' Builds a private library ([build_library()] with `private = TRUE`) for any
-#' CPU from the package at `path` (on x86-64, with code for newer CPUs as well,
-#' as in Julia's own builds), prunes it with `prune`, runs the package's
-#' tests against it without Julia, and archives it as
+#' Builds a private library ([build_library()] with `private = TRUE`) from the
+#' package at `path`, prunes it with `prune`, runs the package's tests against
+#' it without Julia, and archives it as
 #' `<out>/<package>_<version>_<OS>-<arch>.tar.gz`, for
 #' `install_library(method = "download")`. On Windows, `JLBIND_JULIAC` must name
 #' a JuliaC that can give a library a private runtime there, such as that of
@@ -20,6 +19,10 @@
 #' @param prune `NULL`, a function that removes files from the library's
 #'   directory, or the path to an R script whose value is one.
 #' @param check If `TRUE`, run the package's tests against the library first.
+#' @param cpu_target The CPUs to compile for, as Julia's `--cpu-target`.
+#'   `"generic"` runs on any CPU; other targets can make numeric code faster,
+#'   but make the library larger or limit the CPUs it runs on. See
+#'   `vignette("build-options", "jlbind")`.
 #' @inheritParams install_library
 #'
 #' @return The path to the archive, invisibly.
@@ -34,8 +37,20 @@ build_binary <- function(
   out = "binary",
   prune = NULL,
   check = TRUE,
+  cpu_target = "generic",
   julia = NULL
 ) {
+  if (.native_only(cpu_target)) {
+    cpu <- .cpu_model()
+    message(
+      "Building for CPU target \"",
+      cpu_target,
+      "\": the library may crash R on CPUs other than this one",
+      if (!is.na(cpu)) paste0(" (", cpu, ")"),
+      ". For a library that runs on any CPU, use another `cpu_target`, ",
+      "such as \"generic\"."
+    )
+  }
   desc <- read.dcf(file.path(path, "DESCRIPTION"), c("Package", "Version"))
   pkg <- desc[[1L, "Package"]]
   version <- desc[[1L, "Version"]]
@@ -76,7 +91,7 @@ build_binary <- function(
     path,
     dir,
     julia = julia,
-    cpu_target = .binary_cpu_target(platform[["Arch"]]),
+    cpu_target = cpu_target,
     private = TRUE
   )
   message("Built ", lib, " (", .dir_size(dir), ").")
@@ -124,17 +139,6 @@ build_binary <- function(
     "."
   )
   invisible(archive)
-}
-
-# The CPU target of pre-built libraries for the architecture `arch`: on
-# x86-64, Julia's own, which adds code for the CPUs of the last decade to the
-# generic code; elsewhere, generic code.
-.binary_cpu_target <- function(arch) {
-  if (arch %in% c("x86_64", "x86-64", "amd64")) {
-    "generic;sandybridge,-xsaveopt,clone_all;haswell,-rdrnd,base(1)"
-  } else {
-    "generic"
-  }
 }
 
 # The size of the files in `dir`, counting symbolic links as nothing.

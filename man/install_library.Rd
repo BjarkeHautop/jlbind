@@ -96,11 +96,12 @@ With \code{method = "download"}, packages that offer a pre-built library get it
 downloaded instead, so you don't need Julia; see
 \code{vignette("using-clients", "jlbind")}.
 
-The library is compiled for this computer's CPU, and jlbind won't load it on
-another. If one R library is used from computers with different CPUs, as on
-a cluster, use \code{cpu_target = "generic"}, or name CPUs they all support, such
-as \code{"x86-64-v3"}. See \code{vignette("build-options", "jlbind")} for how
-these compare.
+The library is compiled for this computer's CPU, and may crash R on another;
+jlbind warns before loading it on another CPU model. If one R library is used
+from computers with different CPUs, as on a cluster, use
+\code{cpu_target = "generic"}, or name CPUs they all support, such as
+\code{"x86-64-v3"}. See \code{vignette("build-options", "jlbind")} for how these
+compare.
 }
 \examples{
 \dontrun{
