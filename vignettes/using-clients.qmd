@@ -131,7 +131,7 @@ clients it conflicts with. You then have three options:
   | Option                                                          | Clients in one R session                    | Disk space                      | Systems        |
   | ----------------------------------------------------------      | ---------------------------------------     | -----------------------------   | -------------- |
   | [Choose the clients](#choose-the-clients)                       | Those in the shared library                 | One library                     | All            |
-  | [Private library](#private-libraries)                           | All                                         | About 60–110 MB more per client | All[^windows]  |
+  | [Private library](#private-libraries)                           | All                                         | About 30–120 MB more per client | All[^windows]  |
   | [Separate libraries](#separate-libraries-for-separate-sessions) | Those in the library chosen for the session | One library each                | All            |
 
 ### Choose the clients
