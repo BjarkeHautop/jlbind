@@ -181,7 +181,7 @@ value using `to_sexp()`. The built-in conversions are:
 
 - **Missing values:** `NA` is an error unless the type is `Union{Missing,T}` or
   `Vector{Union{Missing,T}}`, which turn `NA` into `missing` and back.
-- **`NaN`:** accepted only where `missing` is.
+- **`NaN`:** float and complex arguments accept it; other arguments reject it.
 - **Ranges:** a number must fit its type, so an `Int16` argument rejects
   `40000`.
 - **`Int64` results:** these become doubles, since R's integers have 32 bits.
@@ -256,8 +256,9 @@ reference](articles/jlbind-reference.qmd) documents all of them.
 
 ### Julia objects in R
 
-Sometimes an object is easier to keep in Julia than to convert into an R data
-structure. You can pass such objects by reference using `RRef{T}`. R receives an
+Sometimes an object is better kept in Julia: it has no natural R equivalent, or
+it is large, such as a fitted model, and converting it on every call would be
+slow. You can pass such objects by reference using `RRef{T}`. R receives an
 external pointer to the Julia object, allowing it to be reused across calls. The
 object is released when R garbage-collects the reference, and
 `jlbind::object_count()` counts the objects R holds, to check that a package
