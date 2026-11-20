@@ -61,32 +61,45 @@ A second integration test builds a copy of `hellojl` with
 `Config/jlbind/trim: false` (an untrimmed, \~200 MB library); it runs only with
 `JLBIND_TEST_NOTRIM=true`.
 
-jlbind needs Julia >= 1.13, but use nightly until 1.14 is released: Julia 1.13
-sometimes compile a `--trim` library that crashes as the runtime initializes
-(`jl_egal_` in `lookup_leafcache`, from `jl_module_run_initializer`): pruning
-swaps the shared empty `Memory{Any}` for a 32-byte index when a method's
-specializations all have signatures without a type hash, such as from a type
-variable bounded by a `Union` (`where {T<:Union{...}}`). It is fixed on master
-by [JuliaLang/julia#63664](https://github.com/JuliaLang/julia/pull/63664), not
-yet backported to 1.13. The repository has a juliaup override
-(`juliaup override set nightly`), so `julia` run in it, and so jlbind's builds,
-use nightly; check with `juliaup override status`. A Julia run from outside the
-repository (e.g. an R session whose working directory is elsewhere) still gets
-the default channel.
+`tests/testthat/test-prebuilt.R` builds a pruned pre-built library of a copy of
+`hellojl` with `build_binary()` (its tests and prune script are in
+`tests/testthat/fixtures/prebuilt/`), installs it with
+`install_library(method = "download")` from a `file://` URL and calls it without
+Julia; it runs only with `JLBIND_TEST_BINARY=true`.
+
+jlbind needs Julia >= 1.13, but use 1.14 (its prereleases until it is out):
+Julia 1.13 sometimes compile a `--trim` library that crashes as the runtime
+initializes (`jl_egal_` in `lookup_leafcache`, from
+`jl_module_run_initializer`): pruning swaps the shared empty `Memory{Any}` for a
+32-byte index when a method's specializations all have signatures without a type
+hash, such as from a type variable bounded by a `Union`
+(`where {T<:Union{...}}`). It is fixed on master by
+[JuliaLang/julia#63664](https://github.com/JuliaLang/julia/pull/63664), which
+1.14.0-beta1 includes but 1.13 does not yet. The repository has a juliaup
+override (`juliaup override set 1.14`), so `julia` run in it, and so jlbind's
+builds, use 1.14; check with `juliaup override status`. A Julia run from outside
+the repository (e.g. an R session whose working directory is elsewhere) still
+gets the default channel.
 
 Environment variables: `JULIA` (Julia binary to use), `JLBIND_LIBRARY` (load
 this library instead of the one `install_library()` builds, or the one
 `build_library()` writes to a `load_all()`ed client's `.jlbind/`),
 `JULIA_NUM_THREADS`, `JULIA_CPU_TARGET` (the default `cpu_target` of builds,
 else `"native"`), `JLBIND_JULIA_ARGS` (the default `julia_args` of builds, split
-at spaces).
+at spaces), `JLBIND_JULIAC` (a JuliaC directory or git URL `#rev` to build with
+instead of release 0.3; recorded in `build`). Windows private libraries need
+JuliaC.jl#151 (`.juliac_windows`), whose manifest finds the runtime DLLs next to
+the library, so `build.jl` moves them up next to `jlbind.dll`.
 
-CI (`.github/workflows/R-CMD-check.yaml`) runs R CMD check with Julia nightly on
+CI (`.github/workflows/R-CMD-check.yaml`) runs R CMD check with Julia 1.14 on
 Linux/Windows, both with the integration test enabled (the Linux job also sets
 `JLBIND_TEST_NOTRIM`), and once on Linux without Julia, which is what CRAN sees
 — everything except the integration test must pass without Julia.
-`test-coverage.yaml` runs covr with Julia nightly and `JLBIND_TEST_BUILD=true`
-and uploads to Codecov; `altdoc.yaml` builds and deploys the site.
+`test-coverage.yaml` runs covr with Julia 1.14 and `JLBIND_TEST_BUILD=true` and
+uploads to Codecov; `altdoc.yaml` builds and deploys the site. `prebuilt.yaml`
+runs `test-prebuilt.R` on Linux, macOS and Windows, on pull requests that change
+pre-built libraries (its `paths`; add new files there) or by hand
+(`gh workflow run prebuilt.yaml --ref <branch>`).
 
 ## Architecture
 
@@ -126,7 +139,17 @@ Three layers, spread across R, Julia and C:
   only if the library was built from its installed version. Each library has a
   state environment: `.state` itself for the shared one,
   `.state$private[[path]]` for privatized ones (`Private` salt in the `build`
-  file); `.library_path()` picks a client's library. `sitrep.R`:
+  file); `.library_path()` picks a client's library. `download.R`:
+  `install_library(method = "download")`: downloads the archive a client lists
+  for this platform in `inst/jlbind/binaries` (`Version`, `OS`, `Arch`, `URL`,
+  `SHA256`; outside the binding package, so not in `.binding_hash()`), checks
+  its hash before unpacking and the library after (`.binary_problem()`), and
+  installs it as the client's private library, with `Download`/`SHA256` in its
+  `build` file. Builds leave such libraries alone. Pre-built libraries are
+  checked against `.binary_abi`, not the jlbind version: bump it when a library
+  built by an earlier jlbind wouldn't work with this one. `binaries.R`:
+  `build_binary()` and `record_binaries()`, the author's side, run by the
+  `use_jlbind_binaries()` workflow (`inst/templates/binaries.yaml`). `sitrep.R`:
   `jlbind_sitrep()`, a report on Julia, the library and each client that works
   before a library has loaded. `scaffold.R`: `use_jlbind()` and
   `update_entrypoints()`, which scans `@rcall` declarations (with

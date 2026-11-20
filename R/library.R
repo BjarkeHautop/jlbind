@@ -20,11 +20,16 @@
 #' or with other options. If a library is already loaded, restart R to use the
 #' new one.
 #'
-#' The library is compiled for this computer's CPU, and jlbind won't load it on
-#' another. If one R library is used from computers with different CPUs, as on
-#' a cluster, use `cpu_target = "generic"`, or name CPUs they all support, such
-#' as `"x86-64-v3"`. See `vignette("build-options", "jlbind")` for how
-#' these compare.
+#' With `method = "download"`, packages that offer a pre-built library get it
+#' downloaded instead, so you don't need Julia; see
+#' `vignette("using-clients", "jlbind")`.
+#'
+#' The library is compiled for this computer's CPU, and may crash R on another;
+#' jlbind warns before loading it on another CPU model. If one R library is used
+#' from computers with different CPUs, as on a cluster, use
+#' `cpu_target = "generic"`, or name CPUs they all support, such as
+#' `"x86-64-v3"`. See `vignette("build-options", "jlbind")` for how these
+#' compare.
 #'
 #' @param packages Names of the installed packages to build. By default, every
 #'   package listed by [jlbind_clients()]. The others aren't bound.
@@ -53,9 +58,14 @@
 #'   who set `JLBIND_LIBRARY` to it. They also need a `cpu_target` other than
 #'   `"native"`. See `vignette("build-options", "jlbind")`.
 #' @param private Names of packages among `packages` to give a library of
-#'   their own, with a private Julia runtime, on Linux and macOS. By default,
+#'   their own, with a private Julia runtime. On Windows, that needs a JuliaC
+#'   not yet released, named by `JLBIND_JULIAC`; see
+#'   `vignette("using-clients", "jlbind")`. By default,
 #'   the packages that already have one. `character()` puts every package in
 #'   the shared library.
+#' @param method `"build"` compiles the libraries with Julia. `"download"`
+#'   downloads the pre-built libraries that packages offer, checked against
+#'   the SHA-256 hashes the packages list, and takes no build options.
 #'
 #' @return The path to the shared library (invisibly), or `NULL` if there was
 #'   nothing to build. With every package private, the path to the first
@@ -77,6 +87,9 @@
 #' # pkgB in a library of its own, as its Julia dependencies conflict with
 #' # those of pkgA
 #' install_library(private = "pkgB")
+#'
+#' # The pre-built library of pkgA, without Julia
+#' install_library("pkgA", method = "download")
 #' }
 install_library <- function(
   packages = NULL,
@@ -88,8 +101,40 @@ install_library <- function(
   cpu_target = NULL,
   julia_args = NULL,
   bundle = FALSE,
-  private = NULL
+  private = NULL,
+  method = c("build", "download")
 ) {
+  method <- match.arg(method)
+  if (method == "download") {
+    build_args <- c(
+      "julia",
+      "versions",
+      "develop",
+      "cpu_target",
+      "julia_args",
+      "bundle",
+      "private"
+    )
+    given <- build_args[c(
+      !missing(julia),
+      !missing(versions),
+      !missing(develop),
+      !missing(cpu_target),
+      !missing(julia_args),
+      !missing(bundle),
+      !missing(private)
+    )]
+    if (length(given)) {
+      stop(
+        "`method = \"download\"` installs pre-built libraries, which take ",
+        "none of the build options: ",
+        paste0("`", given, "`", collapse = ", "),
+        ".",
+        call. = FALSE
+      )
+    }
+    return(.install_download(packages, ask, force))
+  }
   versions <- match.arg(versions)
   cpu_target <- .cpu_target(cpu_target)
   julia_args <- .julia_args(julia_args)
@@ -106,9 +151,30 @@ install_library <- function(
       )
     }
     clients <- clients[clients$package %in% packages, , drop = FALSE]
+    downloaded <- character()
+  } else {
+    # Pre-built private libraries are kept unless a package is named.
+    downloaded <- .downloaded_packages(clients$package)
+    if (length(downloaded)) {
+      message(
+        "Keeping the pre-built ",
+        if (length(downloaded) > 1L) "libraries" else "library",
+        " of ",
+        paste(downloaded, collapse = ", "),
+        "; name ",
+        if (length(downloaded) > 1L) "them" else "it",
+        " in `packages` to build ",
+        if (length(downloaded) > 1L) "them" else "it",
+        " instead."
+      )
+      clients <- clients[!clients$package %in% downloaded, , drop = FALSE]
+    }
   }
   if (nrow(clients) == 0L) {
-    message("No installed package uses jlbind, so there is nothing to build.")
+    if (!length(downloaded)) {
+      message("No installed package uses jlbind, so there is nothing to build.")
+    }
+    .bind_requested()
     return(invisible(NULL))
   }
   private <- .check_private(private, clients$package)
@@ -261,6 +327,12 @@ install_library <- function(
     salt
   )
 
+  .replace_dir(out, dir)
+}
+
+# Moves the library directory `out` to `dir`, in place of the library there.
+.replace_dir <- function(out, dir) {
+  root <- dirname(dir)
   # A loaded library cannot be deleted on Windows, but it can be renamed, so
   # the old build is moved aside first; whatever cannot be removed now is
   # pruned on the next build.
@@ -300,12 +372,8 @@ install_library <- function(
       call. = FALSE
     )
   }
-  if (length(private) && .Platform$OS.type == "windows") {
-    stop(
-      "Private libraries need Linux or macOS; JuliaC cannot give a library ",
-      "a private Julia runtime on Windows yet.",
-      call. = FALSE
-    )
+  if (length(private)) {
+    .windows_private_message()
   }
   unique(private)
 }
@@ -475,12 +543,8 @@ build_library <- function(
   if (!isTRUE(private) && !isFALSE(private)) {
     stop("`private` must be TRUE or FALSE.", call. = FALSE)
   }
-  if (private && .Platform$OS.type == "windows") {
-    stop(
-      "Private libraries need Linux or macOS; JuliaC cannot give a library ",
-      "a private Julia runtime on Windows yet.",
-      call. = FALSE
-    )
+  if (private) {
+    .windows_private_message()
   }
   is_path <- .is_path(packages)
   if (is.null(out)) {
@@ -512,6 +576,32 @@ build_library <- function(
   )
   invisible(file.path(normalizePath(out), .library_file()))
 }
+
+# Released JuliaC gives a library a private Julia runtime on Linux and macOS
+# only; on Windows, that needs JuliaC.jl#151 (JLBIND_JULIAC).
+.windows_private_message <- function(windows = .Platform$OS.type == "windows") {
+  if (windows && !nzchar(.juliac())) {
+    message(
+      "Released JuliaC can't give a library a private Julia runtime on ",
+      "Windows yet, so the library won't load alongside others. To build ",
+      "one, set JLBIND_JULIAC to a JuliaC with Windows support, such as ",
+      "that of https://github.com/JuliaLang/JuliaC.jl/pull/151:\n",
+      "  Sys.setenv(JLBIND_JULIAC = \"",
+      .juliac_windows,
+      "\")"
+    )
+  }
+  invisible(NULL)
+}
+
+# The JuliaC to build with, from JLBIND_JULIAC: a local directory, or a git
+# URL with an optional `#<rev>`; "" for its registered release.
+.juliac <- function() {
+  trimws(Sys.getenv("JLBIND_JULIAC", unset = ""))
+}
+
+# JuliaC with Windows support for private runtimes (JuliaC.jl#151).
+.juliac_windows <- "https://github.com/asinghvi17/JuliaC.jl#as/windows-privatize"
 
 .check_bundle <- function(bundle) {
   if (!isTRUE(bundle) && !isFALSE(bundle)) {
@@ -671,12 +761,12 @@ build_library <- function(
       ": false`. The library is larger and may compile code when it runs."
     )
   }
-  if (bundle && is.null(salt) && grepl("native", cpu_target, fixed = TRUE)) {
+  if (bundle && is.null(salt) && .native_only(cpu_target)) {
     message(
       "Building a bundle for CPU target \"",
       cpu_target,
-      "\", which jlbind only loads on this CPU model. To give it to others, ",
-      "use another `cpu_target`, such as \"generic\"."
+      "\", which may crash R on CPUs other than this one. To give it to ",
+      "others, use another `cpu_target`, such as \"generic\"."
     )
   }
   dir.create(out, recursive = TRUE, showWarnings = FALSE)
@@ -690,6 +780,7 @@ build_library <- function(
       if (!trim) "--no-trim",
       if (bundle) "--bundle",
       if (!is.null(salt)) paste0("--privatize=", salt),
+      if (nzchar(.juliac())) shQuote(paste0("--juliac=", .juliac())),
       shQuote(paste0("--cpu-target=", cpu_target)),
       if (length(julia_args)) {
         shQuote(paste0("--julia-arg=", julia_args))
@@ -742,11 +833,18 @@ build_library <- function(
       CPU = if (is.na(cpu)) "" else cpu,
       JuliaArgs = paste(julia_args, collapse = " "),
       Bundle = bundle || !is.null(salt),
-      Private = if (is.null(salt)) "" else salt
+      Private = if (is.null(salt)) "" else salt,
+      ABI = .binary_abi,
+      JuliaC = .juliac()
     ),
     file.path(out, "build")
   )
   invisible(out)
+}
+
+# `x`, with NULL and NA as "".
+.na_empty <- function(x) {
+  if (is.null(x) || is.na(x)) "" else x
 }
 
 # The clients build.jl left out, as a list from package name to the names of
@@ -842,9 +940,9 @@ build_library <- function(
 }
 
 # How the library in `dir` was built (a list with jlbind, Julia, Built, Trim,
-# Develop, CpuTarget, CPU, JuliaArgs, Bundle and Private, NA where not
-# recorded), or NULL
-# if it records nothing.
+# Develop, CpuTarget, CPU, JuliaArgs, Bundle, Private and ABI, and for a
+# pre-built library install_library(method = "download") installed, Download
+# and SHA256; NA where not recorded), or NULL if it records nothing.
 .read_build <- function(dir) {
   file <- file.path(dir, "build")
   if (!file.exists(file)) {
@@ -860,7 +958,11 @@ build_library <- function(
     "CPU",
     "JuliaArgs",
     "Bundle",
-    "Private"
+    "Private",
+    "ABI",
+    "JuliaC",
+    "Download",
+    "SHA256"
   )
   as.list(read.dcf(file, fields = fields)[1L, ])
 }
@@ -949,7 +1051,18 @@ build_library <- function(
   julia_args <- if (!is.null(julia_args)) paste(julia_args, collapse = " ")
   jlbind <- as.character(utils::packageVersion("jlbind"))
   c(
-    if (!identical(build$jlbind, jlbind)) {
+    # A pre-built library is not rebuilt for another version of jlbind, only
+    # for another interface between the two.
+    if (.is_downloaded(build)) {
+      if (!identical(unname(build$ABI), as.character(.binary_abi))) {
+        paste0(
+          "built for version ",
+          build$ABI,
+          " of jlbind's interface to libraries, not ",
+          .binary_abi
+        )
+      }
+    } else if (!identical(build$jlbind, jlbind)) {
       paste0("built by jlbind ", build$jlbind, ", not ", jlbind)
     },
     if (
@@ -992,8 +1105,34 @@ build_library <- function(
     },
     if (!is.na(build$Develop) && nzchar(build$Develop)) {
       "built with local checkouts (`develop`)"
+    },
+    # Libraries from before JLBIND_JULIAC were built with released JuliaC.
+    # Only a JuliaC asked for with JLBIND_JULIAC is a reason, so a library
+    # built with one (such as a private library on Windows) is kept in
+    # sessions without it. A pre-built library is whatever its authors built
+    # it with.
+    if (
+      !.is_downloaded(build) &&
+        nzchar(.juliac()) &&
+        !identical(unname(.na_empty(build$JuliaC)), .juliac())
+    ) {
+      paste0(
+        "built with JuliaC ",
+        if (nzchar(.na_empty(build$JuliaC))) build$JuliaC else "0.3",
+        ", not ",
+        .juliac(),
+        " (JLBIND_JULIAC)"
+      )
     }
   )
+}
+
+# Whether code compiled for the CPU target `target` runs only on the CPU
+# model that compiled it: its first target, which the others fall back to, is
+# "native". "generic;native,clone_all" runs on any CPU.
+.native_only <- function(target) {
+  first <- strsplit(target, ";", fixed = TRUE)[[1L]][1L]
+  identical(trimws(strsplit(first, ",", fixed = TRUE)[[1L]][1L]), "native")
 }
 
 # Why a library built as `build` (.read_build()) may crash on this computer:
@@ -1004,7 +1143,7 @@ build_library <- function(
   if (
     is.null(target) ||
       is.na(target) ||
-      !grepl("native", target, fixed = TRUE) ||
+      !.native_only(target) ||
       is.null(build$CPU) ||
       is.na(build$CPU) ||
       !nzchar(build$CPU) ||

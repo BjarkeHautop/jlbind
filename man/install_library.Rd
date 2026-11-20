@@ -14,7 +14,8 @@ install_library(
   cpu_target = NULL,
   julia_args = NULL,
   bundle = FALSE,
-  private = NULL
+  private = NULL,
+  method = c("build", "download")
 )
 }
 \arguments{
@@ -54,9 +55,15 @@ who set \code{JLBIND_LIBRARY} to it. They also need a \code{cpu_target} other th
 \code{"native"}. See \code{vignette("build-options", "jlbind")}.}
 
 \item{private}{Names of packages among \code{packages} to give a library of
-their own, with a private Julia runtime, on Linux and macOS. By default,
+their own, with a private Julia runtime. On Windows, that needs a JuliaC
+not yet released, named by \code{JLBIND_JULIAC}; see
+\code{vignette("using-clients", "jlbind")}. By default,
 the packages that already have one. \code{character()} puts every package in
 the shared library.}
+
+\item{method}{\code{"build"} compiles the libraries with Julia. \code{"download"}
+downloads the pre-built libraries that packages offer, checked against
+the SHA-256 hashes the packages list, and takes no build options.}
 }
 \value{
 The path to the shared library (invisibly), or \code{NULL} if there was
@@ -85,11 +92,16 @@ of the packages or their Julia code, by another version of jlbind or Julia,
 or with other options. If a library is already loaded, restart R to use the
 new one.
 
-The library is compiled for this computer's CPU, and jlbind won't load it on
-another. If one R library is used from computers with different CPUs, as on
-a cluster, use \code{cpu_target = "generic"}, or name CPUs they all support, such
-as \code{"x86-64-v3"}. See \code{vignette("build-options", "jlbind")} for how
-these compare.
+With \code{method = "download"}, packages that offer a pre-built library get it
+downloaded instead, so you don't need Julia; see
+\code{vignette("using-clients", "jlbind")}.
+
+The library is compiled for this computer's CPU, and may crash R on another;
+jlbind warns before loading it on another CPU model. If one R library is used
+from computers with different CPUs, as on a cluster, use
+\code{cpu_target = "generic"}, or name CPUs they all support, such as
+\code{"x86-64-v3"}. See \code{vignette("build-options", "jlbind")} for how these
+compare.
 }
 \examples{
 \dontrun{
@@ -107,5 +119,8 @@ install_library(cpu_target = "generic")
 # pkgB in a library of its own, as its Julia dependencies conflict with
 # those of pkgA
 install_library(private = "pkgB")
+
+# The pre-built library of pkgA, without Julia
+install_library("pkgA", method = "download")
 }
 }

@@ -144,7 +144,7 @@ test_that("a missing or unloadable library is reported", {
   expect_true(.load_library())
 })
 
-test_that("a library compiled for another CPU is not loaded", {
+test_that("a library compiled for another CPU is loaded with a warning", {
   local_state()
   .state$dll <- NULL
   dir <- withr::local_tempdir()
@@ -156,18 +156,17 @@ test_that("a library compiled for another CPU is not loaded", {
   )
   withr::local_envvar(JLBIND_LIBRARY = path)
   local_mocked_bindings(.cpu_model = function(...) "This CPU")
-  expect_false(.load_library())
-  expect_match(
-    .state$problem,
-    "built for another CPU (Other CPU, not This CPU)",
+  # It is loaded anyway (and fails as no library).
+  expect_warning(
+    expect_false(.load_library()),
+    "built for another CPU (Other CPU, not This CPU), so it may crash R",
     fixed = TRUE
   )
-  expect_match(.state$problem, "cpu_target = \"generic\"", fixed = TRUE)
-
-  # On the CPU it was built for, it is loaded (and fails as no library).
-  local_mocked_bindings(.cpu_model = function(...) "Other CPU")
-  expect_false(.load_library())
   expect_match(.state$problem, "could not be loaded", fixed = TRUE)
+
+  # On the CPU it was built for, there is no warning.
+  local_mocked_bindings(.cpu_model = function(...) "Other CPU")
+  expect_no_warning(expect_false(.load_library()))
 })
 
 test_that("a client is bound only to a library built from its version", {

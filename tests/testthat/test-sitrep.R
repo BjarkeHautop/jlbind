@@ -148,6 +148,22 @@ test_that("only a native library on a known other CPU is a mismatch", {
   expect_null(.cpu_mismatch(list(CpuTarget = "generic", CPU = "A"), "B"))
   expect_null(.cpu_mismatch(list(CpuTarget = "native", CPU = ""), "B"))
   expect_null(.cpu_mismatch(list(CpuTarget = NA, CPU = NA), "B"))
+  # With a generic fallback, it runs anywhere.
+  expect_null(
+    .cpu_mismatch(list(CpuTarget = "generic;native,clone_all", CPU = "A"), "B")
+  )
+  expect_match(
+    .cpu_mismatch(list(CpuTarget = "native;generic", CPU = "A"), "B"),
+    "another CPU"
+  )
+})
+
+test_that("only a target based on \"native\" is native only", {
+  expect_true(.native_only("native"))
+  expect_true(.native_only(" native ,-avx512f;generic"))
+  expect_false(.native_only("generic;native,clone_all"))
+  expect_false(.native_only("x86-64-v3"))
+  expect_false(.native_only("znver4"))
 })
 
 test_that("jlbind_sitrep() reports on Julia, the library and its clients", {

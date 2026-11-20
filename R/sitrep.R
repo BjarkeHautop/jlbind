@@ -148,7 +148,8 @@ jlbind_sitrep <- function(julia = NULL) {
       "CPU",
       "JuliaArgs",
       "Bundle",
-      "Private"
+      "Private",
+      "Download"
     )],
     problems = problems,
     objects = if (!is.null(lib$dll)) .object_count(lib)
@@ -259,7 +260,12 @@ object_count <- function() {
     if (!stale || !any(rows)) {
       return(NULL)
     }
-    if (installed) {
+    if (installed && .is_downloaded(lib$build)) {
+      paste0(
+        "Run jlbind::install_library(method = \"download\") to download ",
+        "the library again, or jlbind::install_library() to build it"
+      )
+    } else if (installed) {
       "Run jlbind::install_library() to rebuild the library"
     } else {
       "Rebuild the library with jlbind::build_library()"
@@ -323,7 +329,9 @@ object_count <- function() {
         paste0(", for CPU target \"", build$CpuTarget, "\"")
       },
       if (
-        identical(build$CpuTarget, "native") &&
+        !is.null(build$CpuTarget) &&
+          !is.na(build$CpuTarget) &&
+          .native_only(build$CpuTarget) &&
           !is.na(build$CPU) &&
           nzchar(build$CPU)
       ) {
@@ -346,6 +354,9 @@ object_count <- function() {
         ", bundled"
       }
     )
+    if (.is_downloaded(build)) {
+      line("  pre-built, downloaded from ", build$Download)
+    }
   }
   if (!is.null(lib$objects)) {
     line(

@@ -538,7 +538,10 @@ test_that("a client reloaded with pkgload::load_all() is bound again", {
 
 test_that("a private library runs alongside the shared one", {
   skip_on_cran()
-  skip_on_os("windows")
+  # Released JuliaC can't privatize a runtime on Windows; JuliaC.jl#151 can.
+  if (.Platform$OS.type == "windows" && !nzchar(.juliac())) {
+    withr::local_envvar(JLBIND_JULIAC = .juliac_windows)
+  }
   skip_if_not(
     identical(Sys.getenv("JLBIND_TEST_BUILD"), "true"),
     "set JLBIND_TEST_BUILD=true to compile a library"

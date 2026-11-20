@@ -31,7 +31,8 @@ report that the library needs to be rebuilt.
 ## Using a package built on jlbind
 
 You need [Julia](https://julialang.org/install/) 1.13 or later to build the
-shared library.
+shared library, unless the package offers a [pre-built
+library](#pre-built-libraries).
 
 After installing or updating an R package that uses jlbind, run:
 
@@ -47,6 +48,21 @@ Julia cannot be restarted within an R session. If the old library has already
 been loaded, rebuilding it on disk does not replace the copy in memory. Restart
 R to use the new library.
 :::
+
+### Pre-built libraries
+
+Some packages offer pre-built libraries, so you don't need Julia:
+
+```r
+jlbind::install_library(method = "download")
+```
+
+This downloads the library of each package that offers one for your system,
+checked against a SHA-256 hash that comes with the installed package. Run it
+again after updating the package. A pre-built library is a [private
+library](#private-libraries) compiled for any CPU, so it is larger (20--60 MB)
+and numeric code can be slower than in one you build. Later builds leave it
+alone, unless you name its package in `packages`.
 
 ### If something doesn't work correctly
 
@@ -81,9 +97,10 @@ jlbind::install_library(force = TRUE)
 You can select the Julia installation to use by setting the `JULIA` environment
 variable or by passing `julia =` to `install_library()`.
 
-The library is compiled for the building machine's CPU, and jlbind won't load it
-on another. If one R library is used from computers with different CPUs, see
-[CPU target](build-options.html#cpu-target).
+The library is compiled for the building machine's CPU, and may crash R on
+another; jlbind warns before loading it on another CPU model. If one R library
+is used from computers with different CPUs, see [CPU
+target](build-options.html#cpu-target).
 
 ### Threads
 
@@ -111,11 +128,11 @@ If a client's `[compat]` bounds conflict with those of the clients listed before
 it by `jlbind_clients()`, the build leaves it out; `check_bound()` says which
 clients it conflicts with. You then have three options:
 
-  | Option                                                          | Clients in one R session                    | Disk space                     | Systems        |
-  | ----------------------------------------------------------      | ---------------------------------------     | -----------------------------  | -------------- |
-  | [Choose the clients](#choose-the-clients)                       | Those in the shared library                 | One library                    | All            |
-  | [Private library](#private-libraries)                           | All                                         | About 30–85 MB more per client | Linux, macOS   |
-  | [Separate libraries](#separate-libraries-for-separate-sessions) | Those in the library chosen for the session | One library each               | All            |
+  | Option                                                          | Clients in one R session                    | Disk space                      | Systems        |
+  | ----------------------------------------------------------      | ---------------------------------------     | -----------------------------   | -------------- |
+  | [Choose the clients](#choose-the-clients)                       | Those in the shared library                 | One library                     | All            |
+  | [Private library](#private-libraries)                           | All                                         | About 30–120 MB more per client | All[^windows]  |
+  | [Separate libraries](#separate-libraries-for-separate-sessions) | Those in the library chosen for the session | One library each                | All            |
 
 ### Choose the clients
 
@@ -127,15 +144,18 @@ jlbind::install_library(packages = c("pkgA", "pkgC"))
 
 ### Private libraries
 
-On Linux and macOS[^windows], a client can get a library of its own:
+A client can get a library of its own:
 
 ```r
 jlbind::install_library(private = "pkgB")
 ```
 
-[^windows]: JuliaC gives a library a private Julia runtime on Linux and macOS.
-    Windows support is in progress in
-    [JuliaC.jl#151](https://github.com/JuliaLang/JuliaC.jl/pull/151).
+[^windows]: Released JuliaC gives a library a private Julia runtime on Linux and
+    macOS. On Windows, that needs the JuliaC of
+    [JuliaC.jl#151](https://github.com/JuliaLang/JuliaC.jl/pull/151), not yet
+    released; to build with it, set `JLBIND_JULIAC` first:
+    `Sys.setenv(JLBIND_JULIAC = "https://github.com/asinghvi17/JuliaC.jl#as/windows-privatize")`.
+    Pre-built libraries for Windows are built with it.
 
 This builds the shared library from the other clients, and a private library for
 `pkgB`, with its dependencies resolved for it alone. A private library has its

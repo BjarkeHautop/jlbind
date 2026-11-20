@@ -28,10 +28,25 @@
 # `--privatize=<salt>` also gives the bundled runtime private symbol names
 # derived from <salt> (`[A-Za-z_][A-Za-z0-9_]*`, at most 8 characters), so the
 # library can share a process with other Julia libraries; it implies
-# `--bundle`. Each library in a process needs its own salt.
+# `--bundle`. Each library in a process needs its own salt. `--juliac=<spec>`
+# compiles with the JuliaC at <spec> instead of its registered 0.3 release: a
+# local directory, or a git URL with an optional `#<rev>`, as for a pull request
+# not yet released (such as Windows support for `--privatize`).
 
+import Libdl
 import Pkg
 import TOML
+
+# R on Windows starts programs through their 8.3 short path (`JULIA~1`), which
+# the loaded libjulia keeps. JuliaC places bundled libraries by their path
+# relative to libjulia's directory, so with the long paths Julia lists them by,
+# they would all land in `bin/julia`, where neither the loader nor `--privatize`
+# finds them. Run again through the long path (`Sys.BINDIR`), once.
+if Sys.iswindows() && !haskey(ENV, "JLBIND_LONG_PATH") &&
+        dirname(Libdl.dlpath("libjulia")) != Sys.BINDIR
+    cmd = `$(Base.julia_cmd()) $(PROGRAM_FILE) $ARGS`
+    exit(something(run(ignorestatus(addenv(cmd, "JLBIND_LONG_PATH" => "1"))).exitcode, 1))
+end
 
 # Pkg's output is captured and shown only if it fails other than by
 # conflicting [compat] bounds, which choose_clients() reports itself, so a
@@ -63,6 +78,9 @@ end
 const SOURCES = [abspath(a) for a in ARGS[2:end] if !startswith(a, "--")]
 const DEVELOP = [abspath(chopprefix(a, "--develop=")) for a in ARGS if startswith(a, "--develop=")]
 const JULIA_ARGS = [String(chopprefix(a, "--julia-arg=")) for a in ARGS if startswith(a, "--julia-arg=")]
+const JULIAC = let a = findlast(startswith("--juliac="), ARGS)
+    a === nothing ? nothing : String(chopprefix(ARGS[a], "--juliac="))
+end
 isempty(SOURCES) && error("No binding packages to build.")
 mkpath(OUT)
 
@@ -256,7 +274,14 @@ cp(joinpath(IMAGE, "Manifest.toml"), joinpath(OUT, "Manifest.toml"); force = tru
 # JuliaC gets its own environment, so it is never compiled into the library.
 quietly() do io
     Pkg.activate(; temp = true, io)
-    Pkg.add(Pkg.PackageSpec(name = "JuliaC", version = "0.3"); io)
+    if JULIAC === nothing
+        Pkg.add(Pkg.PackageSpec(name = "JuliaC", version = "0.3"); io)
+    elseif isdir(JULIAC)
+        Pkg.develop(Pkg.PackageSpec(path = abspath(JULIAC)); io)
+    else
+        url, rev = occursin('#', JULIAC) ? split(JULIAC, '#'; limit = 2) : (JULIAC, nothing)
+        Pkg.add(Pkg.PackageSpec(; url = String(url), rev = rev === nothing ? nothing : String(rev)); io)
+    end
 end
 
 using JuliaC
@@ -328,7 +353,20 @@ if BUNDLE
         privatize = something(PRIVATIZE, false),
     ))
     prune_bundle(BUNDLE_DIR, image)
-    mv(link.outname, joinpath(OUT, basename(link.outname)); force = true)
+    if Sys.iswindows() && PRIVATIZE !== nothing
+        # A private runtime on Windows is resolved through a manifest in the
+        # library, from the library's own directory, so the library stays with
+        # its DLLs: the bundle's DLLs are moved up next to it, at the top.
+        for dir in (joinpath(BUNDLE_DIR, "bin", "julia"), joinpath(BUNDLE_DIR, "bin"))
+            isdir(dir) || continue
+            for f in readdir(dir)
+                p = joinpath(dir, f)
+                isfile(p) && endswith(lowercase(f), ".dll") && mv(p, joinpath(OUT, f); force = true)
+            end
+        end
+    end
+    # (On Windows with a private runtime, the library came up with them.)
+    ispath(link.outname) && mv(link.outname, joinpath(OUT, basename(link.outname)); force = true)
     rm(joinpath(OUT, "julia_bindir"); force = true)
 else
     # Record where the Julia runtime the library links against lives. A Windows
