@@ -6,7 +6,9 @@
 # (`gh workflow run binaries.yaml`) on the commit to release. On each OS,
 # jlbind::build_binary() builds the library, prunes it with
 # tools/prune-binary.R if the package has one, and tests it on its own, with
-# Julia off the PATH. Then:
+# Julia off the PATH. Each library gets a build provenance attestation, which
+# anyone can check with `gh attestation verify <file> --repo <owner>/<repo>` to
+# see that it was built by this workflow from that commit. Then:
 #
 # 1. jlbind::record_binaries() lists the libraries with their SHA-256 hashes in
 #    inst/jlbind/binaries; commit and push that.
@@ -77,6 +79,8 @@ jobs:
 
     permissions:
       contents: write
+      id-token: write
+      attestations: write
 
     steps:
       - uses: actions/checkout@v7
@@ -86,6 +90,11 @@ jobs:
           pattern: binary-*
           path: binary
           merge-multiple: true
+
+      - name: Attest the libraries' build provenance
+        uses: actions/attest@v4
+        with:
+          subject-path: binary/*.tar.gz
 
       # A published release is never changed: its libraries are the ones its
       # hashes were recorded from.

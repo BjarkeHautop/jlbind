@@ -7,6 +7,7 @@ test_that("use_jlbind_binaries() writes the release workflow", {
   expect_true(any(grepl("jlbind::build_binary(", workflow, fixed = TRUE)))
   expect_true(any(grepl("JLBIND_JULIAC:", workflow, fixed = TRUE)))
   expect_true(any(grepl("--draft", workflow, fixed = TRUE)))
+  expect_true(any(grepl("actions/attest@", workflow, fixed = TRUE)))
   ignore <- readLines(file.path(pkg, ".Rbuildignore"))
   expect_true(all(c("^\\.github$", "^tools$") %in% ignore))
   expect_error(use_jlbind_binaries(pkg), "overwrite = TRUE")

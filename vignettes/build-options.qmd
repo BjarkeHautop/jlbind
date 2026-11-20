@@ -170,6 +170,19 @@ which downloads the libraries and writes their URLs and SHA-256 hashes to
 on that commit. Users' downloads are checked against these hashes, so they come
 from the package rather than the download site.
 
+The workflow also gives each library a [build provenance
+attestation](https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations),
+so anyone can check that a library was built by the workflow, and from which
+commit, rather than uploaded by hand:
+
+```sh
+gh attestation verify mypkg_0.1.0_Linux-x86_64.tar.gz --repo owner/mypkg
+```
+
+`install_library()` doesn't check attestations; the hashes already decide which
+library it accepts. A private repository needs GitHub Enterprise Cloud for
+attestations; otherwise remove the `actions/attest` step.
+
 `build_binary()` builds a [private
 library](using-clients.html#private-libraries) for any CPU, runs the package's
 tests against it without Julia, and archives it. Its default
