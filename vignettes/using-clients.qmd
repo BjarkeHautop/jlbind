@@ -128,11 +128,11 @@ If a client's `[compat]` bounds conflict with those of the clients listed before
 it by `jlbind_clients()`, the build leaves it out; `check_bound()` says which
 clients it conflicts with. You then have three options:
 
-  | Option                                                          | Clients in one R session                    | Disk space                     | Systems        |
-  | ----------------------------------------------------------      | ---------------------------------------     | -----------------------------  | -------------- |
-  | [Choose the clients](#choose-the-clients)                       | Those in the shared library                 | One library                    | All            |
-  | [Private library](#private-libraries)                           | All                                         | About 30–85 MB more per client | All[^windows]  |
-  | [Separate libraries](#separate-libraries-for-separate-sessions) | Those in the library chosen for the session | One library each               | All            |
+  | Option                                                          | Clients in one R session                    | Disk space                      | Systems        |
+  | ----------------------------------------------------------      | ---------------------------------------     | -----------------------------   | -------------- |
+  | [Choose the clients](#choose-the-clients)                       | Those in the shared library                 | One library                     | All            |
+  | [Private library](#private-libraries)                           | All                                         | About 60–110 MB more per client | All[^windows]  |
+  | [Separate libraries](#separate-libraries-for-separate-sessions) | Those in the library chosen for the session | One library each                | All            |
 
 ### Choose the clients
 
