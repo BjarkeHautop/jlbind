@@ -20,6 +20,11 @@ local_fake_build <- function(target = "generic", env = parent.frame()) {
       dir.create(file.path(out, "jlbind-bundle", "lib"), recursive = TRUE)
       writeLines("lib", file.path(out, .library_file()))
       writeLines("blas", file.path(out, "jlbind-bundle", "lib", "libblas.so"))
+      # Julia's artifacts are copied read-only.
+      artifact <- file.path(out, "jlbind-bundle", "share", "artifact.so")
+      dir.create(dirname(artifact))
+      writeLines("artifact", artifact)
+      Sys.chmod(artifact, "444")
       file.path(out, .library_file())
     },
     .env = env
@@ -41,6 +46,7 @@ test_that("build_binary() builds, prunes and archives a private library", {
       prune = function(dir) {
         pruned <<- dir
         unlink(file.path(dir, "jlbind-bundle", "lib", "libblas.so"))
+        unlink(file.path(dir, "jlbind-bundle", "share"), recursive = TRUE)
       },
       check = FALSE
     ),
@@ -55,6 +61,7 @@ test_that("build_binary() builds, prunes and archives a private library", {
   files <- utils::untar(archive, list = TRUE)
   expect_true(any(grepl(.library_file(), files, fixed = TRUE)))
   expect_false(any(grepl("libblas", files, fixed = TRUE)))
+  expect_false(any(grepl("artifact", files, fixed = TRUE)))
 
   # A prune script's value is the function.
   script <- withr::local_tempfile(fileext = ".R")

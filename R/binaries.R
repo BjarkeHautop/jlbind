@@ -95,12 +95,29 @@ build_binary <- function(
     private = TRUE
   )
   message("Built ", lib, " (", .dir_size(dir), ").")
+  # Julia's artifacts are copied read-only, which unlink() can't remove on
+  # Windows, so neither `prune` nor the cleanup could.
+  files <- list.files(dir, recursive = TRUE, full.names = TRUE)
+  Sys.chmod(files, as.octmode(file.mode(files)) | as.octmode("200"))
   if (!is.null(prune)) {
     prune(dir)
     if (!file.exists(lib)) {
       stop("`prune` removed the library itself.", call. = FALSE)
     }
     message("Pruned the library's runtime: ", .dir_size(dir), ".")
+  }
+  if (windows && nzchar(Sys.which("strip"))) {
+    # Julia's Windows DLLs keep their debug info (libstdc++-6.dll is 26 MB,
+    # 2 MB without it). The library itself is left alone: stripped, it no
+    # longer loads.
+    dlls <- list.files(dir, "\\.dll$", recursive = TRUE, full.names = TRUE)
+    for (dll in setdiff(normalizePath(dlls), normalizePath(lib))) {
+      status <- system2("strip", c("--strip-unneeded", shQuote(dll)))
+      if (!identical(status, 0L)) {
+        stop("Could not strip ", dll, ".", call. = FALSE)
+      }
+    }
+    message("Stripped the library's runtime: ", .dir_size(dir), ".")
   }
   if (!windows && nzchar(Sys.which("strip"))) {
     status <- system2(
