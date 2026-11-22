@@ -113,10 +113,8 @@ If the R functions are out of date with the Julia code, as when you change an
 `@rcall` without running `update_entrypoints()`, calling one with the wrong
 number of arguments gives an error.
 
-[^symbol]: 13 is the length of `mypkgBindings`. It keeps the names of different
-    clients' functions apart: the module `a_b`'s function `c` becomes
-    `jlbind3_a_b_c`, and the module `a`'s function `b_c` becomes
-    `jlbind1_a_b_c`.
+[^symbol]: 13 is the length of `mypkgBindings`, which keeps the symbol names of
+    different clients distinct.
 :::
 
 ### 3. Restart R and load your package
