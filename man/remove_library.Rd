@@ -15,8 +15,9 @@ invisibly.
 }
 \description{
 Deletes the libraries built by \code{\link[=install_library]{install_library()}}, with everything else
-jlbind stores in \code{tools::R_user_dir("jlbind", "data")}. Packages that use
-jlbind can't call their Julia code until you run \code{\link[=install_library]{install_library()}} again.
+jlbind stores in \code{tools::R_user_dir("jlbind", "cache")}, and the record of
+which packages have a private library. Packages that use jlbind can't call
+their Julia code until you run \code{\link[=install_library]{install_library()}} again.
 }
 \details{
 Libraries that \code{\link[=build_library]{build_library()}} wrote elsewhere are left alone, as are the

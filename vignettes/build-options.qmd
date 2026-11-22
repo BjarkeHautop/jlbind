@@ -138,7 +138,7 @@ To get the last row, delete `jlbind-bundle/share`, and everything in
 `jlbind-bundle/lib` and `jlbind-bundle/lib/julia` except `libjulia`,
 `libjulia-internal`, `libunwind`, `libz`, `libzstd`, `libatomic`, `libgcc_s` and
 `libopenlibm`, then run `strip` on the library. In a private library, under
-`tools::R_user_dir("jlbind", "data")`, the names of `libjulia` and
+`tools::R_user_dir("jlbind", "cache")`, the names of `libjulia` and
 `libjulia-internal` start with the library's salt, such as `jl0f5ce2_`. A call
 that needs a removed library gives an error that names it. Test every package
 after removing anything.

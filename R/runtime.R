@@ -46,15 +46,20 @@
   file.path(.library_dir(), .library_file())
 }
 
-# The private library install_library() built for `pkg`, or NULL.
+# The private library install_library() builds for `pkg`, if it recorded `pkg`
+# as private, or NULL. It may be missing, as when the cache was cleared; then
+# loading it says to run install_library().
 .private_library <- function(pkg) {
-  path <- file.path(.private_dir(pkg), .library_file())
-  if (file.exists(path)) path
+  if (pkg %in% .read_private()) file.path(.private_dir(pkg), .library_file())
 }
 
 # Whether the library at `path` has a private Julia runtime, as recorded when
-# it was built.
+# it was built. One install_library() builds privately counts as private before
+# it exists, so that it gets its own state.
 .is_private <- function(path) {
+  if (.is_installed_private(path)) {
+    return(TRUE)
+  }
   private <- .read_build(dirname(path))$Private
   !is.null(private) && !is.na(private) && nzchar(private)
 }

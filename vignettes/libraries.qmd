@@ -34,7 +34,7 @@ libraries, unless impossible due to conflicts.
 ## The shared library
 
 `install_library()` stores the shared library under
-`tools::R_user_dir("jlbind", "data")` and rebuilds it whenever a client or the
+`tools::R_user_dir("jlbind", "cache")` and rebuilds it whenever a client or the
 Julia version changes. It uses the runtime of the Julia that built it, so it is
 small, and all clients share one Julia heap, one set of
 [threads](using-clients.html#threads) and each other's [Julia

@@ -55,8 +55,8 @@ who set \code{JLBIND_LIBRARY} to it. They also need a \code{cpu_target} other th
 
 \item{private}{Names of packages among \code{packages} to give a library of
 their own, with a private Julia runtime, on Linux and macOS. By default,
-the packages that already have one. \code{character()} puts every package in
-the shared library.}
+the packages given one by an earlier build. \code{character()} puts every
+package in the shared library.}
 }
 \value{
 The path to the shared library (invisibly), or \code{NULL} if there was
@@ -65,7 +65,7 @@ private library.
 }
 \description{
 Compiles the Julia code of every installed package that uses jlbind into one
-shared library, stored in \code{tools::R_user_dir("jlbind", "data")}. Run this
+shared library, stored in \code{tools::R_user_dir("jlbind", "cache")}. Run this
 after you install or update one of those packages. You need Julia 1.13 or
 later. The first build downloads and compiles the Julia dependencies, which
 can take a few minutes.
