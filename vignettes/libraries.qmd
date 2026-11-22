@@ -17,14 +17,19 @@ select for the R sessions that use it. This vignette compares the three.
   | ---------------------- | ----------------------------- | ---------------------------------- | -------------------------------------- |
   | Set up with            | `install_library()`           | `install_library(private = "pkg")` | `build_library()` and `JLBIND_LIBRARY` |
   | Clients in one session | Those in the library          | All                                | Those in the selected library          |
-  | Disk space             | 2–11 MB                       | 30–85 MB more per private client   | 2–11 MB each                           |
+  | Disk space overhead    | 2 MB                          | 29 MB or more per private client   | 2 MB per library                       |
   | Julia runtimes         | One                           | One per library                    | One                                    |
   | Rebuilt by             | `install_library()`           | `install_library()`                | You                                    |
   | Systems                | All                           | Linux, macOS                       | All                                    |
 
-The sizes are from [Bundle sizes](build-options.html#bundle-sizes). Thus, we
-recommend you to use the default with shared libraries, unless impossible due to
-conflicts.
+The overhead comes on top of each client's compiled code, which every layout
+holds (about 9 MB for CausalStructures.jl; see [Bundle
+sizes](build-options.html#bundle-sizes)). A private library's copy of the
+runtime grows with the standard libraries its dependencies use, to 76 MB for
+CausalStructures.jl, whose dependencies need OpenBLAS. With private or separate
+libraries, a dependency that several clients share is compiled into each of
+their libraries. Thus, we recommend you to use the default with shared
+libraries, unless impossible due to conflicts.
 
 ## The shared library
 
