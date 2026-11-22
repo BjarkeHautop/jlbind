@@ -4,6 +4,7 @@ urls:
 articles:
   build-options: build-options.html
   jlbind: jlbind.html
+  libraries: libraries.html
   technical-details: technical-details.html
   using-clients: using-clients.html
   jlbind-reference: articles/jlbind-reference.html

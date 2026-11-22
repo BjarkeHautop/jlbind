@@ -66,9 +66,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-ddc61b7e90baaf06206f8b5b44bd35f2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-e150bc9ec7ea4aa06522935bd5a8ad25.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-a491920b819315d71cc37a87f41fc149.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-e150bc9ec7ea4aa06522935bd5a8ad25.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -337,6 +337,10 @@ visitors who prefer it, before Quarto reads the stored choice.
  <span class="dropdown-text">Using packages built on jlbind</span></a>
   </li>  
         <li>
+    <a class="dropdown-item" href="../vignettes/libraries.html">
+ <span class="dropdown-text">Shared, private and separate libraries</span></a>
+  </li>  
+        <li>
     <a class="dropdown-item" href="../vignettes/build-options.html">
  <span class="dropdown-text">Build options</span></a>
   </li>  
@@ -530,7 +534,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>Give the users the whole directory, built on the same operating system and CPU architecture as theirs. Then they set <code>JLBIND_LIBRARY</code> to the library in it before loading the clients.</p>
-<p>A <a href="using-clients.html#private-libraries">private library</a> is a bundle too: it has its own copy of the runtime, whose symbols JuliaC renames (<code>--privatize</code>) so that it loads alongside other Julia runtimes. So it also runs without Julia, and takes the same disk space as a bundle.</p>
+<p>A <a href="libraries.html#private-libraries">private library</a> is a bundle too: it has its own copy of the runtime, whose symbols JuliaC renames (<code>--privatize</code>) so that it loads alongside other Julia runtimes. So it also runs without Julia, and takes the same disk space as a bundle.</p>
 <section id="bundle-sizes" class="level3"><h3 class="anchored" data-anchor-id="bundle-sizes">Bundle sizes</h3>
 <p>A bundle holds the runtime libraries Julia declares it needs, and those of the standard libraries in the packages’ Julia environment. With Julia 1.14 or later, jlbind leaves out the libraries JuliaC copies for standard libraries that nothing in the image depends on, such as OpenBLAS (36 MB) when no package depends on <code>LinearAlgebra</code> or <code>OpenBLAS_jll</code>. Any dependency that declares <code>LinearAlgebra</code> keeps OpenBLAS in the bundle, whether or not the compiled code calls BLAS; when it is unused, <a href="#removing-more-by-hand">remove it by hand</a>. These sizes are for the whole directory, with <code>cpu_target = "generic"</code> on the computer above, for CausalStructures.jl (whose dependencies declare <code>LinearAlgebra</code>, while its compiled code runs without BLAS) and for a tiny package:</p>
 <table class="caption-top table">

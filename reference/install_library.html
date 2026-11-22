@@ -66,9 +66,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-ddc61b7e90baaf06206f8b5b44bd35f2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-e150bc9ec7ea4aa06522935bd5a8ad25.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-a491920b819315d71cc37a87f41fc149.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-e150bc9ec7ea4aa06522935bd5a8ad25.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -337,6 +337,10 @@ visitors who prefer it, before Quarto reads the stored choice.
  <span class="dropdown-text">Using packages built on jlbind</span></a>
   </li>  
         <li>
+    <a class="dropdown-item" href="../vignettes/libraries.html">
+ <span class="dropdown-text">Shared, private and separate libraries</span></a>
+  </li>  
+        <li>
     <a class="dropdown-item" href="../vignettes/build-options.html">
  <span class="dropdown-text">Build options</span></a>
   </li>  
@@ -490,7 +494,7 @@ Names of packages among <code>packages</code> to give a library of their own, wi
 </td>
 </tr>
 </tbody></table></section><section id="details" class="level2"><h2 class="anchored" data-anchor-id="details">Details</h2>
-<p>All packages in the shared library share one Julia environment. By default, the dependencies get the versions in the first package’s <code>Manifest.toml</code>. If two packages conflict, the one listed later by <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./jlbind_clients.html">jlbind_clients</a>()</code> is left out, and <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="./is_bound.html">check_bound</a>()</code> says why. To use it anyway, give it a library of its own with <code>private</code>, which has its own copy of the Julia runtime and takes more disk space and memory, or build it into a separate library with <code><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="./build_library.html">build_library</a>()</code> for separate R sessions. See <code><a href="../vignettes/using-clients.html">vignette("using-clients", "jlbind")</a></code> for details.</p>
+<p>All packages in the shared library share one Julia environment. By default, the dependencies get the versions in the first package’s <code>Manifest.toml</code>. If two packages conflict, the one listed later by <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="./jlbind_clients.html">jlbind_clients</a>()</code> is left out, and <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="./is_bound.html">check_bound</a>()</code> says why. To use it anyway, give it a library of its own with <code>private</code>, which has its own copy of the Julia runtime and takes more disk space and memory, or build it into a separate library with <code><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="./build_library.html">build_library</a>()</code> for separate R sessions. See <code><a href="../vignettes/libraries.html">vignette("libraries", "jlbind")</a></code> for how these compare.</p>
 <p>A library is rebuilt only if it is out of date: built from other versions of the packages or their Julia code, by another version of jlbind or Julia, or with other options. If a library is already loaded, restart R to use the new one.</p>
 <p>The library is compiled for this computer’s CPU, and jlbind won’t load it on another. If one R library is used from computers with different CPUs, as on a cluster, use <code>cpu_target = "generic"</code>, or name CPUs they all support, such as <code>"x86-64-v3"</code>. See <code><a href="../vignettes/build-options.html">vignette("build-options", "jlbind")</a></code> for how these compare.</p>
 </section><section id="value" class="level2"><h2 class="anchored" data-anchor-id="value">Value</h2>

@@ -66,9 +66,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-ddc61b7e90baaf06206f8b5b44bd35f2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-e150bc9ec7ea4aa06522935bd5a8ad25.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-a491920b819315d71cc37a87f41fc149.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-e150bc9ec7ea4aa06522935bd5a8ad25.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -337,6 +337,10 @@ visitors who prefer it, before Quarto reads the stored choice.
  <span class="dropdown-text">Using packages built on jlbind</span></a>
   </li>  
         <li>
+    <a class="dropdown-item" href="../vignettes/libraries.html">
+ <span class="dropdown-text">Shared, private and separate libraries</span></a>
+  </li>  
+        <li>
     <a class="dropdown-item" href="../vignettes/build-options.html">
  <span class="dropdown-text">Build options</span></a>
   </li>  
@@ -475,7 +479,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>.jlbind <span class="ot">&lt;-</span> <span class="fu">new.env</span>(<span class="at">parent =</span> <span class="fu">emptyenv</span>())</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p>When your package loads, <code>jlbind::<a class="quartodown-tip-ref" data-quartodown-tip="t6" href="../reference/bind_client.html">bind_client</a>()</code> looks up each entry in the compiled library, <code>shift</code> as <code>mypkgBindings_shift</code>, the function <code>@rcall</code> exports, and puts it into <code>.jlbind</code>. Calls go through <code>.jlbind$.call</code>, a routine in jlbind that turns a Julia error into an R error. If the R functions are out of date with the Julia code, as when you change an <code>@rcall</code> without running <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../reference/update_entrypoints.html">update_entrypoints</a>()</code>, calling one with the wrong number of arguments gives an error.</p>
+<p>When your package loads, <code>jlbind::<a class="quartodown-tip-ref" data-quartodown-tip="t6" href="../reference/bind_client.html">bind_client</a>()</code> looks up each entry in the compiled library, <code>shift</code> as <code>jlbind13_mypkgBindings_shift</code><a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>, the function <code>@rcall</code> exports, and puts it into <code>.jlbind</code>. Calls go through <code>.jlbind$.call</code>, a routine in jlbind that turns a Julia error into an R error. If the R functions are out of date with the Julia code, as when you change an <code>@rcall</code> without running <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../reference/update_entrypoints.html">update_entrypoints</a>()</code>, calling one with the wrong number of arguments gives an error.</p>
 </div>
 </div>
 </div>
@@ -519,10 +523,14 @@ visitors who prefer it, before Quarto reads the stored choice.
 <li>
 <a href="technical-details.html">Writing bindings</a> covers what you’ll likely need next: the <a href="technical-details.html#types">types</a> R and Julia can exchange, <a href="technical-details.html#julia-objects-in-r">keeping Julia objects in R</a>, <a href="technical-details.html#errors">errors</a>, the <a href="technical-details.html#compilation-constraints-trimming">compilation constraints</a> on your Julia code, and <a href="technical-details.html#development-libraries">development libraries</a>, including how to pin Julia dependency versions.</li>
 <li>
-<a href="using-clients.html">Using packages built on jlbind</a> describes what your users see, including threads, how clients share Julia dependencies, and <a href="using-clients.html#when-clients-conflict">what users can do when clients conflict</a>.</li>
+<a href="using-clients.html">Using packages built on jlbind</a> describes what your users see, including threads, how clients share Julia dependencies, and <a href="libraries.html">what users can do when clients conflict</a>.</li>
 <li>
 <a href="https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/hellojl"><code>hellojl</code></a> and <a href="https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/counterjl"><code>counterjl</code></a> are small, complete clients used in jlbind’s tests, and are good examples to learn from.</li>
-</ul></section></main><!-- /main --><style>
+</ul></section><div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
+
+<ol>
+<li id="fn1"><p>13 is the length of <code>mypkgBindings</code>, which keeps the symbol names of different clients distinct.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
+</ol></section></div></main><!-- /main --><style>
 .quartodown-theme-switching * {
   transition: none !important;
 }

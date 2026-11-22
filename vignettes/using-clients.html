@@ -66,9 +66,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-ddc61b7e90baaf06206f8b5b44bd35f2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-e150bc9ec7ea4aa06522935bd5a8ad25.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-a491920b819315d71cc37a87f41fc149.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-e150bc9ec7ea4aa06522935bd5a8ad25.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -337,6 +337,10 @@ visitors who prefer it, before Quarto reads the stored choice.
  <span class="dropdown-text">Using packages built on jlbind</span></a>
   </li>  
         <li>
+    <a class="dropdown-item" href="../vignettes/libraries.html">
+ <span class="dropdown-text">Shared, private and separate libraries</span></a>
+  </li>  
+        <li>
     <a class="dropdown-item" href="../vignettes/build-options.html">
  <span class="dropdown-text">Build options</span></a>
   </li>  
@@ -370,14 +374,7 @@ visitors who prefer it, before Quarto reads the stored choice.
   <li><a href="#threads" id="toc-threads" class="nav-link" data-scroll-target="#threads">Threads</a></li>
   </ul>
 </li>
-  <li>
-<a href="#when-clients-conflict" id="toc-when-clients-conflict" class="nav-link" data-scroll-target="#when-clients-conflict">When clients conflict</a>
-  <ul class="collapse">
-<li><a href="#choose-the-clients" id="toc-choose-the-clients" class="nav-link" data-scroll-target="#choose-the-clients">Choose the clients</a></li>
-  <li><a href="#private-libraries" id="toc-private-libraries" class="nav-link" data-scroll-target="#private-libraries">Private libraries</a></li>
-  <li><a href="#separate-libraries-for-separate-sessions" id="toc-separate-libraries-for-separate-sessions" class="nav-link" data-scroll-target="#separate-libraries-for-separate-sessions">Separate libraries for separate sessions</a></li>
-  </ul>
-</li>
+  <li><a href="#when-clients-conflict" id="toc-when-clients-conflict" class="nav-link" data-scroll-target="#when-clients-conflict">When clients conflict</a></li>
   <li><a href="#build-options" id="toc-build-options" class="nav-link" data-scroll-target="#build-options">Build options</a></li>
   </ul></nav>
 </div>
@@ -450,82 +447,15 @@ visitors who prefer it, before Quarto reads the stored choice.
 <div class="sourceCode" id="cb5"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb5-1"><a href="#cb5-1" aria-hidden="true" tabindex="-1"></a><span class="va">JULIA_NUM_THREADS</span><span class="op">=</span>auto <span class="co"># or a number, such as 4</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p>The thread count is fixed when the library is loaded, so restart R after changing it. Each <a href="#private-libraries">private library</a> starts its own threads, as many as <code>JULIA_NUM_THREADS</code> says.</p>
+<p>The thread count is fixed when the library is loaded, so restart R after changing it. Each <a href="libraries.html#private-libraries">private library</a> starts its own threads, as many as <code>JULIA_NUM_THREADS</code> says.</p>
 </section></section><section id="when-clients-conflict" class="level2"><h2 class="anchored" data-anchor-id="when-clients-conflict">When clients conflict</h2>
 <p>All clients in the shared library use one set of Julia dependencies. By default, the build starts from the versions in the <code>Manifest.toml</code> of the first client that has one, and keeps them for the other clients where their <code>[compat]</code> bounds allow. Pass <code>versions = "compat"</code> to ignore the manifests and let Julia’s resolver choose versions from the clients’ <code>[compat]</code> bounds alone.</p>
-<p>If a client’s <code>[compat]</code> bounds conflict with those of the clients listed before it by <code><a class="quartodown-tip-ref" data-quartodown-tip="t5" href="../reference/jlbind_clients.html">jlbind_clients</a>()</code>, the build leaves it out; <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/is_bound.html">check_bound</a>()</code> says which clients it conflicts with. You then have three options:</p>
-<table class="caption-top table">
-<thead><tr class="header">
-<th>Option</th>
-<th>Clients in one R session</th>
-<th>Disk space</th>
-<th>Systems</th>
-</tr></thead>
-<tbody>
-<tr class="odd">
-<td><a href="#choose-the-clients">Choose the clients</a></td>
-<td>Those in the shared library</td>
-<td>One library</td>
-<td>All</td>
-</tr>
-<tr class="even">
-<td><a href="#private-libraries">Private library</a></td>
-<td>All</td>
-<td>About 30–85 MB more per client</td>
-<td>Linux, macOS</td>
-</tr>
-<tr class="odd">
-<td><a href="#separate-libraries-for-separate-sessions">Separate libraries</a></td>
-<td>Those in the library chosen for the session</td>
-<td>One library each</td>
-<td>All</td>
-</tr>
-</tbody>
-</table>
-<section id="choose-the-clients" class="level3"><h3 class="anchored" data-anchor-id="choose-the-clients">Choose the clients</h3>
-<p>Name the clients to build the shared library from, in the order to resolve them:</p>
-<div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/install_library.html">install_library</a></span>(<span class="at">packages =</span> <span class="fu">c</span>(<span class="st">"pkgA"</span>, <span class="st">"pkgC"</span>))</span></code></pre></div>
-<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-</section><section id="private-libraries" class="level3"><h3 class="anchored" data-anchor-id="private-libraries">Private libraries</h3>
-<p>On Linux and macOS<a href="#fn1" class="footnote-ref" id="fnref1" role="doc-noteref"><sup>1</sup></a>, a client can get a library of its own:</p>
-<div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb7"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb7-1"><a href="#cb7-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/install_library.html">install_library</a></span>(<span class="at">private =</span> <span class="st">"pkgB"</span>)</span></code></pre></div>
-<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-<p>This builds the shared library from the other clients, and a private library for <code>pkgB</code>, with its dependencies resolved for it alone. A private library has its own copy of the Julia runtime, whose symbols are renamed (JuliaC’s <code>--privatize</code>), so it loads alongside the shared library and any other private ones, and you can use <code>pkgB</code> in the same R session as the clients it conflicts with.</p>
-<p>Each private library runs Julia separately, which costs:</p>
-<ul>
-<li>Disk space, for its copy of the runtime: see the <a href="build-options.html#bundle-sizes">sizes of bundled runtimes</a>.</li>
-<li>Memory, for its own Julia heap and <a href="#threads">threads</a>.</li>
-<li>Sharing: Julia objects that <code>pkgB</code> returns (such as the references from <a href="technical-details.html#julia-objects-in-r"><code>RRef</code></a>) work with the functions of <code>pkgB</code> only. A reference that was saved and loaded again works with any package that supports it.</li>
-</ul>
-<p>Later builds keep a client’s private library, so <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="../reference/install_library.html">install_library</a>()</code> alone rebuilds both. To put every client back into the shared library, pass <code>private = character()</code>. <code><a class="quartodown-tip-ref" data-quartodown-tip="t3" href="../reference/jlbind_sitrep.html">jlbind_sitrep</a>()</code> lists the private libraries.</p>
-</section><section id="separate-libraries-for-separate-sessions" class="level3"><h3 class="anchored" data-anchor-id="separate-libraries-for-separate-sessions">Separate libraries for separate sessions</h3>
-<p>Clients that you use in different R sessions can each have a separate library. Set <code>JLBIND_LIBRARY</code> before loading the client to select the library for that session.</p>
-<p>For example, build the two libraries:</p>
-<div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="../reference/build_library.html">build_library</a></span>(<span class="st">"pkgA"</span>, <span class="st">"~/jlbind/pkgA"</span>)</span>
-<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>jlbind<span class="sc">::</span><span class="fu"><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="../reference/build_library.html">build_library</a></span>(<span class="st">"pkgB"</span>, <span class="st">"~/jlbind/pkgB"</span>)</span></code></pre></div>
-<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-<p>Then select one in an R session:</p>
-<div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a><span class="co"># jlbind.dll on Windows, jlbind.dylib on macOS</span></span>
-<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a><span class="fu">Sys.setenv</span>(<span class="at">JLBIND_LIBRARY =</span> <span class="st">"~/jlbind/pkgA/jlbind.so"</span>)</span>
-<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(pkgA)</span></code></pre></div>
-<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
-</div>
-</section></section><section id="build-options" class="level2"><h2 class="anchored" data-anchor-id="build-options">Build options</h2>
+<p>If a client’s <code>[compat]</code> bounds conflict with those of the clients listed before it by <code><a class="quartodown-tip-ref" data-quartodown-tip="t4" href="../reference/jlbind_clients.html">jlbind_clients</a>()</code>, the build leaves it out; <code><a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/is_bound.html">check_bound</a>()</code> says which clients it conflicts with. You can then choose which clients to build the shared library from, give the conflicting client a <a href="libraries.html#private-libraries">private library</a> (Linux and macOS), or build <a href="libraries.html#separate-libraries">separate libraries</a> for separate R sessions. <a href="libraries.html">Shared, private and separate libraries</a> compares these and explains when to use each.</p>
+</section><section id="build-options" class="level2"><h2 class="anchored" data-anchor-id="build-options">Build options</h2>
 <p><a href="build-options.html">Build options</a> covers which CPUs to compile for, extra Julia arguments, and bundling the Julia runtime so that a library runs on a computer without Julia.</p>
 
 
-</section><div id="quarto-appendix" class="default"><section id="footnotes" class="footnotes footnotes-end-of-document" role="doc-endnotes"><h2 class="anchored quarto-appendix-heading">Footnotes</h2>
-
-<ol>
-<li id="fn1"><p>JuliaC gives a library a private Julia runtime on Linux and macOS. Windows support is in progress in <a href="https://github.com/JuliaLang/JuliaC.jl/pull/151">JuliaC.jl#151</a>.<a href="#fnref1" class="footnote-back" role="doc-backlink">↩︎</a></p></li>
-</ol></section></div></main><!-- /main --><style>
+</section></main><!-- /main --><style>
 .quartodown-theme-switching * {
   transition: none !important;
 }
@@ -1366,19 +1296,6 @@ visitors who prefer it, before Quarto reads the stored choice.
 <code class="quartodown-tip-sig"><span class="fu">jlbind_sitrep</span>(<span class="at">julia</span> <span class="at">=</span> <span class="cn">NULL</span>)</code><span class="quartodown-tip-brief">Report on the jlbind setup</span>
 </div>
 <div data-for="t4">
-<code class="quartodown-tip-sig"><span class="fu">build_library</span>(
-  <span class="at">packages</span> <span class="at">=</span> <span class="st">"."</span>,
-  <span class="at">out</span> <span class="at">=</span> <span class="cn">NULL</span>,
-  <span class="at">julia</span> <span class="at">=</span> <span class="cn">NULL</span>,
-  <span class="at">versions</span> <span class="at">=</span> <span class="fu">c</span>(<span class="st">"manifest"</span>, <span class="st">"compat"</span>),
-  <span class="at">develop</span> <span class="at">=</span> <span class="cn">NULL</span>,
-  <span class="at">cpu_target</span> <span class="at">=</span> <span class="cn">NULL</span>,
-  <span class="at">julia_args</span> <span class="at">=</span> <span class="cn">NULL</span>,
-  <span class="at">bundle</span> <span class="at">=</span> <span class="cn">FALSE</span>,
-  <span class="at">private</span> <span class="at">=</span> <span class="cn">FALSE</span>
-)</code><span class="quartodown-tip-brief">Build a Julia library from specific packages</span>
-</div>
-<div data-for="t5">
 <code class="quartodown-tip-sig"><span class="fu">jlbind_clients</span>(<span class="at">lib.loc</span> <span class="at">=</span> <span class="cn">NULL</span>)</code><span class="quartodown-tip-brief">List the packages that use jlbind</span>
 </div>
 </div>

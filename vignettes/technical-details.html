@@ -66,9 +66,9 @@ pre > code.sourceCode > span > a:first-child::before { text-decoration: underlin
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-dark-447e42e69aaa9833c0ba1b986f430b20.css" rel="stylesheet" class="quarto-color-scheme quarto-color-alternate" id="quarto-text-highlighting-styles">
 <link href="../site_libs/quarto-html/quarto-syntax-highlighting-63b5708e65d6cd79cd7618c58d0c21e7.css" rel="stylesheet" class="quarto-color-scheme-extra" id="quarto-text-highlighting-styles">
 <script src="../site_libs/bootstrap/bootstrap.min.js"></script><link href="../site_libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
-<link href="../site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
-<link href="../site_libs/bootstrap/bootstrap-dark-ddc61b7e90baaf06206f8b5b44bd35f2.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
-<link href="../site_libs/bootstrap/bootstrap-b1b3955aa5c8fbed1f7bd154399845fd.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-e150bc9ec7ea4aa06522935bd5a8ad25.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme" id="quarto-bootstrap" data-mode="light">
+<link href="../site_libs/bootstrap/bootstrap-dark-a491920b819315d71cc37a87f41fc149.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme quarto-color-alternate" id="quarto-bootstrap" data-mode="dark">
+<link href="../site_libs/bootstrap/bootstrap-e150bc9ec7ea4aa06522935bd5a8ad25.min.css" rel="stylesheet" append-hash="true" class="quarto-color-scheme-extra" id="quarto-bootstrap" data-mode="light">
 <script id="quarto-search-options" type="application/json">{
   "location": "navbar",
   "copy-button": false,
@@ -337,6 +337,10 @@ visitors who prefer it, before Quarto reads the stored choice.
  <span class="dropdown-text">Using packages built on jlbind</span></a>
   </li>  
         <li>
+    <a class="dropdown-item" href="../vignettes/libraries.html">
+ <span class="dropdown-text">Shared, private and separate libraries</span></a>
+  </li>  
+        <li>
     <a class="dropdown-item" href="../vignettes/build-options.html">
  <span class="dropdown-text">Build options</span></a>
   </li>  
@@ -414,7 +418,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <p>This vignette covers what <a href="jlbind.html">Get started with jlbind</a> leaves out, so read that first.</p>
 <section id="one-library-for-all-clients" class="level2"><h2 class="anchored" data-anchor-id="one-library-for-all-clients">One library for all clients</h2>
 <p>jlbind compiles Julia code with <a href="https://github.com/JuliaLang/JuliaC.jl">JuliaC.jl</a>. Clients share one library and one Julia runtime, so your client shares Julia dependency versions with every other client the user has installed. Keep your <code>[compat]</code> bounds as wide as your code allows, so that it resolves alongside them.</p>
-<p>When clients conflict, users can <a href="using-clients.html#when-clients-conflict">choose between them, give one a private library, or use separate libraries</a>. A private library has its own copy of the Julia runtime, which takes <a href="build-options.html#bundle-sizes">disk space</a> and memory.</p>
+<p>When clients conflict, users can <a href="libraries.html">choose between them, give one a private library, or use separate libraries</a>. A private library has its own copy of the Julia runtime, which takes <a href="build-options.html#bundle-sizes">disk space</a> and memory.</p>
 </section><section id="what-use_jlbind-adds" class="level2"><h2 class="anchored" data-anchor-id="what-use_jlbind-adds">What <code>use_jlbind()</code> adds</h2>
 <ul>
 <li>
@@ -835,7 +839,20 @@ visitors who prefer it, before Quarto reads the stored choice.
 <p>Other conversions copy, so a function given a large vector it only reads can take an <code>RVector{Float64}</code> (or <code>RVector{Int32}</code>, <code>RVector{UInt8}</code>). That is an <code>AbstractVector</code> viewing R’s memory, without checking for <code>NA</code>. It is valid only until the call returns, so don’t store it.</p>
 </section><section id="your-own-types" class="level3"><h3 class="anchored" data-anchor-id="your-own-types">Your own types</h3>
 <p><code>JLBind</code> is jlbind’s own Julia package, which every binding package depends on, so write <code>JLBind.foo</code> as it is rather than with the name of your package.</p>
-<p>A binding package can support additional types by defining methods for <code>JLBind.from_sexp(::Type{T}, x::SEXP)</code> and <code>JLBind.to_sexp(x::T)</code>. <code>JLBind</code> also provides helpers for building R objects directly, such as <code>JLBind.data_frame()</code> for a data frame whose columns are not known when the library is compiled, and <code>JLBind.alloc()</code> and <code>JLBind.alloc_matrix()</code> for a vector or matrix to fill in place, without a copy in Julia first. The <a href="articles/jlbind-reference.html">JLBind reference</a> documents all of them.</p>
+<p>A binding package can support additional types by defining methods for <code>JLBind.from_sexp(::Type{T}, x::SEXP)</code> and <code>JLBind.to_sexp(x::T)</code>. <code>JLBind</code> also provides helpers for building R objects directly, such as <code>JLBind.data_frame()</code> for a data frame whose columns are not known when the library is compiled, and <code>JLBind.alloc()</code> and <code>JLBind.alloc_matrix()</code> for a vector or matrix to fill in place, without a copy in Julia first. The <a href="../vignettes/articles/jlbind-reference.html">JLBind reference</a> documents all of them.</p>
+<div class="callout callout-style-default callout-warning callout-titled">
+<div class="callout-header d-flex align-content-center">
+<div class="callout-icon-container">
+<i class="callout-icon"></i>
+</div>
+<div class="callout-title-container flex-fill">
+<span class="screen-reader-only">Warning</span>Avoid type piracy
+</div>
+</div>
+<div class="callout-body-container callout-body">
+<p>By default, every client is compiled into the same library, so a pirated method of a <code>JLBind</code> function changes it for every client, and two clients pirating the same method fail to compile together. To convert a type you don’t own, wrap it in your own struct or <a href="https://github.com/BjarkeHautop/jlbind/issues">open an issue</a> to add it to JLBind.</p>
+</div>
+</div>
 </section><section id="julia-objects-in-r" class="level3"><h3 class="anchored" data-anchor-id="julia-objects-in-r">Julia objects in R</h3>
 <p>Sometimes an object is better kept in Julia: it has no natural R equivalent, or it is large, such as a fitted model, and converting it on every call would be slow. You can pass such objects by reference using <code>RRef{T}</code>. R receives an external pointer to the Julia object, allowing it to be reused across calls. The object is released when R garbage-collects the reference, and <code>jlbind::<a class="quartodown-tip-ref" data-quartodown-tip="t4" href="../reference/object_count.html">object_count</a>()</code> counts the objects R holds, to check that a package doesn’t leak them.</p>
 <p>For example, define a mutable Julia object and expose functions that operate on it (the <a href="https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/counterjl"><code>counterjl</code></a> test client is a complete version of this):</p>
@@ -863,7 +880,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a><span class="co">#&gt; [1] 2</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
-<p><code>r_class()</code> sets the R class of the external pointer, so your package can define methods such as <code>print()</code> for it. An argument declared as <code>RRef{Counter}</code> also checks that the reference points to a <code>Counter</code>, rather than accepting an arbitrary Julia object. A reference works with the library that made it, so with a client in a <a href="using-clients.html#private-libraries">private library</a>, its references work with that client’s functions only.</p>
+<p><code>r_class()</code> sets the R class of the external pointer, so your package can define methods such as <code>print()</code> for it. An argument declared as <code>RRef{Counter}</code> also checks that the reference points to a <code>Counter</code>, rather than accepting an arbitrary Julia object. A reference works with the library that made it, so with a client in a <a href="libraries.html#private-libraries">private library</a>, its references work with that client’s functions only.</p>
 </section><section id="saving-julia-objects" class="level3"><h3 class="anchored" data-anchor-id="saving-julia-objects">Saving Julia objects</h3>
 <p>R writes an external pointer as a null pointer, so by default a reference does not survive <code>saveRDS()</code>, <code>save()</code>, <code>serialize()</code>, or being sent to a parallel worker; using it afterwards gives an error. To make a type savable, you need to do two things.</p>
 <p>In Julia, define <code>JLBind.r_saved_by()</code>, which names your R package, and <code>JLBind.r_restore()</code>, which rebuilds the object from the saved data:</p>
@@ -937,7 +954,7 @@ Shape types and their areas
 </div>
 </details><p>An entrypoint that takes an <code>RRef{Shape}</code> knows only that its argument is <em>some</em> <code>Shape</code>. If it simply calls <code>area(s)</code>, the compiler cannot tell which of the four methods that call reaches, and the build fails with an error such as:</p>
 <pre class="text"><code>Verifier error #1: unresolved call from statement area(s::Shape)::Any</code></pre>
-<p>The solution is to take the argument with <code>@nospecialize</code> and branch on the concrete types, making the call inside each branch, where the type is known. <code>@narrow s (A, B, ...) expr</code> does that: it evaluates <code>expr</code> with <code>s</code> narrowed to whichever of the listed types it is (see its <a href="articles/jlbind-reference.html#macro-narrow">reference</a>):</p>
+<p>The solution is to take the argument with <code>@nospecialize</code> and branch on the concrete types, making the call inside each branch, where the type is known. <code>@narrow s (A, B, ...) expr</code> does that: it evaluates <code>expr</code> with <code>s</code> narrowed to whichever of the listed types it is (see its <a href="../vignettes/articles/jlbind-reference.html#macro-narrow">reference</a>):</p>
 <div class="code-copy-outer-scaffold">
 <div class="sourceCode" id="cb14"><pre class="sourceCode julia code-with-copy"><code class="sourceCode julia"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a><span class="fu">circle</span>(radius) <span class="op">=</span> <span class="fu">Circle</span>(radius)</span>
 <span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a><span class="fu">square</span>(side) <span class="op">=</span> <span class="fu">Square</span>(side)</span>
