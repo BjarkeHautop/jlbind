@@ -259,11 +259,19 @@ test_that("bind_client() fills a client's entrypoints", {
     .External(ns$.jlbind$.call, ns$.jlbind$f, 1),
     "library of demo is not available"
   )
-  # Looked up as M_f and M_g, which jlbind's DLL does not have.
+  # Looked up as jlbind1_M_f and jlbind1_M_g, which jlbind's DLL does not have.
   expect_error(
     .set_entries(ns, "demo", getLoadedDLLs()[["jlbind"]]),
-    "Symbol 'M_f' not found"
+    "Symbol 'jlbind1_M_f' not found"
   )
+})
+
+test_that("entrypoint names stay distinct when names contain _", {
+  expect_identical(
+    .entry_symbols("mypkgBindings", "shift"),
+    "jlbind13_mypkgBindings_shift"
+  )
+  expect_false(.entry_symbols("a_b", "c") == .entry_symbols("a", "b_c"))
 })
 
 # Writes what build_library() records for a library in `dir` built from the
