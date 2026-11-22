@@ -441,6 +441,14 @@ bind_client <- function(pkg) {
   )
 }
 
+# The C names of the entrypoints `entries` of the binding package `module`:
+# `jlbind<n>_<module>_<entry>`, with `n` the number of characters of `module`
+# (`_entry_symbol()` in JLBind's rcall.jl), so that names stay distinct when
+# module or entry names contain `_`.
+.entry_symbols <- function(module, entries) {
+  paste0("jlbind", nchar(module, type = "bytes"), "_", module, "_", entries)
+}
+
 # Puts the entrypoints of `pkg` into its `.jlbind` environment, along with
 # `.call`, jlbind's routine that calls them (src/call.c). They are looked up
 # in the library `dll`, or are null with `dll` NULL. The routine is stored as
@@ -449,7 +457,7 @@ bind_client <- function(pkg) {
 # identifier.
 .set_entries <- function(ns, pkg, dll) {
   entries <- ns$.jlbind_entries
-  found <- .dll_entries(dll, paste0(ns$.jlbind_module, "_", entries), pkg)
+  found <- .dll_entries(dll, .entry_symbols(ns$.jlbind_module, entries), pkg)
   env <- ns$.jlbind
   env$.call <- jlbind_call$address
   for (i in seq_along(entries)) {

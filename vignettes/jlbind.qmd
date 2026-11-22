@@ -106,12 +106,17 @@ declarations:
 ```
 
 When your package loads, `jlbind::bind_client()` looks up each entry in the
-compiled library, `shift` as `mypkgBindings_shift`, the function `@rcall`
-exports, and puts it into `.jlbind`. Calls go through `.jlbind$.call`, a routine
-in jlbind that turns a Julia error into an R error. If the R functions are out
-of date with the Julia code, as when you change an `@rcall` without running
-`update_entrypoints()`, calling one with the wrong number of arguments gives an
-error.
+compiled library, `shift` as `jlbind13_mypkgBindings_shift`[^symbol], the
+function `@rcall` exports, and puts it into `.jlbind`. Calls go through
+`.jlbind$.call`, a routine in jlbind that turns a Julia error into an R error.
+If the R functions are out of date with the Julia code, as when you change an
+`@rcall` without running `update_entrypoints()`, calling one with the wrong
+number of arguments gives an error.
+
+[^symbol]: 13 is the length of `mypkgBindings`. It keeps the names of different
+    clients' functions apart: the module `a_b`'s function `c` becomes
+    `jlbind3_a_b_c`, and the module `a`'s function `b_c` becomes
+    `jlbind1_a_b_c`.
 :::
 
 ### 3. Restart R and load your package

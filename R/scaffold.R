@@ -16,7 +16,7 @@
 #'
 #' @param path Path to the package sources.
 #' @param module Name of the Julia binding package. Defaults to the package name
-#'   followed by `Bindings`. It must be unique across all packages that use
+#'   with each `.` replaced by `_`, followed by `Bindings`. It must be unique across all packages that use
 #'   jlbind, since they're all compiled into one library.
 #' @param dir Directory under `inst/` for the binding package.
 #'
@@ -54,7 +54,7 @@ use_jlbind <- function(path = ".", module = NULL, dir = "julia") {
     message("Using the binding package ", module, " in ", binding, ".")
   } else {
     if (is.null(module)) {
-      module <- paste0(gsub("[^A-Za-z0-9]", "", pkg), "Bindings")
+      module <- paste0(gsub(".", "_", pkg, fixed = TRUE), "Bindings")
     }
     if (!grepl("^[A-Za-z][A-Za-z0-9_]*$", module)) {
       stop("`module` must be a valid Julia package name.", call. = FALSE)

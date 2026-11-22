@@ -5,16 +5,16 @@ test_that("use_jlbind() sets up a package", {
     "inst",
     "julia",
     "src",
-    "mypkgBindings.jl"
+    "my_pkgBindings.jl"
   )))
   expect_equal(
     .binding_name(file.path(pkg, "inst", "julia")),
-    "mypkgBindings"
+    "my_pkgBindings"
   )
   # It needs no C code.
   expect_false(dir.exists(file.path(pkg, "src")))
   wrappers <- readLines(file.path(pkg, "R", "jlbind-wrappers.R"))
-  expect_true('.jlbind_module <- "mypkgBindings"' %in% wrappers)
+  expect_true('.jlbind_module <- "my_pkgBindings"' %in% wrappers)
   expect_true('  "hello"' %in% wrappers)
 
   desc <- read.dcf(file.path(pkg, "DESCRIPTION"))
@@ -41,7 +41,7 @@ test_that("use_jlbind() sets up a package", {
 
   info <- .client_info(pkg)
   expect_equal(info$package, "my.pkg")
-  expect_equal(info$module, "mypkgBindings")
+  expect_equal(info$module, "my_pkgBindings")
   expect_equal(info$path, file.path(normalizePath(pkg), "inst", "julia"))
 })
 

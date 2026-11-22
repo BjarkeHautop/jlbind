@@ -6,8 +6,9 @@
  *
  * where `.jlbind$.call` is jlbind_call() below and `.jlbind$<name>` is an
  * entry made by jlbind_entries() when jlbind::bind_client() binds the client:
- * an external pointer to the library's `<module>_<name>`, or a null one while
- * the client is not bound. Its tag is the client's name, for the error when it
+ * an external pointer to the library's `jlbind<n>_<module>_<name>` (see
+ * .entry_symbols() in R/runtime.R), or a null one while the client is not
+ * bound. Its tag is the client's name, for the error when it
  * is not bound.
  *
  * Every entrypoint (see `@rcall` in JLBind) has the signature
