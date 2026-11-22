@@ -117,18 +117,19 @@ Three layers, spread across R, Julia and C:
   environment (Julia >= 1.14).
 - **R side (`R/`)** — `library.R`: `install_library()` / `build_library()`
   (finds clients, runs `build.jl`, stores the library under
-  `R_user_dir("jlbind", "data")/library/` with the client versions and binding
+  `R_user_dir("jlbind", "cache")/library/` with the client versions and binding
   package hashes (`.binding_hash()`) it was built from, so it is rebuilt when a
   client's Julia code changes without a version bump).
   `install_library(private = )` also builds a privatized library per listed
-  client under `R_user_dir("jlbind", "data")/private/<pkg>/`; its existence is
-  what keeps it private on later builds. `clients.R`: client discovery via the
-  `Config/jlbind` DESCRIPTION field. `runtime.R`: `bind_client(pkg)` called from
-  a client's `.onLoad`, loads the library once, sets threads, binds a client
-  only if the library was built from its installed version. Each library has a
-  state environment: `.state` itself for the shared one,
-  `.state$private[[path]]` for privatized ones (`Private` salt in the `build`
-  file); `.library_path()` picks a client's library. `sitrep.R`:
+  client under `R_user_dir("jlbind", "cache")/private/<pkg>/`, and records the
+  private clients in `R_user_dir("jlbind", "config")/private-packages`, which
+  keeps them private on later builds and survives a cleared cache. `clients.R`:
+  client discovery via the `Config/jlbind` DESCRIPTION field. `runtime.R`:
+  `bind_client(pkg)` called from a client's `.onLoad`, loads the library once,
+  sets threads, binds a client only if the library was built from its installed
+  version. Each library has a state environment: `.state` itself for the shared
+  one, `.state$private[[path]]` for privatized ones (`Private` salt in the
+  `build` file); `.library_path()` picks a client's library. `sitrep.R`:
   `jlbind_sitrep()`, a report on Julia, the library and each client that works
   before a library has loaded. `scaffold.R`: `use_jlbind()` and
   `update_entrypoints()`, which scans `@rcall` declarations (with

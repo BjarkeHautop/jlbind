@@ -21,7 +21,7 @@ loaded in an R session (the R packages that use jlbind) share one compiled
 library. jlbind builds that library for each user, combining the Julia code of
 all installed clients. When you run `install_library()`, jlbind finds the
 installed clients, compiles their binding packages into one library, and saves
-it under `tools::R_user_dir("jlbind", "data")`. Loading a client loads that
+it under `tools::R_user_dir("jlbind", "cache")`. Loading a client loads that
 library and connects the client to it.
 
 A client is bound to a library built from the version of that client currently

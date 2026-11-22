@@ -222,7 +222,8 @@ test_that("two clients share one compiled library", {
     libpath = libpath,
     env = c(
       callr::rcmd_safe_env(),
-      R_USER_DATA_DIR = data,
+      R_USER_CACHE_DIR = data,
+      R_USER_CONFIG_DIR = file.path(data, "config"),
       JULIA_NUM_THREADS = "2"
     ),
     show = TRUE
@@ -555,7 +556,8 @@ test_that("a private library runs alongside the shared one", {
   )
   env <- c(
     callr::rcmd_safe_env(),
-    R_USER_DATA_DIR = data,
+    R_USER_CACHE_DIR = data,
+    R_USER_CONFIG_DIR = file.path(data, "config"),
     JULIA_NUM_THREADS = "2"
   )
 

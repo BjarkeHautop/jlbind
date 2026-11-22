@@ -244,11 +244,13 @@ test_that("a bundle is stale only for `bundle`, not for the installed Julia", {
 test_that("a stale library from install_library() is rebuilt with it", {
   local_state()
   withr::local_envvar(
-    R_USER_DATA_DIR = withr::local_tempdir(),
+    R_USER_CACHE_DIR = withr::local_tempdir(),
+    R_USER_CONFIG_DIR = withr::local_tempdir(),
     JLBIND_LIBRARY = NA
   )
   clients <- fake_clients(c("a", "b"))
   shared <- fake_library(clients[1, ], dir = .library_dir())
+  .write_private("b")
   fake_library(clients[2, ], "1.14.1", dir = .private_dir("b"), private = "jlb")
   local_mocked_bindings(
     jlbind_clients = function(lib.loc = NULL) clients,
