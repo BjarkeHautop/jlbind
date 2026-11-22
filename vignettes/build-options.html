@@ -561,7 +561,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 </tr>
 </tbody>
 </table></section><section id="removing-more-by-hand" class="level3"><h3 class="anchored" data-anchor-id="removing-more-by-hand">Removing more by hand</h3>
-<p>To get the last row, delete <code>jlbind-bundle/share</code>, and everything in <code>jlbind-bundle/lib</code> and <code>jlbind-bundle/lib/julia</code> except <code>libjulia</code>, <code>libjulia-internal</code>, <code>libunwind</code>, <code>libz</code>, <code>libzstd</code>, <code>libatomic</code>, <code>libgcc_s</code> and <code>libopenlibm</code>, then run <code>strip</code> on the library. In a private library, under <code>tools::R_user_dir("jlbind", "data")</code>, the names of <code>libjulia</code> and <code>libjulia-internal</code> start with the library’s salt, such as <code>jl0f5ce2_</code>. A call that needs a removed library gives an error that names it. Test every package after removing anything.</p>
+<p>To get the last row, delete <code>jlbind-bundle/share</code>, and everything in <code>jlbind-bundle/lib</code> and <code>jlbind-bundle/lib/julia</code> except <code>libjulia</code>, <code>libjulia-internal</code>, <code>libunwind</code>, <code>libz</code>, <code>libzstd</code>, <code>libatomic</code>, <code>libgcc_s</code> and <code>libopenlibm</code>, then run <code>strip</code> on the library. In a private library, under <code>tools::R_user_dir("jlbind", "cache")</code>, the names of <code>libjulia</code> and <code>libjulia-internal</code> start with the library’s salt, such as <code>jl0f5ce2_</code>. A call that needs a removed library gives an error that names it. Test every package after removing anything.</p>
 
 
 </section></section></main><!-- /main --><style>
