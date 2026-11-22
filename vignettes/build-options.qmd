@@ -107,8 +107,8 @@ Give the users the whole directory, built on the same operating system and CPU
 architecture as theirs. Then they set `JLBIND_LIBRARY` to the library in it
 before loading the clients.
 
-A [private library](using-clients.html#private-libraries) is a bundle too: it
-has its own copy of the runtime, whose symbols JuliaC renames (`--privatize`) so
+A [private library](libraries.html#private-libraries) is a bundle too: it has
+its own copy of the runtime, whose symbols JuliaC renames (`--privatize`) so
 that it loads alongside other Julia runtimes. So it also runs without Julia, and
 takes the same disk space as a bundle.
 

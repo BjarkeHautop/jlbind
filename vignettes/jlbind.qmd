@@ -190,7 +190,7 @@ Julia on GitHub Actions.
   Julia dependency versions.
 - [Using packages built on jlbind](using-clients.html) describes what your users
   see, including threads, how clients share Julia dependencies, and [what users
-  can do when clients conflict](using-clients.html#when-clients-conflict).
+  can do when clients conflict](libraries.html).
 - [`hellojl`](https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/hellojl)
   and
   [`counterjl`](https://github.com/BjarkeHautop/jlbind/tree/main/tests/clients/counterjl)

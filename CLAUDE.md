@@ -12,10 +12,11 @@ the binding packages of *every* installed client into one shared library that
 all of them bind to. `vignettes/jlbind.qmd` (Get started: a short walkthrough of
 writing a client), `vignettes/technical-details.qmd` ("Writing bindings": what
 Get started leaves out: types, errors, trimming, development libraries),
-`vignettes/using-clients.qmd` (installing and using clients, and what to do when
-they conflict) and `vignettes/build-options.qmd` (build options, CPU targets,
-bundled runtimes and their sizes) are the user-facing guides (rendered with
-Quarto); keep them in sync with user-visible behavior.
+`vignettes/using-clients.qmd` (installing and using clients),
+`vignettes/libraries.qmd` (shared, private and separate libraries: what each
+gives and costs, and when to use which) and `vignettes/build-options.qmd` (build
+options, CPU targets, bundled runtimes and their sizes) are the user-facing
+guides (rendered with Quarto); keep them in sync with user-visible behavior.
 `vignettes/articles/performance.qmd` is a website-only article whose data comes
 from `vignettes/articles/performance/benchmark.R`.
 `vignettes/articles/jlbind-reference.qmd` (website-only) is generated from

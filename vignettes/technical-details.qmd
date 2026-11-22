@@ -18,8 +18,8 @@ every other client the user has installed. Keep your `[compat]` bounds as wide
 as your code allows, so that it resolves alongside them.
 
 When clients conflict, users can [choose between them, give one a private
-library, or use separate libraries](using-clients.html#when-clients-conflict). A
-private library has its own copy of the Julia runtime, which takes [disk
+library, or use separate libraries](libraries.html). A private library has its
+own copy of the Julia runtime, which takes [disk
 space](build-options.html#bundle-sizes) and memory.
 
 ## What `use_jlbind()` adds
@@ -306,7 +306,7 @@ increment(counter, 2)
 methods such as `print()` for it. An argument declared as `RRef{Counter}` also
 checks that the reference points to a `Counter`, rather than accepting an
 arbitrary Julia object. A reference works with the library that made it, so with
-a client in a [private library](using-clients.html#private-libraries), its
+a client in a [private library](libraries.html#private-libraries), its
 references work with that client's functions only.
 
 ### Saving Julia objects

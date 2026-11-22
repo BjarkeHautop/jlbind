@@ -78,7 +78,7 @@ out, and \code{\link[=check_bound]{check_bound()}} says why. To use it anyway, g
 its own with \code{private}, which has its own copy of the Julia runtime and
 takes more disk space and memory, or build it into a separate library with
 \code{\link[=build_library]{build_library()}} for separate R sessions. See
-\code{vignette("using-clients", "jlbind")} for details.
+\code{vignette("libraries", "jlbind")} for how these compare.
 
 A library is rebuilt only if it is out of date: built from other versions
 of the packages or their Julia code, by another version of jlbind or Julia,
