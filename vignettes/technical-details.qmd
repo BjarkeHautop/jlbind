@@ -254,6 +254,14 @@ for a data frame whose columns are not known when the library is compiled, and
 place, without a copy in Julia first. The [JLBind
 reference](articles/jlbind-reference.qmd) documents all of them.
 
+::: {.callout-warning title="Avoid type piracy"}
+By default, every client is compiled into the same library, so a pirated method
+of a `JLBind` function changes it for every client, and two clients pirating the
+same method fail to compile together. To convert a type you don't own, wrap it
+in your own struct or [open an
+issue](https://github.com/BjarkeHautop/jlbind/issues) to add it to JLBind.
+:::
+
 ### Julia objects in R
 
 Sometimes an object is better kept in Julia: it has no natural R equivalent, or
