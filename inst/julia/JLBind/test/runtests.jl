@@ -1,10 +1,15 @@
 # JLBind's own tests, run in an ordinary Julia session with R embedded by RCall,
 # which JLBind's `ccall`s into R's C API resolve against.
 
-using Test, Dates
+using Test, Dates, Libdl
 using RCall
 using JLBind
 using JLBind: SEXP, nil, rtypeof, rlength, alloc, alloc_matrix, protect, unprotect
+
+# Outside Windows, `@R` names a bare symbol, which resolves only against
+# libraries in the global namespace, as libR is in an R process. RCall loads
+# libR locally, so it is opened again globally.
+Sys.iswindows() || Libdl.dlopen(RCall.libR, Libdl.RTLD_LAZY | Libdl.RTLD_GLOBAL)
 
 # --- Helpers
 
