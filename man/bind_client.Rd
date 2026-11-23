@@ -36,7 +36,7 @@ starts that many.
 }
 \examples{
 \dontrun{
-# In a package's R/jlbind.R, as use_jlbind() writes it
+# In a package's R/zzz.R, as use_jlbind() writes it
 .onLoad <- function(libname, pkgname) {
   jlbind::bind_client(pkgname)
 }

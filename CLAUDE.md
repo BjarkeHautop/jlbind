@@ -159,7 +159,7 @@ value, a symbol naming the runtime that made it (`_runtime()`), so a live
 reference from another (private) runtime is rejected.
 
 The test clients in `tests/clients/{hellojl,counterjl}` are scaffolded output:
-their `R/jlbind.R` and `R/jlbind-wrappers.R` correspond to `inst/templates/` and
+their `R/zzz.R` and `R/jlbind-wrappers.R` correspond to `inst/templates/` and
 `update_entrypoints()`. When changing a template or the header generator, update
 the test clients to match.
 

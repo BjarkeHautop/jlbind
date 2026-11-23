@@ -29,7 +29,7 @@ space](build-options.html#bundle-sizes) and memory.
   function.
 - `R/jlbind-wrappers.R`, with an R function for each Julia function the binding
   package declares.
-- `R/jlbind.R`, which calls `jlbind::bind_client()` from `.onLoad()`.
+- An `.onLoad()` in `R/zzz.R` that calls `jlbind::bind_client()`.
 - The `Config/jlbind`, `Imports: jlbind` and
   `SystemRequirements: Julia (>= 1.13)` fields in `DESCRIPTION`.
 - A `.jlbind/` directory for development builds, added to `.Rbuildignore` and
