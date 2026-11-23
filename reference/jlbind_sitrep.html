@@ -423,7 +423,7 @@ Path to the <code>julia</code> executable. By default, the <code>JULIA</code> en
 <p><code>clients</code>: a data frame with one row per package that uses jlbind or that a library was built for, with the columns <code>package</code>, <code>version</code> (installed), <code>built</code> (the version in its library), <code>status</code> (<code>"ok"</code>, <code>"left out"</code>, <code>"not in the library"</code>, <code>"built for version &lt;v&gt;"</code>, <code>"Julia code changed"</code> or <code>"not installed"</code>), <code>bound</code> and <code>library</code> (the path of its library).</p>
 </li>
 <li>
-<p><code>threads</code>: a list with <code>count</code> (from <code>JULIA_NUM_THREADS</code>, in each library) and <code>fixed</code> (<code>TRUE</code> once a library is loaded, after which the count cannot change).</p>
+<p><code>threads</code>: a list with <code>count</code> (from <code>JULIA_NUM_THREADS</code>, in each library; <code>NA</code> for <code>"auto"</code>, the CPU threads available) and <code>fixed</code> (<code>TRUE</code> once a library is loaded, after which the count cannot change).</p>
 </li>
 </ul></section><section id="examples" class="level2"><h2 class="anchored" data-anchor-id="examples">Examples</h2>
 <div class="cell">
