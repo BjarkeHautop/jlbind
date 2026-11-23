@@ -255,6 +255,11 @@
   }
   # The library links against the Julia that built it, so it stops loading
   # if that Julia is removed (e.g. by a juliaup update).
+  # PATH is needed only while loading: Julia loads the libraries of JLLs later
+  # by absolute path, so it is restored rather than left changed for the
+  # session.
+  old_path <- Sys.getenv("PATH")
+  on.exit(Sys.setenv(PATH = old_path), add = TRUE)
   .add_julia_bindir(path)
   dll <- tryCatch(dyn.load(path, local = TRUE, now = TRUE), error = identity)
   if (inherits(dll, "error")) {
@@ -333,7 +338,8 @@
 
 # On Windows the library has no RUNPATH, so the directory of the Julia
 # runtime it links against (recorded by build.jl next to it, or in its bundle)
-# is put on the PATH, where Windows finds libjulia.dll and its dependencies.
+# is put on the PATH, where Windows finds libjulia.dll and its dependencies,
+# while the library loads.
 # JuliaC puts a bundle's DLLs in `bin/julia` with Julia >= 1.14, and in `bin`
 # before that.
 .add_julia_bindir <- function(path, windows = .Platform$OS.type == "windows") {
