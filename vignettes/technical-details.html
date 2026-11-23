@@ -425,8 +425,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <code>inst/julia/</code>, containing a Julia binding package named after the R package with a <code>Bindings</code> suffix (for example, <code>MyPkgBindings</code>), including an example function.</li>
 <li>
 <code>R/jlbind-wrappers.R</code>, with an R function for each Julia function the binding package declares.</li>
-<li>
-<code>R/jlbind.R</code>, which calls <code>jlbind::<a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/bind_client.html">bind_client</a>()</code> from <code>.onLoad()</code>.</li>
+<li>An <code>.onLoad()</code> in <code>R/zzz.R</code> that calls <code>jlbind::<a class="quartodown-tip-ref" data-quartodown-tip="t2" href="../reference/bind_client.html">bind_client</a>()</code>.</li>
 <li>The <code>Config/jlbind</code>, <code>Imports: jlbind</code> and <code>SystemRequirements: Julia (&gt;= 1.13)</code> fields in <code>DESCRIPTION</code>.</li>
 <li>A <code>.jlbind/</code> directory for development builds, added to <code>.Rbuildignore</code> and <code>.gitignore</code>.</li>
 </ul>

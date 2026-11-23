@@ -392,7 +392,7 @@ visitors who prefer it, before Quarto reads the stored choice.
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p>Building the shared library requires <a href="https://julialang.org">Julia</a> &gt;= 1.13. Installing jlbind does not itself build the library.</p>
-<p>Julia 1.14 or later is recommended: Julia 1.13 can compile a library that crashes as it loads when a function has a type parameter bounded by a <code>Union</code> (<code>where {T&lt;:Union{...}}</code>), fixed in <a href="https://github.com/JuliaLang/julia/pull/63664">JuliaLang/julia#63664</a>.</p>
+<p>Julia 1.14 or later is recommended: Julia 1.13 can compile a library that crashes as it loads. This happens when every compiled specialization of a method has a type parameter bounded by a <code>Union</code> (<code>where {T&lt;:Union{...}}</code>): trimming then overwrites the image’s shared empty <code>Memory{Any}</code>. It is fixed in <a href="https://github.com/JuliaLang/julia/pull/63664">JuliaLang/julia#63664</a>.</p>
 </section><section id="using-a-package-built-on-jlbind" class="level2"><h2 class="anchored" data-anchor-id="using-a-package-built-on-jlbind">Using a package built on jlbind</h2>
 <p>After installing or updating an R package that uses jlbind, build the shared library:</p>
 <div class="code-copy-outer-scaffold">
@@ -419,7 +419,13 @@ visitors who prefer it, before Quarto reads the stored choice.
 </section><section id="packages-using-jlbind" class="level2"><h2 class="anchored" data-anchor-id="packages-using-jlbind">Packages using jlbind</h2>
 <ul>
 <li>
-<a href="https://bjarkehautop.github.io/CausalStructures/">CausalStructures</a>: causal graphs (DAGs, CPDAGs, PAGs, …) and identification, from <a href="https://github.com/BjarkeHautop/CausalStructures.jl">CausalStructures.jl</a>. Its <a href="https://github.com/BjarkeHautop/CausalStructures/blob/main/inst/julia/src/csjl.jl">binding package</a> shows some advanced usage.</li>
+<a href="https://bjarkehautop.github.io/CausalStructures/">CausalStructures</a>: causal graphs (DAGs, CPDAGs, PAGs, …) and identification, from <a href="https://github.com/BjarkeHautop/CausalStructures.jl">CausalStructures.jl</a>. Its <a href="https://github.com/BjarkeHautop/CausalStructures/blob/main/inst/julia/src/csjl.jl">binding package</a> shows some advanced usage, such as:
+<ul>
+<li>R holds graphs of an abstract type (<code>RRef{CausalGraph}</code>), and each function branches on the concrete class (DAG, PAG, …) with <code>@narrow</code>.</li>
+<li>Graphs survive <code>saveRDS()</code>/<code>readRDS()</code> via ALTREP (<code>r_saved_by</code> and <code>r_restore</code>).</li>
+<li>Large results (edge lists, data frames) are built in place through R’s C API.</li>
+</ul>
+</li>
 </ul>
 <p>Using jlbind for your package? Feel free to open a pull request adding it to this list.</p>
 </section><section id="contributing" class="level2"><h2 class="anchored" data-anchor-id="contributing">Contributing</h2>
