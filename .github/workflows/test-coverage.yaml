@@ -93,29 +93,16 @@ jobs:
 
       - uses: julia-actions/cache@v3
 
-      # DEBUG: find the R error that ends the tests silently on Linux
-      - name: "Debug: RCall alone"
-        continue-on-error: true
+      # R's own script puts R_HOME/lib on the library path, which the R that
+      # RCall embeds skips: without it, R can't load its packages' shared
+      # objects at startup, and exits with the error unprinted. The cache
+      # restores Conda (RCall's dependency) without the environment its build
+      # made, so RCall is built again.
+      - name: Set up RCall
         run: |
+          echo "LD_LIBRARY_PATH=$(R RHOME)/lib" >> "$GITHUB_ENV"
           julia --project=inst/julia/JLBind -e 'using Pkg; Pkg.instantiate()'
           julia --project=inst/julia/JLBind/test -e 'using Pkg; Pkg.build("RCall")'
-          julia --project=inst/julia/JLBind/test -e 'using RCall; println(R"1"); println(rcopy(R"Sys.getenv(\"R_HOME\")")); println(rcopy(R"interactive()"))'
-
-      - name: "Debug: tests under gdb"
-        continue-on-error: true
-        run: |
-          sudo apt-get install -y gdb
-          gdb -q -batch \
-            -ex 'handle SIGSEGV nostop noprint pass' \
-            -ex 'handle SIGUSR2 nostop noprint pass' \
-            -ex 'handle SIGINT nostop noprint pass' \
-            -ex 'set breakpoint pending on' \
-            -ex 'break exit' \
-            -ex 'break _exit' \
-            -ex run \
-            -ex 'bt 40' \
-            -ex 'print (char*)R_curErrorBuf()' \
-            --args "$(which julia)" --project=inst/julia/JLBind/test inst/julia/JLBind/test/runtests.jl
 
       - uses: julia-actions/julia-runtest@v1
         with:
