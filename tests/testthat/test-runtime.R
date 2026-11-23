@@ -6,7 +6,7 @@ test_that("JULIA_NUM_THREADS is read as a count or auto", {
   withr::local_envvar(JULIA_NUM_THREADS = "2,1")
   expect_equal(.julia_threads(), 2L)
   withr::local_envvar(JULIA_NUM_THREADS = "auto")
-  expect_equal(.julia_threads(), parallel::detectCores())
+  expect_identical(.julia_threads(), NA_integer_)
   withr::local_envvar(JULIA_NUM_THREADS = "lots")
   expect_warning(n <- .julia_threads(), "Ignoring")
   expect_equal(n, 1L)

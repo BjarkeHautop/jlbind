@@ -293,11 +293,12 @@
     return(invisible(NULL))
   }
   set <- .dll_entries(dll, "jlbind_set_julia_threads")[[1L]]
-  status <- .Call(jlbind_set_threads, set, threads)
+  # 0 asks the library for Julia's own "auto" count.
+  status <- .Call(jlbind_set_threads, set, if (is.na(threads)) 0L else threads)
   if (status != 0L) {
     warning(
       "Could not set ",
-      threads,
+      if (is.na(threads)) "the \"auto\" number of" else threads,
       " Julia threads; using one.",
       call. = FALSE
     )
@@ -305,19 +306,19 @@
   invisible(NULL)
 }
 
-# The Julia thread count from JULIA_NUM_THREADS: a count or "auto". A juliac
-# library ignores the variable itself. Anything after a comma (the interactive
-# threadpool) is ignored.
+# The Julia thread count from JULIA_NUM_THREADS: a count, or NA for "auto",
+# which the library resolves as Julia does (the CPU threads available to the
+# process). A juliac library ignores the variable itself. Anything after a comma
+# (the interactive threadpool) is ignored.
 .julia_threads <- function() {
   value <- sub(",.*", "", Sys.getenv("JULIA_NUM_THREADS", unset = ""))
   if (!nzchar(value)) {
     return(1L)
   }
-  n <- if (value == "auto") {
-    parallel::detectCores()
-  } else {
-    suppressWarnings(as.integer(value))
+  if (value == "auto") {
+    return(NA_integer_)
   }
+  n <- suppressWarnings(as.integer(value))
   if (is.na(n) || n < 1L) {
     warning(
       "Ignoring JULIA_NUM_THREADS = \"",
@@ -327,7 +328,7 @@
     )
     return(1L)
   }
-  as.integer(n)
+  n
 }
 
 # On Windows the library has no RUNPATH, so the directory of the Julia

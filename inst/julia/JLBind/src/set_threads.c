@@ -8,6 +8,9 @@
  * Adapted from Ribasim's set_julia_threads.c; see
  * https://github.com/JuliaLang/JuliaC.jl/issues/152.
  *
+ * A thread count of 0 means "auto": the CPU threads available to the process,
+ * as Julia counts them for JULIA_NUM_THREADS=auto.
+ *
  * `status` is set to 0 on success, 1 if Julia is already initialized, and 2
  * if the thread count is invalid.
  */
@@ -30,6 +33,8 @@ JLBIND_EXPORT void jlbind_set_julia_threads(int *threads, int *status)
         *status = 1;
         return;
     }
+    if (*threads == 0)
+        *threads = jl_effective_threads();
     if (*threads < 1 || *threads > INT16_MAX) {
         *status = 2;
         return;
