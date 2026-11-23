@@ -9,7 +9,7 @@ build_binary(
   out = "binary",
   prune = NULL,
   check = TRUE,
-  cpu_target = "generic",
+  cpu_target = "sysimage",
   julia = NULL
 )
 }
@@ -24,8 +24,9 @@ directory, or the path to an R script whose value is one.}
 \item{check}{If \code{TRUE}, run the package's tests against the library first.}
 
 \item{cpu_target}{The CPUs to compile for, as Julia's \code{--cpu-target}.
-\code{"generic"} runs on any CPU; other targets can make numeric code faster,
-but make the library larger or limit the CPUs it runs on. See
+\code{"sysimage"}, JuliaC's default, compiles for the same CPUs as Julia's own
+system image: it runs on any CPU and keeps numeric code fast on newer
+ones. \code{"generic"} gives a smaller library, but slower numeric code. See
 \code{vignette("build-options", "jlbind")}.}
 
 \item{julia}{Path to the \code{julia} executable. By default, the \code{JULIA}

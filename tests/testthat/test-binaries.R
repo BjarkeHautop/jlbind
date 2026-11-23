@@ -14,7 +14,7 @@ test_that("use_jlbind_binaries() writes the release workflow", {
 })
 
 # Mocks build_library() to write a fake private library into `out`.
-local_fake_build <- function(target = "generic", env = parent.frame()) {
+local_fake_build <- function(target = "sysimage", env = parent.frame()) {
   local_mocked_bindings(
     build_library = function(packages, out, julia, cpu_target, private) {
       stopifnot(identical(cpu_target, target), isTRUE(private))

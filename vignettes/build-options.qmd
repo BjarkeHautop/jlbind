@@ -50,25 +50,16 @@ is in the jlbind repository.
   | --------------------         | ----------------- | -----------: | ---------: | ---------: | ----------: |
   | `"native"` (default)         | This CPU model    |       8.9 MB |         1× |         1× |          1× |
   | `"generic"`                  | Any CPU           |       8.8 MB |         1× |   1.7–2.8× |        1.1× |
-  | Several targets              | The CPUs you list |        21 MB |   1.0–1.1× |   1.0–1.1× |        0.9× |
+  | `"sysimage"`                 | Any CPU           |        21 MB |   1.0–1.1× |   1.0–1.1× |        0.9× |
   | `"generic;native,clone_all"` | Any CPU           |      13.7 MB |         1× |         1× |        2.1× |
 
 Sorting and a scalar ODE solver took about the same time with all of them.
 
-The several targets measured here are those of Julia's own system image, which
-keep numeric code fast across x86-64 CPUs:
-
-```r
-jlbind::install_library(
-  cpu_target = paste(
-    "generic",
-    "sandybridge,-xsaveopt,clone_all",
-    "haswell,-rdrnd,base(1)",
-    "x86-64-v4,-rdrnd,base(1)",
-    sep = ";"
-  )
-)
-```
+`"sysimage"` (JuliaC's shorthand) compiles for the same CPUs as Julia's own
+system image, a generic fallback plus copies for newer CPUs, which keeps numeric
+code fast across CPUs. On x86-64 that is
+`generic;sandybridge,-xsaveopt,clone_all;haswell,-rdrnd,base(1);x86-64-v4,-rdrnd,base(1)`;
+you can also list CPUs yourself.
 
 Build options count towards whether the library is up to date, so calling
 `install_library()` without them rebuilds the library with the defaults. To keep
@@ -190,20 +181,14 @@ attestations; otherwise remove the `actions/attest` step.
 
 `build_binary()` builds a [private library](libraries.html#private-libraries)
 for any CPU, runs the package's tests against it without Julia, and archives it.
-Its default `cpu_target = "generic"` gives up the vector instructions of newer
-CPUs, which makes SIMD loops slower (see the [CPU target](#cpu-target) table).
-If your package's code is numeric, you can add code for them on x86-64, as
-Julia's own builds do, at the cost of a larger library, by passing a
-`cpu_target` in the workflow:
+Its default `cpu_target = "sysimage"` compiles for the same CPUs as Julia's own
+system image, so it runs on any CPU and keeps the vector instructions of newer
+ones. If your package's code isn't numeric, such as graph algorithms,
+`cpu_target = "generic"` gives a smaller library at about the same speed (see
+the [CPU target](#cpu-target) table):
 
 ```r
-jlbind::build_binary(
-  cpu_target = if (R.version$arch %in% c("x86_64", "amd64")) {
-    "generic;sandybridge,-xsaveopt,clone_all;haswell,-rdrnd,base(1)"
-  } else {
-    "generic"
-  }
-)
+jlbind::build_binary(cpu_target = "generic")
 ```
 
 To [remove what it doesn't use](#removing-more-by-hand), add

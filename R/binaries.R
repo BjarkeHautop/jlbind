@@ -20,8 +20,9 @@
 #'   directory, or the path to an R script whose value is one.
 #' @param check If `TRUE`, run the package's tests against the library first.
 #' @param cpu_target The CPUs to compile for, as Julia's `--cpu-target`.
-#'   `"generic"` runs on any CPU; other targets can make numeric code faster,
-#'   but make the library larger or limit the CPUs it runs on. See
+#'   `"sysimage"`, JuliaC's default, compiles for the same CPUs as Julia's own
+#'   system image: it runs on any CPU and keeps numeric code fast on newer
+#'   ones. `"generic"` gives a smaller library, but slower numeric code. See
 #'   `vignette("build-options", "jlbind")`.
 #' @inheritParams install_library
 #'
@@ -37,7 +38,7 @@ build_binary <- function(
   out = "binary",
   prune = NULL,
   check = TRUE,
-  cpu_target = "generic",
+  cpu_target = "sysimage",
   julia = NULL
 ) {
   if (.native_only(cpu_target)) {
@@ -48,7 +49,7 @@ build_binary <- function(
       "\": the library may crash R on CPUs other than this one",
       if (!is.na(cpu)) paste0(" (", cpu, ")"),
       ". For a library that runs on any CPU, use another `cpu_target`, ",
-      "such as \"generic\"."
+      "such as \"sysimage\"."
     )
   }
   desc <- read.dcf(file.path(path, "DESCRIPTION"), c("Package", "Version"))
