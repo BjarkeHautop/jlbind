@@ -62,18 +62,15 @@ A second integration test builds a copy of `hellojl` with
 `Config/jlbind/trim: false` (an untrimmed, \~200 MB library); it runs only with
 `JLBIND_TEST_NOTRIM=true`.
 
-jlbind needs Julia >= 1.13, but use nightly until 1.14 is released: Julia 1.13
-sometimes compile a `--trim` library that crashes as the runtime initializes
-(`jl_egal_` in `lookup_leafcache`, from `jl_module_run_initializer`): pruning
-swaps the shared empty `Memory{Any}` for a 32-byte index when a method's
-specializations all have signatures without a type hash, such as from a type
-variable bounded by a `Union` (`where {T<:Union{...}}`). It is fixed on master
-by [JuliaLang/julia#63664](https://github.com/JuliaLang/julia/pull/63664), not
-yet backported to 1.13. The repository has a juliaup override
-(`juliaup override set nightly`), so `julia` run in it, and so jlbind's builds,
-use nightly; check with `juliaup override status`. A Julia run from outside the
-repository (e.g. an R session whose working directory is elsewhere) still gets
-the default channel.
+jlbind needs Julia >= 1.13, but use 1.14 (its prereleases until it is out):
+Julia 1.13 sometimes compile a `--trim` library that crashes as the runtime
+initializes (`jl_egal_` in `lookup_leafcache`, from
+`jl_module_run_initializer`): pruning swaps the shared empty `Memory{Any}` for a
+32-byte index when a method's specializations all have signatures without a type
+hash, such as from a type variable bounded by a `Union`
+(`where {T<:Union{...}}`). It is fixed on master by
+[JuliaLang/julia#63664](https://github.com/JuliaLang/julia/pull/63664), which
+1.14.0-beta1 includes but 1.13 does not yet.
 
 Environment variables: `JULIA` (Julia binary to use), `JLBIND_LIBRARY` (load
 this library instead of the one `install_library()` builds, or the one
@@ -82,12 +79,12 @@ this library instead of the one `install_library()` builds, or the one
 else `"native"`), `JLBIND_JULIA_ARGS` (the default `julia_args` of builds, split
 at spaces).
 
-CI (`.github/workflows/R-CMD-check.yaml`) runs R CMD check with Julia nightly on
+CI (`.github/workflows/R-CMD-check.yaml`) runs R CMD check with Julia 1.14 on
 Linux/Windows, both with the integration test enabled (the Linux job also sets
 `JLBIND_TEST_NOTRIM`), and once on Linux without Julia, which is what CRAN sees
 — everything except the integration test must pass without Julia.
-`test-coverage.yaml` runs covr with Julia nightly and `JLBIND_TEST_BUILD=true`
-and uploads to Codecov; `altdoc.yaml` builds and deploys the site.
+`test-coverage.yaml` runs covr with Julia 1.14 and `JLBIND_TEST_BUILD=true` and
+uploads to Codecov; `altdoc.yaml` builds and deploys the site.
 
 ## Architecture
 

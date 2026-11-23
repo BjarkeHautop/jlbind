@@ -23,5 +23,7 @@ installed in more than one library, the copy that \code{\link[=library]{library(
 the one listed.
 }
 \examples{
+\donttest{
 jlbind_clients()
+}
 }

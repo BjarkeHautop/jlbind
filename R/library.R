@@ -707,7 +707,7 @@ build_library <- function(
       ": false`. The library is larger and may compile code when it runs."
     )
   }
-  if (bundle && is.null(salt) && grepl("native", cpu_target, fixed = TRUE)) {
+  if (bundle && is.null(salt) && .native_only(cpu_target)) {
     message(
       "Building a bundle for CPU target \"",
       cpu_target,
@@ -1032,6 +1032,14 @@ build_library <- function(
   )
 }
 
+# Whether code compiled for the CPU target `target` runs only on the CPU
+# model that compiled it: its first target, which the others fall back to, is
+# "native". "generic;native,clone_all" runs on any CPU.
+.native_only <- function(target) {
+  first <- strsplit(target, ";", fixed = TRUE)[[1L]][1L]
+  identical(trimws(strsplit(first, ",", fixed = TRUE)[[1L]][1L]), "native")
+}
+
 # Why a library built as `build` (.read_build()) may crash on this computer:
 # it was compiled for the native CPU of a computer with another CPU model.
 # NULL if not, or if either CPU is unknown.
@@ -1040,7 +1048,7 @@ build_library <- function(
   if (
     is.null(target) ||
       is.na(target) ||
-      !grepl("native", target, fixed = TRUE) ||
+      !.native_only(target) ||
       is.null(build$CPU) ||
       is.na(build$CPU) ||
       !nzchar(build$CPU) ||

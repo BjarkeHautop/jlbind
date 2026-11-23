@@ -325,7 +325,9 @@ object_count <- function() {
         paste0(", for CPU target \"", build$CpuTarget, "\"")
       },
       if (
-        identical(build$CpuTarget, "native") &&
+        !is.null(build$CpuTarget) &&
+          !is.na(build$CpuTarget) &&
+          .native_only(build$CpuTarget) &&
           !is.na(build$CPU) &&
           nzchar(build$CPU)
       ) {

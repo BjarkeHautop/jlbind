@@ -23,7 +23,9 @@
 #'   files, which the library records to tell when it is out of date).
 #' @export
 #' @examples
+#' \donttest{
 #' jlbind_clients()
+#' }
 jlbind_clients <- function(lib.loc = NULL) {
   pkgs <- utils::installed.packages(lib.loc = lib.loc, fields = .field)
   pkgs <- pkgs[!is.na(pkgs[, .field]), , drop = FALSE]
