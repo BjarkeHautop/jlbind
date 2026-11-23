@@ -252,7 +252,7 @@ test_that("remove_library() deletes the library and the builds next to it", {
 })
 
 test_that("remove_library() says a loaded library goes on working", {
-  withr::local_envvar(R_USER_DATA_DIR = withr::local_tempdir())
+  withr::local_envvar(R_USER_CACHE_DIR = withr::local_tempdir())
   expect_loaded <- function() {
     dir.create(.library_dir(), recursive = TRUE, showWarnings = FALSE)
     if (.Platform$OS.type == "windows") {
@@ -450,4 +450,47 @@ test_that(".build() only bundles when asked, and says so for a native bundle", {
   expect_match(native$msgs, "may crash R on CPUs other than this one")
 
   expect_length(build(cpu_target = "generic", bundle = TRUE)$msgs, 0)
+})
+
+test_that("the private packages are recorded apart from their libraries", {
+  withr::local_envvar(
+    R_USER_CACHE_DIR = withr::local_tempdir(),
+    R_USER_CONFIG_DIR = withr::local_tempdir()
+  )
+  built <- function(pkg) {
+    dir.create(.private_dir(pkg), recursive = TRUE)
+    file.create(file.path(.private_dir(pkg), .library_file()))
+  }
+
+  .set_private(c("a", "b"), "b")
+  built("b")
+  expect_equal(.private_packages(c("a", "b", "c")), "b")
+  expect_equal(.check_private(NULL, c("a", "b")), "b")
+
+  # A build of other packages keeps the record of b.
+  .set_private(c("a", "c"), "c")
+  expect_equal(.read_private(), c("b", "c"))
+
+  # The record outlives the library, as when the cache is cleared.
+  unlink(.private_dir("b"), recursive = TRUE)
+  expect_equal(.check_private(NULL, c("a", "b")), "b")
+  expect_equal(
+    .private_library("b"),
+    file.path(.private_dir("b"), .library_file())
+  )
+  expect_true(.is_private(.private_library("b")))
+  expect_null(.private_library("a"))
+
+  # Putting b back into the shared library removes its record and library.
+  built("b")
+  .set_private(c("a", "b"), character())
+  expect_equal(.read_private(), "c")
+  expect_false(dir.exists(.private_dir("b")))
+
+  # remove_library() forgets them.
+  dir.create(.library_dir(), recursive = TRUE)
+  local_state()
+  suppressMessages(remove_library(ask = FALSE))
+  expect_equal(.read_private(), character())
+  expect_false(file.exists(.private_file()))
 })

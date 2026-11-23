@@ -30,7 +30,7 @@
 #'     `"Julia code changed"` or `"not installed"`), `bound` and `library`
 #'     (the path of its library).
 #'   * `threads`: a list with `count` (from `JULIA_NUM_THREADS`, in each
-#'     library) and `fixed` (`TRUE` once a library is loaded, after which the
+#'     library; `NA` for `"auto"`, the CPU threads available) and `fixed` (`TRUE` once a library is loaded, after which the
 #'     count cannot change).
 #' @export
 #' @examples
@@ -178,7 +178,7 @@ object_count <- function() {
 # How many Julia objects R holds references to in the library with state
 # `lib`, which is loaded.
 .object_count <- function(lib) {
-  count <- .dll_entries(lib$dll, "JLBind_object_count")[[1L]]
+  count <- .dll_entries(lib$dll, .entry_symbols("JLBind", "object_count"))[[1L]]
   .External(jlbind_call, count)
 }
 
@@ -288,9 +288,11 @@ object_count <- function() {
   threads <- report$threads
   line(
     "  ",
-    threads$count,
-    " Julia thread",
-    if (threads$count != 1L) "s",
+    if (is.na(threads$count)) {
+      "One Julia thread per available CPU thread"
+    } else {
+      paste0(threads$count, " Julia thread", if (threads$count != 1L) "s")
+    },
     " (JULIA_NUM_THREADS",
     if (nzchar(Sys.getenv("JULIA_NUM_THREADS"))) {
       paste0(" = ", Sys.getenv("JULIA_NUM_THREADS"))

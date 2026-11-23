@@ -5,16 +5,16 @@ test_that("use_jlbind() sets up a package", {
     "inst",
     "julia",
     "src",
-    "mypkgBindings.jl"
+    "my_pkgBindings.jl"
   )))
   expect_equal(
     .binding_name(file.path(pkg, "inst", "julia")),
-    "mypkgBindings"
+    "my_pkgBindings"
   )
   # It needs no C code.
   expect_false(dir.exists(file.path(pkg, "src")))
   wrappers <- readLines(file.path(pkg, "R", "jlbind-wrappers.R"))
-  expect_true('.jlbind_module <- "mypkgBindings"' %in% wrappers)
+  expect_true('.jlbind_module <- "my_pkgBindings"' %in% wrappers)
   expect_true('  "hello"' %in% wrappers)
 
   desc <- read.dcf(file.path(pkg, "DESCRIPTION"))
@@ -25,7 +25,7 @@ test_that("use_jlbind() sets up a package", {
   )
   expect_true(any(grepl(
     "jlbind::bind_client(pkgname)",
-    readLines(file.path(pkg, "R", "jlbind.R")),
+    readLines(file.path(pkg, "R", "zzz.R")),
     fixed = TRUE
   )))
   expect_false(file.exists(file.path(pkg, "NAMESPACE")))
@@ -41,7 +41,7 @@ test_that("use_jlbind() sets up a package", {
 
   info <- .client_info(pkg)
   expect_equal(info$package, "my.pkg")
-  expect_equal(info$module, "mypkgBindings")
+  expect_equal(info$module, "my_pkgBindings")
   expect_equal(info$path, file.path(normalizePath(pkg), "inst", "julia"))
 })
 
@@ -73,7 +73,28 @@ test_that("use_jlbind() leaves an existing .onLoad() to the package", {
     file.path(dir, "R", "zzz.R")
   )
   expect_match(capture_messages(use_jlbind(dir)), "has an .onLoad", all = FALSE)
-  expect_false(file.exists(file.path(dir, "R", "jlbind.R")))
+  expect_equal(
+    readLines(file.path(dir, "R", "zzz.R")),
+    ".onLoad <- function(libname, pkgname) NULL"
+  )
+})
+
+test_that("use_jlbind() adds its .onLoad() to an existing zzz.R", {
+  dir <- withr::local_tempdir()
+  writeLines(
+    c("Package: hook", "Version: 1.0", "Title: x"),
+    file.path(dir, "DESCRIPTION")
+  )
+  dir.create(file.path(dir, "R"))
+  zzz <- file.path(dir, "R", "zzz.R")
+  writeLines(".onAttach <- function(libname, pkgname) NULL", zzz)
+  suppressMessages(use_jlbind(dir))
+  lines <- readLines(zzz)
+  expect_equal(lines[1], ".onAttach <- function(libname, pkgname) NULL")
+  expect_true("  jlbind::bind_client(pkgname)" %in% lines)
+  # Running it again adds nothing.
+  suppressMessages(use_jlbind(dir))
+  expect_equal(readLines(zzz), lines)
 })
 
 test_that("use_jlbind() leaves a package's own C code alone", {

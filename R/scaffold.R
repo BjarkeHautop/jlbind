@@ -6,9 +6,9 @@
 #'   `hello()`. An existing binding package is left alone.
 #' * `R/jlbind-wrappers.R` (written by [update_entrypoints()]), with an R
 #'   function for each Julia function declared with `@rcall`.
-#' * `R/jlbind.R`, with an `.onLoad()` that calls [bind_client()]. If the
-#'   package already has an `.onLoad()`, add `jlbind::bind_client(pkgname)` to
-#'   it yourself.
+#' * An `.onLoad()` that calls [bind_client()], in `R/zzz.R` (appended to it
+#'   if it exists). If the package already has an `.onLoad()`, add
+#'   `jlbind::bind_client(pkgname)` to it yourself.
 #' * The `Config/jlbind`, `Imports: jlbind` and `SystemRequirements: Julia
 #'   (>= 1.13)` fields in `DESCRIPTION`.
 #' * `.jlbind/`, where [build_library()] writes a library for development, in
@@ -16,7 +16,7 @@
 #'
 #' @param path Path to the package sources.
 #' @param module Name of the Julia binding package. Defaults to the package name
-#'   followed by `Bindings`. It must be unique across all packages that use
+#'   with each `.` replaced by `_`, followed by `Bindings`. It must be unique across all packages that use
 #'   jlbind, since they're all compiled into one library.
 #' @param dir Directory under `inst/` for the binding package.
 #'
@@ -54,7 +54,7 @@ use_jlbind <- function(path = ".", module = NULL, dir = "julia") {
     message("Using the binding package ", module, " in ", binding, ".")
   } else {
     if (is.null(module)) {
-      module <- paste0(gsub("[^A-Za-z0-9]", "", pkg), "Bindings")
+      module <- paste0(gsub(".", "_", pkg, fixed = TRUE), "Bindings")
     }
     if (!grepl("^[A-Za-z][A-Za-z0-9_]*$", module)) {
       stop("`module` must be a valid Julia package name.", call. = FALSE)
@@ -86,27 +86,28 @@ use_jlbind <- function(path = ".", module = NULL, dir = "julia") {
 
   r_dir <- file.path(path, "R")
   dir.create(r_dir, showWarnings = FALSE)
-  r_files <- setdiff(
+  r_lines <- unlist(lapply(
     list.files(r_dir, "\\.[Rr]$", full.names = TRUE),
-    file.path(r_dir, "jlbind.R")
-  )
-  has_onload <- any(vapply(
-    r_files,
-    function(f) {
-      any(grepl("^\\s*\\.onLoad\\s*(<-|=)", readLines(f, warn = FALSE)))
-    },
-    TRUE
+    readLines,
+    warn = FALSE
   ))
-  r_file <- file.path(r_dir, "jlbind.R")
-  if (has_onload) {
+  if (any(grepl("^[^#]*bind_client\\(\\s*[^)\\s]", r_lines, perl = TRUE))) {
+    return(invisible(path))
+  }
+  if (any(grepl("^\\s*\\.onLoad\\s*(<-|=)", r_lines))) {
     message(
       "The package has an .onLoad() already: call ",
       "`jlbind::bind_client(pkgname)` from it."
     )
+    return(invisible(path))
   }
-  if (!has_onload) {
-    writeLines(.template("jlbind.R"), r_file)
+  # Added to an existing R/zzz.R, e.g. one with only an .onAttach().
+  zzz <- file.path(r_dir, "zzz.R")
+  hook <- .template("zzz.R")
+  if (file.exists(zzz)) {
+    hook <- c(readLines(zzz, warn = FALSE), "", hook)
   }
+  writeLines(hook, zzz)
   invisible(path)
 }
 

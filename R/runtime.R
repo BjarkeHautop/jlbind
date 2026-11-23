@@ -46,15 +46,20 @@
   file.path(.library_dir(), .library_file())
 }
 
-# The private library install_library() built for `pkg`, or NULL.
+# The private library install_library() builds for `pkg`, if it recorded `pkg`
+# as private, or NULL. It may be missing, as when the cache was cleared; then
+# loading it says to run install_library().
 .private_library <- function(pkg) {
-  path <- file.path(.private_dir(pkg), .library_file())
-  if (file.exists(path)) path
+  if (pkg %in% .read_private()) file.path(.private_dir(pkg), .library_file())
 }
 
 # Whether the library at `path` has a private Julia runtime, as recorded when
-# it was built.
+# it was built. One install_library() builds privately counts as private before
+# it exists, so that it gets its own state.
 .is_private <- function(path) {
+  if (.is_installed_private(path)) {
+    return(TRUE)
+  }
   private <- .read_build(dirname(path))$Private
   !is.null(private) && !is.na(private) && nzchar(private)
 }
@@ -294,11 +299,12 @@
     return(invisible(NULL))
   }
   set <- .dll_entries(dll, "jlbind_set_julia_threads")[[1L]]
-  status <- .Call(jlbind_set_threads, set, threads)
+  # 0 asks the library for Julia's own "auto" count.
+  status <- .Call(jlbind_set_threads, set, if (is.na(threads)) 0L else threads)
   if (status != 0L) {
     warning(
       "Could not set ",
-      threads,
+      if (is.na(threads)) "the \"auto\" number of" else threads,
       " Julia threads; using one.",
       call. = FALSE
     )
@@ -306,19 +312,19 @@
   invisible(NULL)
 }
 
-# The Julia thread count from JULIA_NUM_THREADS: a count or "auto". A juliac
-# library ignores the variable itself. Anything after a comma (the interactive
-# threadpool) is ignored.
+# The Julia thread count from JULIA_NUM_THREADS: a count, or NA for "auto",
+# which the library resolves as Julia does (the CPU threads available to the
+# process). A juliac library ignores the variable itself. Anything after a comma
+# (the interactive threadpool) is ignored.
 .julia_threads <- function() {
   value <- sub(",.*", "", Sys.getenv("JULIA_NUM_THREADS", unset = ""))
   if (!nzchar(value)) {
     return(1L)
   }
-  n <- if (value == "auto") {
-    parallel::detectCores()
-  } else {
-    suppressWarnings(as.integer(value))
+  if (value == "auto") {
+    return(NA_integer_)
   }
+  n <- suppressWarnings(as.integer(value))
   if (is.na(n) || n < 1L) {
     warning(
       "Ignoring JULIA_NUM_THREADS = \"",
@@ -328,7 +334,7 @@
     )
     return(1L)
   }
-  as.integer(n)
+  n
 }
 
 # R loads a DLL with plain LoadLibrary(), which doesn't look for the DLL's
@@ -403,7 +409,7 @@
 #' @export
 #' @examples
 #' \dontrun{
-#' # In a package's R/jlbind.R, as use_jlbind() writes it
+#' # In a package's R/zzz.R, as use_jlbind() writes it
 #' .onLoad <- function(libname, pkgname) {
 #'   jlbind::bind_client(pkgname)
 #' }
@@ -461,6 +467,14 @@ bind_client <- function(pkg) {
   )
 }
 
+# The C names of the entrypoints `entries` of the binding package `module`:
+# `jlbind<n>_<module>_<entry>`, with `n` the number of characters of `module`
+# (`_entry_symbol()` in JLBind's rcall.jl), so that names stay distinct when
+# module or entry names contain `_`.
+.entry_symbols <- function(module, entries) {
+  paste0("jlbind", nchar(module, type = "bytes"), "_", module, "_", entries)
+}
+
 # Puts the entrypoints of `pkg` into its `.jlbind` environment, along with
 # `.call`, jlbind's routine that calls them (src/call.c). They are looked up
 # in the library `dll`, or are null with `dll` NULL. The routine is stored as
@@ -469,7 +483,7 @@ bind_client <- function(pkg) {
 # identifier.
 .set_entries <- function(ns, pkg, dll) {
   entries <- ns$.jlbind_entries
-  found <- .dll_entries(dll, paste0(ns$.jlbind_module, "_", entries), pkg)
+  found <- .dll_entries(dll, .entry_symbols(ns$.jlbind_module, entries), pkg)
   env <- ns$.jlbind
   env$.call <- jlbind_call$address
   for (i in seq_along(entries)) {

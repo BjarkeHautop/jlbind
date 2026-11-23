@@ -10,7 +10,7 @@ use_jlbind(path = ".", module = NULL, dir = "julia")
 \item{path}{Path to the package sources.}
 
 \item{module}{Name of the Julia binding package. Defaults to the package name
-followed by \code{Bindings}. It must be unique across all packages that use
+with each \code{.} replaced by \verb{_}, followed by \code{Bindings}. It must be unique across all packages that use
 jlbind, since they're all compiled into one library.}
 
 \item{dir}{Directory under \verb{inst/} for the binding package.}
@@ -27,9 +27,9 @@ Adds what a package needs to call Julia code through jlbind.
 \code{hello()}. An existing binding package is left alone.
 \item \code{R/jlbind-wrappers.R} (written by \code{\link[=update_entrypoints]{update_entrypoints()}}), with an R
 function for each Julia function declared with \verb{@rcall}.
-\item \code{R/jlbind.R}, with an \code{.onLoad()} that calls \code{\link[=bind_client]{bind_client()}}. If the
-package already has an \code{.onLoad()}, add \code{jlbind::bind_client(pkgname)} to
-it yourself.
+\item An \code{.onLoad()} that calls \code{\link[=bind_client]{bind_client()}}, in \code{R/zzz.R} (appended to it
+if it exists). If the package already has an \code{.onLoad()}, add
+\code{jlbind::bind_client(pkgname)} to it yourself.
 \item The \code{Config/jlbind}, \code{Imports: jlbind} and \verb{SystemRequirements: Julia (>= 1.13)} fields in \code{DESCRIPTION}.
 \item \verb{.jlbind/}, where \code{\link[=build_library]{build_library()}} writes a library for development, in
 \code{.Rbuildignore} and \code{.gitignore}.

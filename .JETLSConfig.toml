@@ -1,0 +1,7 @@
+# r_restore has no methods in JLBind itself: clients add them for their types.
+[[diagnostic.patterns]]
+pattern = "no matching method found `r_restore\\("
+match_by = "message"
+match_type = "regex"
+severity = "off"
+path = "inst/julia/JLBind/src/refs.jl"

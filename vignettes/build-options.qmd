@@ -107,8 +107,8 @@ Give the users the whole directory, built on the same operating system and CPU
 architecture as theirs. Then they set `JLBIND_LIBRARY` to the library in it
 before loading the clients.
 
-A [private library](using-clients.html#private-libraries) is a bundle too: it
-has its own copy of the runtime, whose symbols JuliaC renames (`--privatize`) so
+A [private library](libraries.html#private-libraries) is a bundle too: it has
+its own copy of the runtime, whose symbols JuliaC renames (`--privatize`) so
 that it loads alongside other Julia runtimes. So it also runs without Julia, and
 takes the same disk space as a bundle.
 
@@ -138,7 +138,7 @@ To get the last rows, delete `jlbind-bundle/share`, and everything in
 `jlbind-bundle/lib` and `jlbind-bundle/lib/julia` except `libjulia`,
 `libjulia-internal`, `libunwind`, `libz`, `libzstd`, `libatomic`, `libgcc_s` and
 `libopenlibm`. In a private library, under
-`tools::R_user_dir("jlbind", "data")`, the names of `libjulia` and
+`tools::R_user_dir("jlbind", "cache")`, the names of `libjulia` and
 `libjulia-internal` start with the library's salt, such as `jl0f5ce2_`.
 
 Then run `strip` on the library itself (`jlbind.so` or `jlbind.dylib`) on Linux
@@ -188,14 +188,13 @@ gh attestation verify mypkg_0.1.0_Linux-x86_64.tar.gz --repo owner/mypkg
 library it accepts. A private repository needs GitHub Enterprise Cloud for
 attestations; otherwise remove the `actions/attest` step.
 
-`build_binary()` builds a [private
-library](using-clients.html#private-libraries) for any CPU, runs the package's
-tests against it without Julia, and archives it. Its default
-`cpu_target = "generic"` gives up the vector instructions of newer CPUs, which
-makes SIMD loops slower (see the [CPU target](#cpu-target) table). If your
-package's code is numeric, you can add code for them on x86-64, as Julia's own
-builds do, at the cost of a larger library, by passing a `cpu_target` in the
-workflow:
+`build_binary()` builds a [private library](libraries.html#private-libraries)
+for any CPU, runs the package's tests against it without Julia, and archives it.
+Its default `cpu_target = "generic"` gives up the vector instructions of newer
+CPUs, which makes SIMD loops slower (see the [CPU target](#cpu-target) table).
+If your package's code is numeric, you can add code for them on x86-64, as
+Julia's own builds do, at the cost of a larger library, by passing a
+`cpu_target` in the workflow:
 
 ```r
 jlbind::build_binary(

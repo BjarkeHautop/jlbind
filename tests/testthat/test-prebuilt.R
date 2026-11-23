@@ -82,7 +82,8 @@ test_that("a pruned pre-built library is downloaded and runs without Julia", {
   }
   env <- c(
     callr::rcmd_safe_env(),
-    R_USER_DATA_DIR = data,
+    R_USER_CACHE_DIR = data,
+    R_USER_CONFIG_DIR = file.path(data, "config"),
     JULIA = "",
     JLBIND_JULIAC = "",
     PATH = without_julia("PATH"),

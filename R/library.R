@@ -1,7 +1,7 @@
 #' Build the Julia library
 #'
 #' Compiles the Julia code of every installed package that uses jlbind into one
-#' shared library, stored in `tools::R_user_dir("jlbind", "data")`. Run this
+#' shared library, stored in `tools::R_user_dir("jlbind", "cache")`. Run this
 #' after you install or update one of those packages. You need Julia 1.13 or
 #' later. The first build downloads and compiles the Julia dependencies, which
 #' can take a few minutes.
@@ -13,7 +13,7 @@
 #' its own with `private`, which has its own copy of the Julia runtime and
 #' takes more disk space and memory, or build it into a separate library with
 #' [build_library()] for separate R sessions. See
-#' `vignette("using-clients", "jlbind")` for details.
+#' `vignette("libraries", "jlbind")` for how these compare.
 #'
 #' A library is rebuilt only if it is out of date: built from other versions
 #' of the packages or their Julia code, by another version of jlbind or Julia,
@@ -60,9 +60,8 @@
 #' @param private Names of packages among `packages` to give a library of
 #'   their own, with a private Julia runtime. On Windows, that needs a JuliaC
 #'   not yet released, named by `JLBIND_JULIAC`; see
-#'   `vignette("using-clients", "jlbind")`. By default,
-#'   the packages that already have one. `character()` puts every package in
-#'   the shared library.
+#'   `vignette("libraries", "jlbind")`. By default, the packages given one by
+#'   an earlier build. `character()` puts every package in the shared library.
 #' @param method `"build"` compiles the libraries with Julia. `"download"`
 #'   downloads the pre-built libraries that packages offer, checked against
 #'   the SHA-256 hashes the packages list, and takes no build options.
@@ -211,12 +210,10 @@ install_library <- function(
         if (is.null(t$salt)) "" else t$salt
       )
   }
-  # Packages put back into the shared library lose their private one.
-  unprivate <- setdiff(.private_packages(clients$package), private)
   path <- file.path(targets[[1L]]$dir, .library_file())
   todo <- Filter(function(t) t$build, targets)
   if (!length(todo)) {
-    .remove_private(unprivate)
+    .set_private(clients$package, private)
     message(
       "The compiled Julia ",
       if (length(targets) > 1L) "libraries are" else "library is",
@@ -254,7 +251,7 @@ install_library <- function(
         "and compiling takes several minutes. The ",
         if (length(todo) > 1L) "libraries are" else "library is",
         " written to ",
-        tools::R_user_dir("jlbind", "data"),
+        tools::R_user_dir("jlbind", "cache"),
         "."
       )
     )
@@ -278,7 +275,7 @@ install_library <- function(
       t$salt
     )
   }
-  .remove_private(unprivate)
+  .set_private(clients$package, private)
 
   noun <- if (length(todo) > 1L) "libraries" else "library"
   if (length(.loaded_libraries())) {
@@ -355,7 +352,7 @@ install_library <- function(
 }
 
 # The `private` packages of install_library(), out of `packages`: by default,
-# those that have a private library.
+# those recorded as private by an earlier build.
 .check_private <- function(private, packages) {
   if (is.null(private)) {
     return(.private_packages(packages))
@@ -378,9 +375,44 @@ install_library <- function(
   unique(private)
 }
 
-# Which of `packages` have a private library from install_library().
+# Which of `packages` are private. install_library() records them in a file
+# under the config directory, so the choice outlives the libraries, which are
+# in the cache.
 .private_packages <- function(packages) {
+  packages[packages %in% .read_private()]
+}
+
+# Which of `packages` have a private library built by install_library().
+.built_private <- function(packages) {
   packages[file.exists(file.path(.private_dir(packages), .library_file()))]
+}
+
+# Records `private` as the private ones among `packages`, which were just
+# built, keeping the record of the others, and removes the private libraries
+# of those put back into the shared library.
+.set_private <- function(packages, private) {
+  .write_private(c(setdiff(.read_private(), packages), private))
+  .remove_private(setdiff(.built_private(packages), private))
+}
+
+.private_file <- function() {
+  file.path(tools::R_user_dir("jlbind", "config"), "private-packages")
+}
+
+.read_private <- function() {
+  file <- .private_file()
+  if (file.exists(file)) readLines(file, warn = FALSE) else character()
+}
+
+.write_private <- function(packages) {
+  file <- .private_file()
+  if (!length(packages)) {
+    unlink(file)
+    return(invisible(NULL))
+  }
+  dir.create(dirname(file), recursive = TRUE, showWarnings = FALSE)
+  writeLines(sort(unique(packages), method = "radix"), file)
+  invisible(NULL)
 }
 
 # Removes the private libraries of `packages`, which are built into the shared
@@ -400,7 +432,7 @@ install_library <- function(
 
 # Where install_library() builds the private libraries.
 .private_root <- function() {
-  file.path(tools::R_user_dir("jlbind", "data"), "private")
+  file.path(tools::R_user_dir("jlbind", "cache"), "private")
 }
 
 # Where install_library() builds the private library of `pkg`.
@@ -422,8 +454,9 @@ install_library <- function(
 #' Remove the Julia library
 #'
 #' Deletes the libraries built by [install_library()], with everything else
-#' jlbind stores in `tools::R_user_dir("jlbind", "data")`. Packages that use
-#' jlbind can't call their Julia code until you run [install_library()] again.
+#' jlbind stores in `tools::R_user_dir("jlbind", "cache")`, and the record of
+#' which packages have a private library. Packages that use jlbind can't call
+#' their Julia code until you run [install_library()] again.
 #'
 #' Libraries that [build_library()] wrote elsewhere are left alone, as are the
 #' Julia packages that builds downloaded into Julia's package depot; run
@@ -442,6 +475,7 @@ remove_library <- function(ask = interactive()) {
   dir <- .library_dir()
   root <- dirname(dir)
   if (!dir.exists(root)) {
+    .write_private(character())
     message("There is no compiled Julia library to remove.")
     return(invisible(FALSE))
   }
@@ -475,6 +509,7 @@ remove_library <- function(ask = interactive()) {
     }
   }
   unlink(root, recursive = TRUE)
+  .write_private(character())
   if (dir.exists(root)) {
     stop(
       "Could not remove all of ",
@@ -906,7 +941,7 @@ build_library <- function(
 
 # Where install_library() builds the library.
 .library_dir <- function() {
-  file.path(tools::R_user_dir("jlbind", "data"), "library")
+  file.path(tools::R_user_dir("jlbind", "cache"), "library")
 }
 
 .library_file <- function() {

@@ -18,8 +18,8 @@ every other client the user has installed. Keep your `[compat]` bounds as wide
 as your code allows, so that it resolves alongside them.
 
 When clients conflict, users can [choose between them, give one a private
-library, or use separate libraries](using-clients.html#when-clients-conflict). A
-private library has its own copy of the Julia runtime, which takes [disk
+library, or use separate libraries](libraries.html). A private library has its
+own copy of the Julia runtime, which takes [disk
 space](build-options.html#bundle-sizes) and memory.
 
 ## What `use_jlbind()` adds
@@ -29,7 +29,7 @@ space](build-options.html#bundle-sizes) and memory.
   function.
 - `R/jlbind-wrappers.R`, with an R function for each Julia function the binding
   package declares.
-- `R/jlbind.R`, which calls `jlbind::bind_client()` from `.onLoad()`.
+- An `.onLoad()` in `R/zzz.R` that calls `jlbind::bind_client()`.
 - The `Config/jlbind`, `Imports: jlbind` and
   `SystemRequirements: Julia (>= 1.13)` fields in `DESCRIPTION`.
 - A `.jlbind/` directory for development builds, added to `.Rbuildignore` and
@@ -181,7 +181,7 @@ value using `to_sexp()`. The built-in conversions are:
 
 - **Missing values:** `NA` is an error unless the type is `Union{Missing,T}` or
   `Vector{Union{Missing,T}}`, which turn `NA` into `missing` and back.
-- **`NaN`:** accepted only where `missing` is.
+- **`NaN`:** float and complex arguments accept it; other arguments reject it.
 - **Ranges:** a number must fit its type, so an `Int16` argument rejects
   `40000`.
 - **`Int64` results:** these become doubles, since R's integers have 32 bits.
@@ -254,10 +254,19 @@ for a data frame whose columns are not known when the library is compiled, and
 place, without a copy in Julia first. The [JLBind
 reference](articles/jlbind-reference.qmd) documents all of them.
 
+::: {.callout-warning title="Avoid type piracy"}
+By default, every client is compiled into the same library, so a pirated method
+of a `JLBind` function changes it for every client, and two clients pirating the
+same method fail to compile together. To convert a type you don't own, wrap it
+in your own struct or [open an
+issue](https://github.com/BjarkeHautop/jlbind/issues) to add it to JLBind.
+:::
+
 ### Julia objects in R
 
-Sometimes an object is easier to keep in Julia than to convert into an R data
-structure. You can pass such objects by reference using `RRef{T}`. R receives an
+Sometimes an object is better kept in Julia: it has no natural R equivalent, or
+it is large, such as a fitted model, and converting it on every call would be
+slow. You can pass such objects by reference using `RRef{T}`. R receives an
 external pointer to the Julia object, allowing it to be reused across calls. The
 object is released when R garbage-collects the reference, and
 `jlbind::object_count()` counts the objects R holds, to check that a package
@@ -297,7 +306,7 @@ increment(counter, 2)
 methods such as `print()` for it. An argument declared as `RRef{Counter}` also
 checks that the reference points to a `Counter`, rather than accepting an
 arbitrary Julia object. A reference works with the library that made it, so with
-a client in a [private library](using-clients.html#private-libraries), its
+a client in a [private library](libraries.html#private-libraries), its
 references work with that client's functions only.
 
 ### Saving Julia objects

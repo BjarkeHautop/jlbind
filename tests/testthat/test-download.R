@@ -28,7 +28,8 @@ local_offer <- function(
 
 local_download_env <- function(env = parent.frame()) {
   withr::local_envvar(
-    R_USER_DATA_DIR = withr::local_tempdir(.local_envir = env),
+    R_USER_CACHE_DIR = withr::local_tempdir(.local_envir = env),
+    R_USER_CONFIG_DIR = withr::local_tempdir(.local_envir = env),
     .local_envir = env
   )
   local_state(env)
@@ -56,6 +57,9 @@ test_that("method = 'download' installs a pre-built library it has checked", {
   expect_equal(unname(build$Download), url)
   expect_true(.is_downloaded(build))
   expect_equal(.read_clients(dir)$Version, "1.0")
+  # Recorded as private, so that the client binds to it.
+  expect_equal(.read_private(), "a")
+  expect_equal(.library_path("a"), path)
   # No leftover download or unpacked archive next to it.
   expect_length(list.files(dirname(dir), "^(build|old)-"), 0L)
   expect_equal(.downloaded_packages(c("a", "b")), "a")

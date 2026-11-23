@@ -86,6 +86,7 @@ test_that("two clients share one compiled library", {
         raw = reverse_raw(as.raw(1:3)),
         conjugate = conjugate(c(1 + 2i, 3)),
         conjugate_real = conjugate(c(1, 2)),
+        conjugate_nan = conjugate(complex(real = NaN, imaginary = 1)),
         view_sum = view_sum(c(1, 2, 3.5)),
         view_same = identical(view_same(ints_vec), ints_vec),
         list_lengths = list_lengths(list(1, c(1, 2), numeric())),
@@ -165,7 +166,8 @@ test_that("two clients share one compiled library", {
         fail = tryCatch(fail("custom failure"), error = conditionMessage),
         bad_type = tryCatch(greet(1), error = conditionMessage),
         na = tryCatch(shift(c(1, NA)), error = conditionMessage),
-        nan = tryCatch(shift(c(1, NaN)), error = conditionMessage),
+        nan = shift(c(1, NaN)),
+        nan_by = shift(1, NaN),
         class = class(c1),
         counter = increment(c1),
         counters = vapply(counters(3), increment, 1, by = 100),
@@ -220,7 +222,8 @@ test_that("two clients share one compiled library", {
     libpath = libpath,
     env = c(
       callr::rcmd_safe_env(),
-      R_USER_DATA_DIR = data,
+      R_USER_CACHE_DIR = data,
+      R_USER_CONFIG_DIR = file.path(data, "config"),
       JULIA_NUM_THREADS = "2"
     ),
     show = TRUE
@@ -283,6 +286,7 @@ test_that("two clients share one compiled library", {
   expect_identical(conv$raw, as.raw(3:1))
   expect_identical(conv$conjugate, c(1 - 2i, 3 + 0i))
   expect_identical(conv$conjugate_real, c(1 + 0i, 2 + 0i))
+  expect_identical(conv$conjugate_nan, complex(real = NaN, imaginary = -1))
   expect_identical(conv$view_sum, 6.5)
   expect_true(conv$view_same)
   expect_identical(conv$list_lengths, c(1, 2, 0))
@@ -358,7 +362,8 @@ test_that("two clients share one compiled library", {
   expect_false(res$negate)
   expect_equal(res$bad_type, "expected a character string")
   expect_equal(res$na, "expected numbers, not NA")
-  expect_equal(res$nan, "expected numbers, not NaN")
+  expect_identical(res$nan, c(1, NaN))
+  expect_identical(res$nan_by, NaN)
   expect_equal(res$class, "counter")
   expect_equal(res$counter, 16)
   expect_equal(res$counters, c(101, 102, 103))
@@ -554,7 +559,8 @@ test_that("a private library runs alongside the shared one", {
   )
   env <- c(
     callr::rcmd_safe_env(),
-    R_USER_DATA_DIR = data,
+    R_USER_CACHE_DIR = data,
+    R_USER_CONFIG_DIR = file.path(data, "config"),
     JULIA_NUM_THREADS = "2"
   )
 

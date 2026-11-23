@@ -16,3 +16,4 @@
 ^vignettes/articles$
 ^_quarto$
 ^_quartodown$
+^\.JETLSConfig\.toml$

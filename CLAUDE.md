@@ -12,10 +12,11 @@ the binding packages of *every* installed client into one shared library that
 all of them bind to. `vignettes/jlbind.qmd` (Get started: a short walkthrough of
 writing a client), `vignettes/technical-details.qmd` ("Writing bindings": what
 Get started leaves out: types, errors, trimming, development libraries),
-`vignettes/using-clients.qmd` (installing and using clients, and what to do when
-they conflict) and `vignettes/build-options.qmd` (build options, CPU targets,
-bundled runtimes and their sizes) are the user-facing guides (rendered with
-Quarto); keep them in sync with user-visible behavior.
+`vignettes/using-clients.qmd` (installing and using clients),
+`vignettes/libraries.qmd` (shared, private and separate libraries: what each
+gives and costs, and when to use which) and `vignettes/build-options.qmd` (build
+options, CPU targets, bundled runtimes and their sizes) are the user-facing
+guides (rendered with Quarto); keep them in sync with user-visible behavior.
 `vignettes/articles/performance.qmd` is a website-only article whose data comes
 from `vignettes/articles/performance/benchmark.R`.
 `vignettes/articles/jlbind-reference.qmd` (website-only) is generated from
@@ -108,10 +109,11 @@ Three layers, spread across R, Julia and C:
 - **`inst/julia/JLBind/`** — Julia package that clients' binding packages depend
   on: R C API via `ccall` (`rapi.jl`), `from_sexp`/`to_sexp` conversions
   (`convert.jl`), `RRef{T}` external-pointer registry (`refs.jl`), and the
-  `@rcall` macro (`rcall.jl`) that exports `<Module>_<f>` as a `@ccallable` with
-  the signature `SEXP f(SEXP *args, int n)`, checking `n` against the
-  declaration and returning errors as a `jlbind_error` character vector rather
-  than unwinding. `set_threads.c` is compiled into the library and called from
+  `@rcall` macro (`rcall.jl`) that exports `jlbind<n>_<Module>_<f>` (`n` the
+  length of the module name, so names can't collide) as a `@ccallable` with the
+  signature `SEXP f(SEXP *args, int n)`, checking `n` against the declaration
+  and returning errors as a `jlbind_error` character vector rather than
+  unwinding. `set_threads.c` is compiled into the library and called from
   `jlbind_set_threads()` in `src/call.c`. JLBind is not registered: builds
   `Pkg.develop` the copy shipped in the installed R package.
 - **`inst/julia/build.jl`** — the compile step, invoked by the R side. It copies
@@ -128,30 +130,31 @@ Three layers, spread across R, Julia and C:
   environment (Julia >= 1.14).
 - **R side (`R/`)** — `library.R`: `install_library()` / `build_library()`
   (finds clients, runs `build.jl`, stores the library under
-  `R_user_dir("jlbind", "data")/library/` with the client versions and binding
+  `R_user_dir("jlbind", "cache")/library/` with the client versions and binding
   package hashes (`.binding_hash()`) it was built from, so it is rebuilt when a
   client's Julia code changes without a version bump).
   `install_library(private = )` also builds a privatized library per listed
-  client under `R_user_dir("jlbind", "data")/private/<pkg>/`; its existence is
-  what keeps it private on later builds. `clients.R`: client discovery via the
-  `Config/jlbind` DESCRIPTION field. `runtime.R`: `bind_client(pkg)` called from
-  a client's `.onLoad`, loads the library once, sets threads, binds a client
-  only if the library was built from its installed version. Each library has a
-  state environment: `.state` itself for the shared one,
-  `.state$private[[path]]` for privatized ones (`Private` salt in the `build`
-  file); `.library_path()` picks a client's library. `download.R`:
+  client under `R_user_dir("jlbind", "cache")/private/<pkg>/`, and records the
+  private clients in `R_user_dir("jlbind", "config")/private-packages`, which
+  keeps them private on later builds and survives a cleared cache. `clients.R`:
+  client discovery via the `Config/jlbind` DESCRIPTION field. `runtime.R`:
+  `bind_client(pkg)` called from a client's `.onLoad`, loads the library once,
+  sets threads, binds a client only if the library was built from its installed
+  version. Each library has a state environment: `.state` itself for the shared
+  one, `.state$private[[path]]` for privatized ones (`Private` salt in the
+  `build` file); `.library_path()` picks a client's library. `download.R`:
   `install_library(method = "download")`: downloads the archive a client lists
   for this platform in `inst/jlbind/binaries` (`Version`, `OS`, `Arch`, `URL`,
   `SHA256`; outside the binding package, so not in `.binding_hash()`), checks
   its hash before unpacking and the library after (`.binary_problem()`), and
-  installs it as the client's private library, with `Download`/`SHA256` in its
-  `build` file. Builds leave such libraries alone. Pre-built libraries are
-  checked against `.binary_abi`, not the jlbind version: bump it when a library
-  built by an earlier jlbind wouldn't work with this one. `binaries.R`:
-  `build_binary()` and `record_binaries()`, the author's side, run by the
-  `use_jlbind_binaries()` workflow (`inst/templates/binaries.yaml`). `sitrep.R`:
-  `jlbind_sitrep()`, a report on Julia, the library and each client that works
-  before a library has loaded. `scaffold.R`: `use_jlbind()` and
+  installs it as the client's private library (recorded as private), with
+  `Download`/`SHA256` in its `build` file. Builds leave such libraries alone.
+  Pre-built libraries are checked against `.binary_abi`, not the jlbind version:
+  bump it when a library built by an earlier jlbind wouldn't work with this one.
+  `binaries.R`: `build_binary()` and `record_binaries()`, the author's side, run
+  by the `use_jlbind_binaries()` workflow (`inst/templates/binaries.yaml`).
+  `sitrep.R`: `jlbind_sitrep()`, a report on Julia, the library and each client
+  that works before a library has loaded. `scaffold.R`: `use_jlbind()` and
   `update_entrypoints()`, which scans `@rcall` declarations (with
   comments/strings blanked, so they must be literal top-level `@rcall`s) and
   writes `R/jlbind-wrappers.R`. `julia.R`: locating Julia.
@@ -160,14 +163,15 @@ Clients are pure R packages, so a fix to how they call the library needs only a
 jlbind update. `R/jlbind-wrappers.R` defines `.jlbind_module`, `.jlbind_entries`
 (the entrypoint names) and an environment `.jlbind`; each wrapper is
 `.External(.jlbind$.call, .jlbind$<name>, args...)`. `bind_client()`
-(`.set_entries()`) fills `.jlbind` with external pointers to `<Module>_<name>`
-from `jlbind_entries()` in `src/call.c` (null ones while unbound, which give the
-"not available" error), which looks the symbols up with `dlsym`/`GetProcAddress`
-on the handle of the library's `DLLInfo` (`.dll_entries()`), since every library
-has the DLL name `jlbind`, and `.call` with the address of `jlbind_call()`,
-which passes the arguments as an array and raises a `jlbind_error` as an R
-error. `.call` is stored as the bare address, not a `NativeSymbolInfo`, because
-R CMD check flags a client's calls to another package's `NativeSymbolInfo`.
+(`.set_entries()`) fills `.jlbind` with external pointers to
+`jlbind<n>_<Module>_<name>` (`.entry_symbols()`) from `jlbind_entries()` in
+`src/call.c` (null ones while unbound, which give the "not available" error),
+which looks the symbols up with `dlsym`/`GetProcAddress` on the handle of the
+library's `DLLInfo` (`.dll_entries()`), since every library has the DLL name
+`jlbind`, and `.call` with the address of `jlbind_call()`, which passes the
+arguments as an array and raises a `jlbind_error` as an R error. `.call` is
+stored as the bare address, not a `NativeSymbolInfo`, because R CMD check flags
+a client's calls to another package's `NativeSymbolInfo`.
 
 jlbind's own `src/state.c` has the ALTREP class that lets a reference be saved
 (see `r_saved_by` in `refs.jl`): R must find the class when loading a file,
@@ -178,7 +182,7 @@ value, a symbol naming the runtime that made it (`_runtime()`), so a live
 reference from another (private) runtime is rejected.
 
 The test clients in `tests/clients/{hellojl,counterjl}` are scaffolded output:
-their `R/jlbind.R` and `R/jlbind-wrappers.R` correspond to `inst/templates/` and
+their `R/zzz.R` and `R/jlbind-wrappers.R` correspond to `inst/templates/` and
 `update_entrypoints()`. When changing a template or the header generator, update
 the test clients to match.
 

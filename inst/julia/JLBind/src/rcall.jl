@@ -48,8 +48,7 @@ macro rcall(sig)
         push!(argnames, a.args[1])
         push!(argtypes, a.args[2])
     end
-    prefix = nameof(Base.moduleroot(__module__))
-    cname = Symbol(prefix, :_, fname)
+    cname = _entry_symbol(nameof(Base.moduleroot(__module__)), fname)
     nargs = length(argnames)
     from = GlobalRef(JLBind, :from_sexp)
     args = gensym("args")
@@ -86,6 +85,13 @@ macro rcall(sig)
         end
     end)
 end
+
+# The C name `@rcall` exports `f` of the binding package `mod` as:
+# `jlbind<n>_<mod>_<f>`, where `n` is the length of the name of `mod`, so that
+# the module `a_b`'s `c` and the module `a`'s `b_c` get different names, none
+# of which is a name of the Julia runtime. jlbind's `.entry_symbols()` matches.
+_entry_symbol(mod::Symbol, f::Symbol) =
+    Symbol(:jlbind, ncodeunits(String(mod)), :_, mod, :_, f)
 
 # Whether the type expression `T` is a `Union{...}` with the member `s`.
 _union_with(T, s::Symbol) =

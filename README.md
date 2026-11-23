@@ -25,8 +25,9 @@ Building the shared library requires [Julia](https://julialang.org) >= 1.13.
 Installing jlbind does not itself build the library.
 
 Julia 1.14 or later is recommended: Julia 1.13 can compile a library that
-crashes as it loads when a function has a type parameter bounded by a `Union`
-(`where {T<:Union{...}}`), fixed in
+crashes as it loads. This happens when every compiled specialization of a method
+has a type parameter bounded by a `Union` (`where {T<:Union{...}}`): trimming
+then overwrites the image's shared empty `Memory{Any}`. It is fixed in
 [JuliaLang/julia#63664](https://github.com/JuliaLang/julia/pull/63664).
 
 ## Using a package built on jlbind
@@ -79,7 +80,13 @@ for types, errors and compilation constraints.
   [CausalStructures.jl](https://github.com/BjarkeHautop/CausalStructures.jl).
   Its [binding
   package](https://github.com/BjarkeHautop/CausalStructures/blob/main/inst/julia/src/csjl.jl)
-  shows some advanced usage.
+  shows some advanced usage, such as:
+  - R holds graphs of an abstract type (`RRef{CausalGraph}`), and each function
+    branches on the concrete class (DAG, PAG, ...) with `@narrow`.
+  - Graphs survive `saveRDS()`/`readRDS()` via ALTREP (`r_saved_by` and
+    `r_restore`).
+  - Large results (edge lists, data frames) are built in place through R's C
+    API.
 
 Using jlbind for your package? Feel free to open a pull request adding it to
 this list.

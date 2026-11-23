@@ -228,6 +228,7 @@
       if (length(paths) > 1L) "them" else "it",
       " again."
     )
+    .write_private(c(.read_private(), clients$package))
     .bind_requested()
     return(invisible(paths[[1L]]))
   }
@@ -243,7 +244,7 @@
         " (from ",
         paste(vapply(offers[todo], `[[`, "", "URL"), collapse = ", "),
         ") into ",
-        tools::R_user_dir("jlbind", "data"),
+        tools::R_user_dir("jlbind", "cache"),
         "?"
       )
     )
@@ -261,6 +262,7 @@
       dirs[[i]],
       salt = .salt(clients$package[[i]])
     )
+    .write_private(c(.read_private(), clients$package[[i]]))
   }
   noun <- if (length(todo) > 1L) "libraries" else "library"
   message(

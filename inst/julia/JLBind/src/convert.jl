@@ -181,9 +181,8 @@ function _numbers(x::SEXP, what::String)
     return out
 end
 
-function _no_nan(xs::Vector{Float64})
-    i = findfirst(isnan, xs)
-    i === nothing || throw(ArgumentError("expected numbers, not " * _nan_name(xs[i])))
+function _no_na(xs::Vector{Float64})
+    any(_isna, xs) && throw(ArgumentError("expected numbers, not NA"))
     return xs
 end
 
@@ -239,24 +238,23 @@ _number(::Type{T}, v::Float64) where {T<:Union{Int32,Int16,Int8,UInt32,UInt16}} 
 
 function from_sexp(::Type{T}, x::SEXP) where {T<:_Real}
     v = _number1(x)
-    isnan(v) && throw(ArgumentError("expected a number, not " * _nan_name(v)))
+    _isna(v) && throw(ArgumentError("expected a number, not NA"))
     return _number(T, v)
 end
 
 function from_sexp(::Type{Union{Missing,T}}, x::SEXP) where {T<:_Real}
     _all_na(x) && return _missing1(x, "number")
     v = _number1(x)
-    # NaN is a Float64, but not a whole number.
     return _isna(v) ? missing : _number(T, v)
 end
 
-from_sexp(::Type{Vector{Float64}}, x::SEXP) = _no_nan(_numbers(x, "a numeric vector"))
+from_sexp(::Type{Vector{Float64}}, x::SEXP) = _no_na(_numbers(x, "a numeric vector"))
 from_sexp(::Type{Vector{T}}, x::SEXP) where {T<:_Real} =
-    T[_number(T, v) for v in _no_nan(_numbers(x, "a numeric vector"))]
+    T[_number(T, v) for v in _no_na(_numbers(x, "a numeric vector"))]
 
 function from_sexp(::Type{Vector{Int32}}, x::SEXP)
     rtypeof(x) == INTSXP ||
-        return Int32[_number(Int32, v) for v in _no_nan(_numbers(x, "a numeric vector"))]
+        return Int32[_number(Int32, v) for v in _no_na(_numbers(x, "a numeric vector"))]
     n = rlength(x)
     out = Vector{Int32}(undef, n)
     unsafe_copyto!(pointer(out), int_ptr(x), n)
@@ -285,12 +283,10 @@ function _complex_values(x::SEXP, what::String)
     return out
 end
 
-function _complexes(x::SEXP, what::String, nan_what::String)
+function _complexes(x::SEXP, what::String, na_what::String)
     out = _complex_values(x, what)
     for z in out
-        if isnan(real(z)) || isnan(imag(z))
-            throw(ArgumentError("expected " * nan_what * ", not " * (_isna(z) ? "NA" : "NaN")))
-        end
+        _isna(z) && throw(ArgumentError("expected " * na_what * ", not NA"))
     end
     return out
 end

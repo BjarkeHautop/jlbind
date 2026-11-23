@@ -57,9 +57,8 @@ who set \code{JLBIND_LIBRARY} to it. They also need a \code{cpu_target} other th
 \item{private}{Names of packages among \code{packages} to give a library of
 their own, with a private Julia runtime. On Windows, that needs a JuliaC
 not yet released, named by \code{JLBIND_JULIAC}; see
-\code{vignette("using-clients", "jlbind")}. By default,
-the packages that already have one. \code{character()} puts every package in
-the shared library.}
+\code{vignette("libraries", "jlbind")}. By default, the packages given one by
+an earlier build. \code{character()} puts every package in the shared library.}
 
 \item{method}{\code{"build"} compiles the libraries with Julia. \code{"download"}
 downloads the pre-built libraries that packages offer, checked against
@@ -72,7 +71,7 @@ private library.
 }
 \description{
 Compiles the Julia code of every installed package that uses jlbind into one
-shared library, stored in \code{tools::R_user_dir("jlbind", "data")}. Run this
+shared library, stored in \code{tools::R_user_dir("jlbind", "cache")}. Run this
 after you install or update one of those packages. You need Julia 1.13 or
 later. The first build downloads and compiles the Julia dependencies, which
 can take a few minutes.
@@ -85,7 +84,7 @@ out, and \code{\link[=check_bound]{check_bound()}} says why. To use it anyway, g
 its own with \code{private}, which has its own copy of the Julia runtime and
 takes more disk space and memory, or build it into a separate library with
 \code{\link[=build_library]{build_library()}} for separate R sessions. See
-\code{vignette("using-clients", "jlbind")} for details.
+\code{vignette("libraries", "jlbind")} for how these compare.
 
 A library is rebuilt only if it is out of date: built from other versions
 of the packages or their Julia code, by another version of jlbind or Julia,
