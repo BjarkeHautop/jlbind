@@ -17,3 +17,4 @@
 ^_quarto$
 ^_quartodown$
 ^\.JETLSConfig\.toml$
+^LICENSE\.md$

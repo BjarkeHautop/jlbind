@@ -34,3 +34,16 @@ repos:
         language: system
         files: '^(inst/julia/JLBind/src/|vignettes/articles/jlbind-reference)'
         pass_filenames: false
+      - id: jetls
+        name: JETLS finds no problems in JLBind
+        # Skipped with a message when JETLS isn't installed.
+        entry: >
+          Rscript -e 'jetls <- Sys.which("jetls");
+          if (!nzchar(jetls)) {
+            message("jetls not found; skipping (install JETLS to run this check)")
+            quit(status = 0)
+          };
+          quit(status = system2(jetls, c("check", "inst/julia/JLBind/src/JLBind.jl")))'
+        language: system
+        files: '^(inst/julia/JLBind/src/|\.JETLSConfig\.toml$)'
+        pass_filenames: false

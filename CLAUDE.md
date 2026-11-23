@@ -36,6 +36,9 @@ a new vignette must be added there (`build_site()` warns about one that isn't).
 
 ## Commands
 
+`.github/CONTRIBUTING.md` covers tests, hooks and the website for human
+contributors; keep it in sync with this section.
+
 ```r
 devtools::document() # regenerate man/ and NAMESPACE from roxygen
 devtools::test() # unit tests (no Julia needed)
@@ -44,9 +47,11 @@ devtools::check() # R CMD check
 ```
 
 Git hooks are managed with [prek](https://github.com/j178/prek) from
-`.pre-commit-config.yaml`: panache (Markdown), air (R formatting), jarl (R lint)
-and a roxygen-up-to-date check. Run them with `prek run --all-files`. Tests run
-in the package namespace, so call internal functions directly rather than via
+`.pre-commit-config.yaml`: panache (Markdown), air (R formatting), jarl (R
+lint), roxygen- and JLBind-reference-up-to-date checks, and JETLS
+(`jetls check inst/julia/JLBind/src/JLBind.jl`, configured in
+`.JETLSConfig.toml`). Run them with `prek run --all-files`. Tests run in the
+package namespace, so call internal functions directly rather than via
 `jlbind:::` (jarl flags it).
 
 The integration test (`tests/testthat/test-integration.R`) installs the two
@@ -84,7 +89,8 @@ Linux/Windows, both with the integration test enabled (the Linux job also sets
 `JLBIND_TEST_NOTRIM`), and once on Linux without Julia, which is what CRAN sees
 — everything except the integration test must pass without Julia.
 `test-coverage.yaml` runs covr with Julia 1.14 and `JLBIND_TEST_BUILD=true` and
-uploads to Codecov; `altdoc.yaml` builds and deploys the site.
+uploads to Codecov; `quartodown.yaml` builds the site and deploys it from
+`main`.
 
 ## Architecture
 

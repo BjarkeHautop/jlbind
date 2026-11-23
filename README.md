@@ -93,6 +93,6 @@ this list.
 
 ## Contributing
 
-Contributions of all kinds are very welcome! You may use LLMs, but please write
-issue and PR descriptions in your own words. If you submit a PR, you should
-understand the code you're contributing.
+Contributions of all kinds are very welcome! The [contributing
+guide](https://github.com/BjarkeHautop/jlbind/blob/main/.github/CONTRIBUTING.md)
+covers how to test and document changes, and our policy on using LLMs.
