@@ -76,11 +76,7 @@ initializes (`jl_egal_` in `lookup_leafcache`, from
 hash, such as from a type variable bounded by a `Union`
 (`where {T<:Union{...}}`). It is fixed on master by
 [JuliaLang/julia#63664](https://github.com/JuliaLang/julia/pull/63664), which
-1.14.0-beta1 includes but 1.13 does not yet. The repository has a juliaup
-override (`juliaup override set 1.14`), so `julia` run in it, and so jlbind's
-builds, use 1.14; check with `juliaup override status`. A Julia run from outside
-the repository (e.g. an R session whose working directory is elsewhere) still
-gets the default channel.
+1.14.0-beta1 includes but 1.13 does not yet.
 
 Environment variables: `JULIA` (Julia binary to use), `JLBIND_LIBRARY` (load
 this library instead of the one `install_library()` builds, or the one
