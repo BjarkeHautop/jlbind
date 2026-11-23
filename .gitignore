@@ -10,3 +10,5 @@ inst/julia/JLBind/Manifest.toml
 docs
 _quarto/*
 !_quarto/_freeze/
+*.cov
+lcov.info

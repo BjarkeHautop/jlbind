@@ -19,6 +19,18 @@ environment variables:
 JLBIND_TEST_BUILD=true Rscript -e 'devtools::test(filter = "integration")'
 ```
 
+The JLBind Julia package has its own tests in `inst/julia/JLBind/test/`. They
+run in a Julia session with R embedded by
+[RCall](https://github.com/JuliaInterop/RCall.jl), so they need R.
+
+```sh
+julia --project=inst/julia/JLBind -e 'using Pkg; Pkg.test()'
+```
+
+On Linux, R may fail to start inside Julia without `R_HOME/lib` on the library
+path, and exit without printing why. Run the tests with
+`LD_LIBRARY_PATH="$(R RHOME)/lib"` set.
+
 The test clients in `tests/clients/{hellojl,counterjl}` are scaffolded output:
 their `R/zzz.R` and `R/jlbind-wrappers.R` correspond to `inst/templates/` and
 `update_entrypoints()`. When you change a template or the wrapper generator,

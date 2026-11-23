@@ -63,6 +63,14 @@ with Julia >= 1.13 and `JLBIND_TEST_BUILD=true`:
 JLBIND_TEST_BUILD=true Rscript -e 'devtools::test(filter = "integration")'
 ```
 
+JLBind has its own tests (`inst/julia/JLBind/test/runtests.jl`), run in a Julia
+session with R embedded by RCall, against which JLBind's `ccall`s resolve. They
+need R (and jlbind installed for the saved-reference tests):
+
+```sh
+julia --project=inst/julia/JLBind -e 'using Pkg; Pkg.test()'
+```
+
 A second integration test builds a copy of `hellojl` with
 `Config/jlbind/trim: false` (an untrimmed, \~200 MB library); it runs only with
 `JLBIND_TEST_NOTRIM=true`.
@@ -88,9 +96,10 @@ CI (`.github/workflows/R-CMD-check.yaml`) runs R CMD check with Julia 1.14 on
 Linux/Windows, both with the integration test enabled (the Linux job also sets
 `JLBIND_TEST_NOTRIM`), and once on Linux without Julia, which is what CRAN sees
 — everything except the integration test must pass without Julia.
-`test-coverage.yaml` runs covr with Julia 1.14 and `JLBIND_TEST_BUILD=true` and
-uploads to Codecov; `quartodown.yaml` builds the site and deploys it from
-`main`.
+`test-coverage.yaml` runs covr with Julia 1.14 and `JLBIND_TEST_BUILD=true`, and
+JLBind's tests with Julia coverage (the compiled library records none), and
+uploads both to Codecov (flags `r` and `julia`); `quartodown.yaml` builds the
+site and deploys it from `main`.
 
 ## Architecture
 
