@@ -18,3 +18,5 @@
 ^_quartodown$
 ^\.JETLSConfig\.toml$
 ^LICENSE\.md$
+^inst/julia/JLBind/test$
+^inst/julia/JLBind/Manifest\.toml$

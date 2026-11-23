@@ -50,6 +50,7 @@ jobs:
           # Fail if error if not on PR, or if on PR and token is given
           fail_ci_if_error: ${{ github.event_name != 'pull_request' || secrets.CODECOV_TOKEN }}
           files: ./cobertura.xml
+          flags: r
           plugins: noop
           disable_search: true
           token: ${{ secrets.CODECOV_TOKEN }}
@@ -67,3 +68,44 @@ jobs:
         with:
           name: coverage-test-failures
           path: ${{ runner.temp }}/package
+
+  # JLBind's own tests, run in a Julia session with R embedded by RCall: the
+  # compiled library can't record coverage, so the R job covers no Julia code.
+  julia-coverage:
+    runs-on: ubuntu-latest
+    env:
+      GITHUB_PAT: ${{ secrets.GITHUB_TOKEN }}
+
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: r-lib/actions/setup-r@v2
+
+      # jlbind itself, for the tests of saving references
+      - uses: r-lib/actions/setup-r-dependencies@v2
+        with:
+          extra-packages: local::.
+          dependencies: '"hard"'
+
+      - uses: julia-actions/setup-julia@v3
+        with:
+          version: "~1.14.0-0"
+
+      - uses: julia-actions/cache@v3
+
+      - uses: julia-actions/julia-runtest@v1
+        with:
+          project: inst/julia/JLBind
+
+      - uses: julia-actions/julia-processcoverage@v1
+        with:
+          directories: inst/julia/JLBind/src
+
+      - uses: codecov/codecov-action@fb8b3582c8e4def4969c97caa2f19720cb33a72f # v7
+        with:
+          fail_ci_if_error: ${{ github.event_name != 'pull_request' || secrets.CODECOV_TOKEN }}
+          files: ./lcov.info
+          flags: julia
+          plugins: noop
+          disable_search: true
+          token: ${{ secrets.CODECOV_TOKEN }}
