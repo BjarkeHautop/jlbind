@@ -128,7 +128,7 @@ If a client's `[compat]` bounds conflict with those of the clients listed before
 it by `jlbind_clients()`, the build leaves it out; `check_bound()` says which
 clients it conflicts with. You can then choose which clients to build the shared
 library from, give the conflicting client a [private
-library](libraries.html#private-libraries) (Linux and macOS), or build [separate
+library](libraries.html#private-libraries), or build [separate
 libraries](libraries.html#separate-libraries) for separate R sessions. [Shared,
 private and separate libraries](libraries.html) compares these and explains when
 to use each.
