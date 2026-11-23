@@ -169,7 +169,6 @@ test_that("a client's binding package must exist and be named", {
   expect_error(.binding_name(dir), "No Julia package")
   writeLines('uuid = "x"', file.path(dir, "Project.toml"))
   expect_error(.binding_name(dir), "has no `name`")
-  expect_true(.parse_trim(" Yes ", "x"))
 })
 
 test_that("[sources] names jlbind's release tag, or main in development", {

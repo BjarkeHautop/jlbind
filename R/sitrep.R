@@ -81,7 +81,7 @@ jlbind_sitrep <- function(julia = NULL) {
 # The path of the library the installed client `pkg` binds to, or would.
 .client_library_path <- function(pkg) {
   lib <- .state$libraries[[pkg]]
-  if (!is.null(lib) && !is.null(lib$path)) {
+  if (!is.null(lib$path)) {
     return(lib$path)
   }
   .library_path(pkg)
@@ -321,32 +321,18 @@ object_count <- function() {
       " with Julia ",
       build$Julia,
       if (identical(build$Trim, "FALSE")) ", untrimmed",
-      if (!is.null(build$CpuTarget) && !is.na(build$CpuTarget)) {
+      if (nzchar(build$CpuTarget)) {
         paste0(", for CPU target \"", build$CpuTarget, "\"")
       },
-      if (
-        !is.null(build$CpuTarget) &&
-          !is.na(build$CpuTarget) &&
-          .native_only(build$CpuTarget) &&
-          !is.na(build$CPU) &&
-          nzchar(build$CPU)
-      ) {
+      if (.native_only(build$CpuTarget) && nzchar(build$CPU)) {
         paste0(" (", build$CPU, ")")
       },
-      if (
-        !is.null(build$JuliaArgs) &&
-          !is.na(build$JuliaArgs) &&
-          nzchar(build$JuliaArgs)
-      ) {
+      if (nzchar(build$JuliaArgs)) {
         paste0(", with Julia arguments \"", build$JuliaArgs, "\"")
       },
-      if (
-        !is.null(build$Private) &&
-          !is.na(build$Private) &&
-          nzchar(build$Private)
-      ) {
+      if (nzchar(build$Private)) {
         paste0(", with a private Julia runtime (", build$Private, ")")
-      } else if (identical(unname(build$Bundle), "TRUE")) {
+      } else if (identical(build$Bundle, "TRUE")) {
         ", bundled"
       }
     )

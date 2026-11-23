@@ -80,14 +80,10 @@ jlbind_clients <- function(lib.loc = NULL) {
 
 # The `Config/jlbind/trim` field: trimmed unless it says otherwise.
 .parse_trim <- function(value, package) {
-  if (is.na(value)) {
+  if (is.na(value) || value == "true") {
     return(TRUE)
   }
-  value <- tolower(trimws(value))
-  if (value %in% c("true", "yes")) {
-    return(TRUE)
-  }
-  if (value %in% c("false", "no")) {
+  if (value == "false") {
     return(FALSE)
   }
   stop(

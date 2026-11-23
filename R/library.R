@@ -298,14 +298,20 @@ install_library <- function(
       call. = FALSE
     )
   }
-  if (length(private) && .Platform$OS.type == "windows") {
+  if (length(private)) {
+    .check_private_platform()
+  }
+  unique(private)
+}
+
+.check_private_platform <- function() {
+  if (.Platform$OS.type == "windows") {
     stop(
       "Private libraries need Linux or macOS; JuliaC cannot give a library ",
       "a private Julia runtime on Windows yet.",
       call. = FALSE
     )
   }
-  unique(private)
 }
 
 # Which of `packages` are private. install_library() records them in a file
@@ -511,12 +517,8 @@ build_library <- function(
   if (!isTRUE(private) && !isFALSE(private)) {
     stop("`private` must be TRUE or FALSE.", call. = FALSE)
   }
-  if (private && .Platform$OS.type == "windows") {
-    stop(
-      "Private libraries need Linux or macOS; JuliaC cannot give a library ",
-      "a private Julia runtime on Windows yet.",
-      call. = FALSE
-    )
+  if (private) {
+    .check_private_platform()
   }
   is_path <- .is_path(packages)
   if (is.null(out)) {
@@ -878,9 +880,8 @@ build_library <- function(
 }
 
 # How the library in `dir` was built (a list with jlbind, Julia, Built, Trim,
-# Develop, CpuTarget, CPU, JuliaArgs, Bundle and Private, NA where not
-# recorded), or NULL
-# if it records nothing.
+# Develop, CpuTarget, CPU, JuliaArgs, Bundle and Private, "" where not
+# recorded), or NULL if it records nothing.
 .read_build <- function(dir) {
   file <- file.path(dir, "build")
   if (!file.exists(file)) {
@@ -898,7 +899,9 @@ build_library <- function(
     "Bundle",
     "Private"
   )
-  as.list(read.dcf(file, fields = fields)[1L, ])
+  build <- read.dcf(file, fields = fields)[1L, ]
+  build[is.na(build)] <- ""
+  as.list(build)
 }
 
 # Was the library in `dir` built by this version of jlbind and Julia version
@@ -970,18 +973,7 @@ build_library <- function(
   bundle = NA,
   private = NA
 ) {
-  # Libraries from before `julia_args` were built with none.
-  built_args <- build$JuliaArgs
-  if (is.null(built_args) || is.na(built_args)) {
-    built_args <- ""
-  }
-  # Likewise, libraries from before `bundle` aren't bundles.
-  bundled <- identical(unname(build$Bundle), "TRUE")
-  # And libraries from before `private` have no private runtime.
-  salt <- build$Private
-  if (is.null(salt) || is.na(salt)) {
-    salt <- ""
-  }
+  bundled <- identical(build$Bundle, "TRUE")
   julia_args <- if (!is.null(julia_args)) paste(julia_args, collapse = " ")
   jlbind <- as.character(utils::packageVersion("jlbind"))
   c(
@@ -996,7 +988,7 @@ build_library <- function(
     if (!is.na(bundle) && !identical(bundled, bundle)) {
       if (bundled) "built as a bundle" else "not built as a bundle"
     },
-    if (!is.na(private) && !identical(unname(salt), private)) {
+    if (!is.na(private) && !identical(build$Private, private)) {
       if (nzchar(private)) {
         "built without its own Julia runtime"
       } else {
@@ -1005,28 +997,24 @@ build_library <- function(
     },
     if (!is.na(cpu_target) && !identical(build$CpuTarget, cpu_target)) {
       paste0(
-        "built for ",
-        if (is.na(build$CpuTarget)) {
-          "Julia's default CPU targets"
-        } else {
-          paste0("CPU target \"", build$CpuTarget, "\"")
-        },
-        ", not \"",
+        "built for CPU target \"",
+        build$CpuTarget,
+        "\", not \"",
         cpu_target,
         "\""
       )
     },
     .cpu_mismatch(build),
-    if (!is.null(julia_args) && !identical(built_args, julia_args)) {
+    if (!is.null(julia_args) && !identical(build$JuliaArgs, julia_args)) {
       paste0(
         "built with Julia arguments \"",
-        built_args,
+        build$JuliaArgs,
         "\", not \"",
         julia_args,
         "\""
       )
     },
-    if (!is.na(build$Develop) && nzchar(build$Develop)) {
+    if (nzchar(build$Develop)) {
       "built with local checkouts (`develop`)"
     }
   )
@@ -1044,13 +1032,9 @@ build_library <- function(
 # it was compiled for the native CPU of a computer with another CPU model.
 # NULL if not, or if either CPU is unknown.
 .cpu_mismatch <- function(build, cpu = .cpu_model()) {
-  target <- build$CpuTarget
   if (
-    is.null(target) ||
-      is.na(target) ||
-      !.native_only(target) ||
-      is.null(build$CPU) ||
-      is.na(build$CPU) ||
+    is.null(build) ||
+      !.native_only(build$CpuTarget) ||
       !nzchar(build$CPU) ||
       is.na(cpu) ||
       identical(build$CPU, cpu)

@@ -61,7 +61,7 @@
     return(TRUE)
   }
   private <- .read_build(dirname(path))$Private
-  !is.null(private) && !is.na(private) && nzchar(private)
+  !is.null(private) && nzchar(private)
 }
 
 # The state of the library at `path`: its own for a private library, else the
@@ -167,21 +167,14 @@
   message(why, " Rebuilding it.")
   # Rebuilt the way it was built.
   build <- .read_build(dir)
-  develop <- if (!is.na(build$Develop) && nzchar(build$Develop)) {
-    strsplit(build$Develop, "\n", fixed = TRUE)[[1L]]
-  }
-  cpu_target <- if (!is.na(build$CpuTarget)) build$CpuTarget
-  julia_args <- if (!is.na(build$JuliaArgs)) {
-    strsplit(build$JuliaArgs, " ", fixed = TRUE)[[1L]]
-  }
   res <- tryCatch(
     build_library(
       src,
       out = dir,
-      develop = develop,
-      cpu_target = cpu_target,
-      julia_args = julia_args,
-      bundle = identical(unname(build$Bundle), "TRUE"),
+      develop = strsplit(build$Develop, "\n", fixed = TRUE)[[1L]],
+      cpu_target = build$CpuTarget,
+      julia_args = strsplit(build$JuliaArgs, " ", fixed = TRUE)[[1L]],
+      bundle = identical(build$Bundle, "TRUE"),
       private = .is_private(path)
     ),
     error = identity
@@ -211,7 +204,7 @@
   client <- .client_table(list(.client_info(src)))
   status <- .client_status(client, built, excluded)
   status <- status[status$package == client$package, , drop = FALSE]
-  build$Develop <- NA
+  build$Develop <- ""
   c(
     .build_reasons(build, NA),
     status$status[!status$status %in% c("ok", "left out")]
@@ -538,9 +531,7 @@ bind_client <- function(pkg) {
       identical(path, .dev_library(pkg)) &&
       identical(lib$clients$Package, pkg)
   ) {
-    return(paste0(
-      "Restart R and run devtools::load_all() again, which rebuilds it."
-    ))
+    return("Restart R and run devtools::load_all() again, which rebuilds it.")
   }
   paste0(
     "Rebuild it (",
