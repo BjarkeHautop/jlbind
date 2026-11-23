@@ -410,6 +410,12 @@ visitors who prefer it, before Quarto reads the stored choice.
 <div class="sourceCode" id="cb1"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="va">JLBIND_TEST_BUILD</span><span class="op">=</span>true <span class="ex">Rscript</span> <span class="at">-e</span> <span class="st">'devtools::test(filter = "integration")'</span></span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
+<p>The JLBind Julia package has its own tests in <code>inst/julia/JLBind/test/</code>. They run in a Julia session with R embedded by <a href="https://github.com/JuliaInterop/RCall.jl">RCall</a>, so they need R.</p>
+<div class="code-copy-outer-scaffold">
+<div class="sourceCode" id="cb2"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">julia</span> <span class="at">--project</span><span class="op">=</span>inst/julia/JLBind <span class="at">-e</span> <span class="st">'using Pkg; Pkg.test()'</span></span></code></pre></div>
+<button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
+</div>
+<p>On Linux, R may fail to start inside Julia without <code>R_HOME/lib</code> on the library path, and exit without printing why. Run the tests with <code>LD_LIBRARY_PATH="$(R RHOME)/lib"</code> set.</p>
 <p>The test clients in <code>tests/clients/{hellojl,counterjl}</code> are scaffolded output: their <code>R/zzz.R</code> and <code>R/jlbind-wrappers.R</code> correspond to <code>inst/templates/</code> and <code><a class="quartodown-tip-ref" data-quartodown-tip="t1" href="reference/update_entrypoints.html">update_entrypoints</a>()</code>. When you change a template or the wrapper generator, update the test clients to match.</p>
 </section><section id="code-style-and-git-hooks" class="level2"><h2 class="anchored" data-anchor-id="code-style-and-git-hooks">Code style and git hooks</h2>
 <p>This repo uses the following hooks:</p>
@@ -431,14 +437,14 @@ visitors who prefer it, before Quarto reads the stored choice.
 <li>
 <p><code>jlbind-reference.qmd</code>, the reference of the JLBind Julia package, which is generated from its docstrings. Every public JLBind name needs a docstring and an entry in the <code>SECTIONS</code> of <code>jlbind-reference/build.jl</code>. Regenerate it with</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb2"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb2-1"><a href="#cb2-1" aria-hidden="true" tabindex="-1"></a><span class="ex">julia</span> <span class="at">--project</span><span class="op">=</span>inst/julia/JLBind vignettes/articles/jlbind-reference/build.jl</span></code></pre></div>
+<div class="sourceCode" id="cb3"><pre class="sourceCode sh code-with-copy"><code class="sourceCode bash"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="ex">julia</span> <span class="at">--project</span><span class="op">=</span>inst/julia/JLBind vignettes/articles/jlbind-reference/build.jl</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 </li>
 </ul>
 <p>The website is built with <a href="https://github.com/BjarkeHautop/quartodown">quartodown</a>, which needs <a href="https://quarto.org">Quarto</a>:</p>
 <div class="code-copy-outer-scaffold">
-<div class="sourceCode" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a>quartodown<span class="sc">::</span><span class="fu"><a href="https://bjarkehautop.github.io/quartodown/reference/build_site.html">build_site</a></span>()</span></code></pre></div>
+<div class="sourceCode" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a>quartodown<span class="sc">::</span><span class="fu"><a href="https://bjarkehautop.github.io/quartodown/reference/build_site.html">build_site</a></span>()</span></code></pre></div>
 <button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button>
 </div>
 <p><code>_quartodown/_quartodown.yml</code> lays out the navbar and groups the reference index, so add new exported functions and vignettes there.</p>
