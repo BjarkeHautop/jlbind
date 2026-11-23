@@ -93,6 +93,29 @@ jobs:
 
       - uses: julia-actions/cache@v3
 
+      # DEBUG: find the R error that ends the tests silently on Linux
+      - name: "Debug: RCall alone"
+        continue-on-error: true
+        run: |
+          julia --project=inst/julia/JLBind -e 'using Pkg; Pkg.instantiate()'
+          julia --project=inst/julia/JLBind/test -e 'using RCall; println(R"1"); println(rcopy(R"Sys.getenv(\"R_HOME\")")); println(rcopy(R"interactive()"))'
+
+      - name: "Debug: tests under gdb"
+        continue-on-error: true
+        run: |
+          sudo apt-get install -y gdb
+          gdb -q -batch \
+            -ex 'handle SIGSEGV nostop noprint pass' \
+            -ex 'handle SIGUSR2 nostop noprint pass' \
+            -ex 'handle SIGINT nostop noprint pass' \
+            -ex 'set breakpoint pending on' \
+            -ex 'break exit' \
+            -ex 'break _exit' \
+            -ex run \
+            -ex 'bt 40' \
+            -ex 'print (char*)R_curErrorBuf()' \
+            --args "$(which julia)" --project=inst/julia/JLBind/test inst/julia/JLBind/test/runtests.jl
+
       - uses: julia-actions/julia-runtest@v1
         with:
           project: inst/julia/JLBind
