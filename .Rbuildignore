@@ -20,3 +20,4 @@
 ^LICENSE\.md$
 ^inst/julia/JLBind/test$
 ^inst/julia/JLBind/Manifest\.toml$
+^cran-comments\.md$
