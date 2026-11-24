@@ -212,8 +212,11 @@ const _STATE_HOOK = Ref{Ptr{Cvoid}}(C_NULL)
 function _state_hook()
     if _STATE_HOOK[] == C_NULL
         _STATE_HOOK[] = ccall(
-            @R(R_GetCCallable), Ptr{Cvoid}, (Cstring, Cstring),
-            "jlbind", "jlbind_state_hook",
+            @R(R_GetCCallable),
+            Ptr{Cvoid},
+            (Cstring, Cstring),
+            "jlbind",
+            "jlbind_state_hook",
         )
     end
     return _STATE_HOOK[]
@@ -221,10 +224,16 @@ end
 
 function _ref_sexp(@nospecialize(x), class::String, package::Union{String,Nothing})
     h = _store(x)
-    out = protect(ccall(
-        @R(R_MakeExternalPtr), SEXP, (Ptr{Cvoid}, SEXP, SEXP),
-        Ptr{Cvoid}(UInt(h)), _tag(), _runtime(),
-    ))
+    out = protect(
+        ccall(
+            @R(R_MakeExternalPtr),
+            SEXP,
+            (Ptr{Cvoid}, SEXP, SEXP),
+            Ptr{Cvoid}(UInt(h)),
+            _tag(),
+            _runtime(),
+        ),
+    )
     _register_finalizer(out)
     if package !== nothing
         hook = ccall(_state_hook(), SEXP, (SEXP, SEXP), out, _class_sexp(package))
@@ -244,36 +253,49 @@ function _restored(::Type{T}, x::SEXP, class::String)::T where {T}
     if rtypeof(state) == VECSXP && rlength(state) == 1
         obj = r_restore(T, vector_elt(state, 0))::T
         ccall(
-            @R(R_SetExternalPtrAddr), Cvoid, (SEXP, Ptr{Cvoid}),
-            x, Ptr{Cvoid}(UInt(_store(obj))),
+            @R(R_SetExternalPtrAddr),
+            Cvoid,
+            (SEXP, Ptr{Cvoid}),
+            x,
+            Ptr{Cvoid}(UInt(_store(obj))),
         )
         ccall(@R(R_SetExternalPtrProtected), Cvoid, (SEXP, SEXP), x, _runtime())
         _register_finalizer(x)
         return obj
     end
-    saved && throw(ArgumentError(
-        "this `" * class * "` object was saved without its contents, probably " *
-        "with `saveRDS(version = 2)`, which can't store it",
-    ))
-    throw(ArgumentError(
-        "this `" * class * "` object no longer exists; objects do not " *
-        "survive saving and reloading, or a restart of R",
-    ))
+    saved && throw(
+        ArgumentError(
+            "this `" *
+            class *
+            "` object was saved without its contents, probably " *
+            "with `saveRDS(version = 2)`, which can't store it",
+        ),
+    )
+    throw(
+        ArgumentError(
+            "this `" *
+            class *
+            "` object no longer exists; objects do not " *
+            "survive saving and reloading, or a restart of R",
+        ),
+    )
 end
 
 function from_sexp(::Type{RRef{T}}, x::SEXP)::T where {T}
     class = r_class(T)
-    if rtypeof(x) != EXTPTRSXP ||
-       ccall(@R(R_ExternalPtrTag), SEXP, (SEXP,), x) != _tag()
+    if rtypeof(x) != EXTPTRSXP || ccall(@R(R_ExternalPtrTag), SEXP, (SEXP,), x) != _tag()
         throw(ArgumentError("expected a `" * class * "` object"))
     end
     address = _address(x)
     address == 0 && return _restored(T, x, class)
-    ccall(@R(R_ExternalPtrProtected), SEXP, (SEXP,), x) == _runtime() ||
-        throw(ArgumentError(
-            "this `" * class * "` object belongs to another of the Julia " *
+    ccall(@R(R_ExternalPtrProtected), SEXP, (SEXP,), x) == _runtime() || throw(
+        ArgumentError(
+            "this `" *
+            class *
+            "` object belongs to another of the Julia " *
             "libraries loaded, which runs separately",
-        ))
+        ),
+    )
     obj = get(OBJECTS, address, nothing)
     obj === nothing && return _restored(T, x, class)
     obj isa T || throw(ArgumentError("expected a `" * class * "` object"))
@@ -301,7 +323,10 @@ function _result(::Type{Vector{RRef{T}}}, xs) where {T}
 end
 
 # `missing` declared as a `Union{Missing,T}` is the NA of `T`'s R type.
-_result(::Type{Union{Missing,T}}, x) where {T<:Union{_Real,Bool,String,Symbol,ComplexF64,Date,DateTime}} =
+_result(
+    ::Type{Union{Missing,T}},
+    x,
+) where {T<:Union{_Real,Bool,String,Symbol,ComplexF64,Date,DateTime}} =
     to_sexp(Union{Missing,T}[x])
 
 _result(::Type{R}, x) where {R} = to_sexp(x::R)

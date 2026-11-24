@@ -48,7 +48,8 @@ devtools::check() # R CMD check
 
 Git hooks are managed with [prek](https://github.com/j178/prek) from
 `.pre-commit-config.yaml`: panache (Markdown), air (R formatting), jarl (R
-lint), roxygen- and JLBind-reference-up-to-date checks, and JETLS
+lint), JuliaFormatter (Julia formatting), roxygen- and
+JLBind-reference-up-to-date checks, and JETLS
 (`jetls check inst/julia/JLBind/src/JLBind.jl`, configured in
 `.JETLSConfig.toml`). Run them with `prek run --all-files`. Tests run in the
 package namespace, so call internal functions directly rather than via

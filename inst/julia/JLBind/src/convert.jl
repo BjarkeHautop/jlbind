@@ -87,7 +87,8 @@ function _string(::Type{T}, c::SEXP) where {T}
     _isna_string(c) && throw(ArgumentError("expected a string, not NA"))
     return _text(T, _chars(c))
 end
-_maybe_string(::Type{T}, c::SEXP) where {T} = _isna_string(c) ? missing : _text(T, _chars(c))
+_maybe_string(::Type{T}, c::SEXP) where {T} =
+    _isna_string(c) ? missing : _text(T, _chars(c))
 
 function _strings(f::F, ::Type{E}, x::SEXP) where {F,E}
     levels = _string_levels(x, "a character vector")
@@ -209,10 +210,16 @@ _whole_range(::Type{Int32}) = (Int64(typemin(Int32)) + 1, Int64(typemax(Int32)))
 
 function _whole_in(::Type{T}, v::Float64) where {T}
     lo, hi = _whole_range(T)
-    isinteger(v) && lo <= v <= hi || throw(ArgumentError(
-        "expected a whole number between " * string(lo) * " and " * string(hi) *
-        ", not " * string(v),
-    ))
+    isinteger(v) && lo <= v <= hi || throw(
+        ArgumentError(
+            "expected a whole number between " *
+            string(lo) *
+            " and " *
+            string(hi) *
+            ", not " *
+            string(v),
+        ),
+    )
     return T(v)
 end
 
@@ -222,9 +229,11 @@ function _float_in(::Type{T}, v::Float64) where {T}
     y = T(v)
     if isinf(y) && !isinf(v)
         m = string(Float64(floatmax(T)))
-        throw(ArgumentError(
-            "expected a number between -" * m * " and " * m * ", not " * string(v),
-        ))
+        throw(
+            ArgumentError(
+                "expected a number between -" * m * " and " * m * ", not " * string(v),
+            ),
+        )
     end
     return y
 end
@@ -293,7 +302,9 @@ end
 
 function _complex1(x::SEXP)
     t = rtypeof(x)
-    t == CPLXSXP || t == REALSXP || t == INTSXP ||
+    t == CPLXSXP ||
+        t == REALSXP ||
+        t == INTSXP ||
         throw(ArgumentError("expected a complex number"))
     _check_scalar(x, "complex number")
     return x
@@ -353,7 +364,8 @@ function _view(x::SEXP, t::Cint, what::String, ptr::F) where {F}
     return RVector(x, ptr(x), rlength(x))
 end
 
-from_sexp(::Type{RVector{Float64}}, x::SEXP) = _view(x, REALSXP, "a double vector", real_ptr)
+from_sexp(::Type{RVector{Float64}}, x::SEXP) =
+    _view(x, REALSXP, "a double vector", real_ptr)
 from_sexp(::Type{RVector{Int32}}, x::SEXP) = _view(x, INTSXP, "an integer vector", int_ptr)
 from_sexp(::Type{RVector{UInt8}}, x::SEXP) = _view(x, RAWSXP, "a raw vector", raw_ptr)
 
@@ -385,9 +397,11 @@ function _times(::Type{D}, x::SEXP) where {D}
 end
 
 function _time1(::Type{D}, v::Float64) where {D}
-    isfinite(v) || throw(ArgumentError(
-        "expected a " * _noun(D) * ", not " * (isnan(v) ? _nan_name(v) : string(v)),
-    ))
+    isfinite(v) || throw(
+        ArgumentError(
+            "expected a " * _noun(D) * ", not " * (isnan(v) ? _nan_name(v) : string(v)),
+        ),
+    )
     return _time(D, v)
 end
 
@@ -407,7 +421,9 @@ for D in (Date, DateTime)
         from_sexp(::Type{Vector{$D}}, x::SEXP) = $D[_time1($D, v) for v in _times($D, x)]
         function from_sexp(::Type{Vector{Union{Missing,$D}}}, x::SEXP)
             _all_na(x) && return Vector{Union{Missing,$D}}(missing, rlength(x))
-            return Union{Missing,$D}[_isna(v) ? missing : _time1($D, v) for v in _times($D, x)]
+            return Union{Missing,$D}[
+                _isna(v) ? missing : _time1($D, v) for v in _times($D, x)
+            ]
         end
     end
 end
@@ -417,8 +433,12 @@ end
 function from_sexp(::Type{Array{T,N}}, x::SEXP) where {T,N}
     d = get_attrib(x, @r_global(R_DimSymbol))
     if rtypeof(d) != INTSXP || rlength(d) != N
-        throw(ArgumentError(N == 2 ? "expected a matrix" :
-                            "expected an array of " * string(N) * " dimensions"))
+        throw(
+            ArgumentError(
+                N == 2 ? "expected a matrix" :
+                "expected an array of " * string(N) * " dimensions",
+            ),
+        )
     end
     p = int_ptr(d)
     dims = ntuple(i -> Int(unsafe_load(p, i)), Val(N))
@@ -446,7 +466,8 @@ end
 # Each element is converted with its own type, which the generated code
 # resolves statically.
 @generated function _tuple(::Type{T}, x::SEXP) where {T<:Tuple}
-    elts = [:(_element($(fieldtype(T, i)), x, $(i - 1), $(string(i)))) for i = 1:fieldcount(T)]
+    elts =
+        [:(_element($(fieldtype(T, i)), x, $(i - 1), $(string(i)))) for i = 1:fieldcount(T)]
     return :(($(elts...),))
 end
 
@@ -478,17 +499,26 @@ function _positions(x::SEXP, fields::NTuple{N,Symbol}) where {N}
     end
     for (i, name) in enumerate(names)
         i - 1 in pos && continue
-        throw(ArgumentError(
-            (Symbol(name) in fields ? "duplicate element `" : "unexpected element `") *
-            name * "`",
-        ))
+        throw(
+            ArgumentError(
+                (Symbol(name) in fields ? "duplicate element `" : "unexpected element `") *
+                name *
+                "`",
+            ),
+        )
     end
     return pos
 end
 
-@generated function _fields(::Type{NamedTuple{names,T}}, x::SEXP, pos::Vector{Int}) where {names,T}
-    elts = [:(_element($(fieldtype(T, i)), x, pos[$i], $("`" * String(names[i]) * "`")))
-            for i = 1:fieldcount(T)]
+@generated function _fields(
+    ::Type{NamedTuple{names,T}},
+    x::SEXP,
+    pos::Vector{Int},
+) where {names,T}
+    elts = [
+        :(_element($(fieldtype(T, i)), x, pos[$i], $("`" * String(names[i]) * "`"))) for
+        i = 1:fieldcount(T)
+    ]
     return :($(NamedTuple{names,T})(($(elts...),)))
 end
 
@@ -735,11 +765,18 @@ struct RDataFrame{names,T<:Tuple}
         # which resolves statically, not by indexing them in a loop.
         lengths = Tuple(map(length, columns))
         for i = 2:length(lengths)
-            lengths[i] == lengths[1] || throw(DimensionMismatch(
-                "the columns of a data frame must have equal lengths, but `" *
-                String(names[1]) * "` has " * string(lengths[1]) *
-                " and `" * String(names[i]) * "` " * string(lengths[i]),
-            ))
+            lengths[i] == lengths[1] || throw(
+                DimensionMismatch(
+                    "the columns of a data frame must have equal lengths, but `" *
+                    String(names[1]) *
+                    "` has " *
+                    string(lengths[1]) *
+                    " and `" *
+                    String(names[i]) *
+                    "` " *
+                    string(lengths[i]),
+                ),
+            )
         end
         return new{names,T}(columns)
     end
