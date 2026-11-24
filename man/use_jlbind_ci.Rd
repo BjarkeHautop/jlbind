@@ -35,4 +35,6 @@ writeLines(c("Package: mypkg", "Version: 0.1.0"), file.path(pkg, "DESCRIPTION"))
 
 file <- use_jlbind_ci(pkg)
 writeLines(readLines(file))
+
+unlink(pkg, recursive = TRUE)
 }

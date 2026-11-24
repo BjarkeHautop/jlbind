@@ -42,6 +42,8 @@
 #'
 #' # The Julia binding package, with its example entrypoint
 #' writeLines(readLines(file.path(pkg, "inst/julia/src/mypkgBindings.jl")))
+#'
+#' unlink(pkg, recursive = TRUE)
 use_jlbind <- function(path = ".", module = NULL, dir = "julia") {
   desc_file <- file.path(path, "DESCRIPTION")
   if (!file.exists(desc_file)) {
@@ -137,6 +139,8 @@ use_jlbind <- function(path = ".", module = NULL, dir = "julia") {
 #'
 #' file <- use_jlbind_ci(pkg)
 #' writeLines(readLines(file))
+#'
+#' unlink(pkg, recursive = TRUE)
 use_jlbind_ci <- function(path = ".", overwrite = FALSE) {
   if (!file.exists(file.path(path, "DESCRIPTION"))) {
     stop("No package found in ", path, ".", call. = FALSE)
@@ -216,6 +220,8 @@ use_jlbind_ci <- function(path = ".", overwrite = FALSE) {
 #'
 #' update_entrypoints(pkg)
 #' writeLines(readLines(file.path(pkg, "R", "jlbind-wrappers.R")))
+#'
+#' unlink(pkg, recursive = TRUE)
 update_entrypoints <- function(path = ".") {
   info <- .client_info(path)
   files <- sort(list.files(

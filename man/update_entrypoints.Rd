@@ -66,4 +66,6 @@ writeLines(code, file)
 
 update_entrypoints(pkg)
 writeLines(readLines(file.path(pkg, "R", "jlbind-wrappers.R")))
+
+unlink(pkg, recursive = TRUE)
 }
