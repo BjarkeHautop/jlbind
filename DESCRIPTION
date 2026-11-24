@@ -1,6 +1,6 @@
 Package: jlbind
 Title: Bind R Packages to Compiled Julia Code
-Version: 0.0.0.9000
+Version: 0.1.0
 Authors@R:
     person("Bjarke Hautop", "Kristensen", , "bjarke.hautop@gmail.com", role = c("aut", "cre", "cph"))
 Description: Write parts of an R package in 'Julia' and call them from R
