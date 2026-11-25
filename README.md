@@ -16,13 +16,19 @@ no overhead (see
 
 ## Installation
 
+You can install the stable version of jlbind from CRAN with:
+
 ```r
-# install.packages("pak")
+install.packages("jlbind")
+```
+
+or the development version of jlbind from GitHub using pak:
+
+```r
 pak::pak("BjarkeHautop/jlbind")
 ```
 
 Building the shared library requires [Julia](https://julialang.org) >= 1.13.
-Installing jlbind does not itself build the library.
 
 Julia 1.14 or later is recommended: Julia 1.13 can compile a library that
 crashes as it loads. This happens when every compiled specialization of a method

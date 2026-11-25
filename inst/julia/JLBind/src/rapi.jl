@@ -184,7 +184,8 @@ set_attrib(x::SEXP, name::SEXP, value::SEXP) =
 _utf8(charsxp::SEXP) = ccall(@R(Rf_translateCharUTF8), Ptr{UInt8}, (SEXP,), charsxp)
 _isna_string(charsxp::SEXP) = charsxp == @r_global(R_NaString)
 _isbytes(charsxp::SEXP) = ccall(@R(Rf_getCharCE), Cint, (SEXP,), charsxp) == CE_BYTES
-_inherits(x::SEXP, class::String) = ccall(@R(Rf_inherits), Cint, (SEXP, Cstring), x, class) != 0
+_inherits(x::SEXP, class::String) =
+    ccall(@R(Rf_inherits), Cint, (SEXP, Cstring), x, class) != 0
 # A symbol, which R never collects.
 _install(name::String) = ccall(@R(Rf_install), SEXP, (Cstring,), name)
 

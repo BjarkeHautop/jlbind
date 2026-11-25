@@ -16,6 +16,15 @@ repos:
     hooks:
       - id: jarl-check
 
+  - repo: https://github.com/domluna/JuliaFormatter.jl
+    rev: v2.14.12
+    hooks:
+      - id: julia-formatter
+        # panache formats Markdown and Quarto; the excluded files are a template
+        # with placeholders and a parser fixture.
+        files: '\.jl$'
+        exclude: '^(inst/templates/|tests/testthat/fixtures/)'
+
   - repo: local
     hooks:
       - id: needs-roxygenize

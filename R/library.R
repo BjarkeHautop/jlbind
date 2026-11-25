@@ -183,7 +183,7 @@ install_library <- function(
         " with ",
         julia,
         "? Julia downloads their Julia dependencies into its package depot, ",
-        "and compiling takes several minutes. The ",
+        "and compiling can take a few minutes. The ",
         if (length(todo) > 1L) "libraries are" else "library is",
         " written to ",
         tools::R_user_dir("jlbind", "cache"),

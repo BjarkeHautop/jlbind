@@ -44,8 +44,8 @@ end # module mypkgBindings
 return types. Every argument and the return value need a type: the types decide
 how values are converted between R and Julia (see
 [Types](technical-details.qmd#types)). The [JLBind
-reference](articles/jlbind-reference.qmd) lists everything else `JLBind`
-provides.
+reference](https://bjarkehautop.github.io/jlbind/vignettes/articles/jlbind-reference.html)
+lists everything else `JLBind` provides.
 
 ## Try the example
 

@@ -44,6 +44,8 @@ This repo uses the following hooks:
   Quarto files,
 - [air](https://github.com/posit-dev/air) formats R code,
 - [jarl](https://github.com/etiennebacher/jarl) lints R code,
+- [JuliaFormatter](https://github.com/domluna/JuliaFormatter.jl) formats Julia
+  code,
 - a check that the roxygen documentation is up to date,
 - a check that the JLBind reference is up to date,
 - [JETLS](https://github.com/aviatesk/JETLS.jl) checks JLBind for errors such as
