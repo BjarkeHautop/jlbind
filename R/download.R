@@ -1,7 +1,7 @@
 # Pre-built libraries. A client can offer private libraries its authors built
-# for some platforms, listed in the
-# file `jlbind/binaries` of the installed package (`inst/jlbind/binaries` in
-# its sources): a DCF file with a record per platform,
+# for some platforms, listed in the file `jlbind/binaries` of the installed
+# package (`inst/jlbind/binaries` in its sources): a DCF file with a record
+# per platform,
 #
 #   Version: 0.1.0        (of the package it was built from)
 #   OS: Linux             (Sys.info()[["sysname"]])
@@ -12,9 +12,8 @@
 # install_library(method = "download") downloads the one for this platform,
 # checks it against the SHA-256 hash the package ships, and installs it where
 # install_library() would build it: as the client's private library. The file
-# is not in the binding package, whose files are
-# hashed into the library's record, so that the hashes can be added after the
-# libraries are built.
+# is not in the binding package, whose files are hashed into the library's
+# record, so that the hashes can be added after the libraries are built.
 
 # The platform pre-built libraries are chosen by, as in `jlbind/binaries`.
 .platform <- function() {
@@ -277,7 +276,7 @@
 # Downloads the pre-built library `offer` (a row of .binaries()) of version
 # `version` of `pkg`, checks it, and installs it into `dir`. It must be a
 # private library with salt `salt`.
-.install_binary <- function(pkg, version, offer, dir, salt = NULL) {
+.install_binary <- function(pkg, version, offer, dir, salt) {
   root <- dirname(dir)
   dir.create(root, recursive = TRUE, showWarnings = FALSE)
   # Named like a build directory, so that .prune_builds() removes it if R is

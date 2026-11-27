@@ -30,8 +30,8 @@
 #'     `"Julia code changed"` or `"not installed"`), `bound` and `library`
 #'     (the path of its library).
 #'   * `threads`: a list with `count` (from `JULIA_NUM_THREADS`, in each
-#'     library; `NA` for `"auto"`, the CPU threads available) and `fixed` (`TRUE` once a library is loaded, after which the
-#'     count cannot change).
+#'     library; `NA` for `"auto"`, the CPU threads available) and `fixed`
+#'     (`TRUE` once a library is loaded, after which the count cannot change).
 #' @export
 #' @examples
 #' jlbind_sitrep()

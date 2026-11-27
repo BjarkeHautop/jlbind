@@ -16,8 +16,9 @@
 #'
 #' @param path Path to the package sources.
 #' @param module Name of the Julia binding package. Defaults to the package name
-#'   with each `.` replaced by `_`, followed by `Bindings`. It must be unique across all packages that use
-#'   jlbind, since they're all compiled into one library.
+#'   with each `.` replaced by `_`, followed by `Bindings`. It must be unique
+#'   across all packages that use jlbind, since they're all compiled into one
+#'   library.
 #' @param dir Directory under `inst/` for the binding package.
 #'
 #' @return `path`, invisibly.

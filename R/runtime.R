@@ -372,20 +372,14 @@
 # libjulia. It goes first, so another program's copy (Git's or Rtools'
 # ucrt64/bin has a libpcre2-8-0.dll) is not loaded instead. JuliaCall does the
 # same.
-# A bundle's DLLs are in `bin`, or in `bin/julia` if it was built with Julia
-# >= 1.14 started through its 8.3 short path, as R starts programs on Windows
-# (JuliaC compares the two spellings as different directories); build.jl
-# now avoids that, but libraries built before may still have them there.
 .add_julia_bindir <- function(path, windows = .Platform$OS.type == "windows") {
   if (!windows) {
     return(invisible(NULL))
   }
   record <- file.path(dirname(path), "julia_bindir")
   bin <- file.path(dirname(path), "jlbind-bundle", "bin")
-  bundled <- c(file.path(bin, "julia"), bin)
-  bundled <- bundled[file.exists(file.path(bundled, "libjulia.dll"))]
-  if (length(bundled)) {
-    bindir <- normalizePath(bundled[[1L]])
+  if (file.exists(file.path(bin, "libjulia.dll"))) {
+    bindir <- normalizePath(bin)
   } else if (file.exists(record)) {
     bindir <- normalizePath(
       readLines(record, warn = FALSE)[[1L]],
@@ -636,8 +630,7 @@ check_bound <- function(pkg) {
   }
   problem <- .state$problems[[pkg]]
   if (is.null(problem)) {
-    lib <- .state$libraries[[pkg]]
-    problem <- if (is.null(lib)) .state$problem else lib$problem
+    problem <- .state$libraries[[pkg]]$problem
   }
   stop(
     problem,

@@ -117,8 +117,6 @@ for src in SOURCES
     isfile(joinpath(src, "Project.toml")) || error("No Project.toml in $src.")
     project = TOML.parsefile(joinpath(src, "Project.toml"))
     name = project["name"]
-    any(c -> c.name == name, clients) &&
-        error("Two clients have a binding package named $name; each needs its own name.")
     haskey(get(project, "deps", Dict()), "JLBind") ||
         error("The binding package $name (in $src) does not depend on JLBind.")
     manifest_file = joinpath(src, "Manifest.toml")
@@ -382,14 +380,12 @@ if BUNDLE
         # A private runtime on Windows is resolved through a manifest in the
         # library, from the library's own directory, so the library stays with
         # its DLLs: the bundle's DLLs are moved up next to it, at the top.
-        for dir in (joinpath(BUNDLE_DIR, "bin", "julia"), joinpath(BUNDLE_DIR, "bin"))
-            isdir(dir) || continue
-            for f in readdir(dir)
-                p = joinpath(dir, f)
-                isfile(p) &&
-                    endswith(lowercase(f), ".dll") &&
-                    mv(p, joinpath(OUT, f); force = true)
-            end
+        bin = joinpath(BUNDLE_DIR, "bin")
+        for f in readdir(bin)
+            p = joinpath(bin, f)
+            isfile(p) &&
+                endswith(lowercase(f), ".dll") &&
+                mv(p, joinpath(OUT, f); force = true)
         end
     end
     # (On Windows with a private runtime, the library came up with them.)

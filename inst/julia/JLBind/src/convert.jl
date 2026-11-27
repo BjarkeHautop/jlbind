@@ -565,6 +565,7 @@ to_sexp(x::Int32) = ccall(@R(Rf_ScalarInteger), SEXP, (Cint,), _rint(x))
 to_sexp(x::Float64) = ccall(@R(Rf_ScalarReal), SEXP, (Float64,), x)
 to_sexp(x::ComplexF64) = to_sexp([x])
 to_sexp(x::Union{String,Symbol}) = to_sexp([x])
+to_sexp(x::RVector) = x.sexp
 
 # typemin(Int32) is R's NA, so it cannot be returned as a value.
 function _rint(x::Int32)
@@ -572,7 +573,6 @@ function _rint(x::Int32)
         throw(ArgumentError("cannot return -2147483648 to R as an integer, where it is NA"))
     return x
 end
-to_sexp(x::RVector) = x.sexp
 
 function _fill_strings(f::F, xs) where {F}
     out = protect(alloc(STRSXP, length(xs)))

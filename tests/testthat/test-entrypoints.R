@@ -187,7 +187,7 @@ test_that("keyword arguments and unbalanced declarations are rejected", {
   expect_error(.find_rcalls("@rcall f(a::Int"), "unbalanced")
 })
 
-test_that("update_entrypoints() writes the header the shim includes", {
+test_that("update_entrypoints() writes the wrappers bind_client() needs", {
   pkg <- local_client()
   writeLines(
     c(

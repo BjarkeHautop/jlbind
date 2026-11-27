@@ -141,8 +141,7 @@ const _CLASSES = Dict{String,SEXP}()
 
 function _tag()
     if _TAG[] == C_NULL
-        # A symbol, which R never collects.
-        _TAG[] = ccall(@R(Rf_install), SEXP, (Cstring,), "jlbind_ref")
+        _TAG[] = _install("jlbind_ref")
     end
     return _TAG[]
 end
@@ -158,7 +157,7 @@ const _RUNTIME = Ref{SEXP}(C_NULL)
 function _runtime()
     if _RUNTIME[] == C_NULL
         id = string(UInt(pointer_from_objref(OBJECTS)); base = 16)
-        _RUNTIME[] = ccall(@R(Rf_install), SEXP, (Cstring,), "jlbind_runtime_" * id)
+        _RUNTIME[] = _install("jlbind_runtime_" * id)
     end
     return _RUNTIME[]
 end
@@ -249,7 +248,7 @@ end
 function _restored(::Type{T}, x::SEXP, class::String)::T where {T}
     saved = r_saved_by(T) !== nothing && _address(x) == 0 && _inherits(x, class)
     state = saved ? get_attrib(x, _state_symbol()) : nil()
-    # The shim writes the state inside a list of length one.
+    # jlbind's src/state.c writes the state inside a list of length one.
     if rtypeof(state) == VECSXP && rlength(state) == 1
         obj = r_restore(T, vector_elt(state, 0))::T
         ccall(

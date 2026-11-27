@@ -1128,7 +1128,6 @@ build_library <- function(
     if (nzchar(build$Develop)) {
       "built with local checkouts (`develop`)"
     },
-    # Libraries from before JLBIND_JULIAC were built with released JuliaC.
     # Only a JuliaC asked for with JLBIND_JULIAC is a reason, so a library
     # built with one (such as a private library on Windows) is kept in
     # sessions without it. A pre-built library is whatever its authors built
@@ -1162,8 +1161,7 @@ build_library <- function(
 # NULL if not, or if either CPU is unknown.
 .cpu_mismatch <- function(build, cpu = .cpu_model()) {
   if (
-    is.null(build) ||
-      !.native_only(build$CpuTarget) ||
+    !.native_only(build$CpuTarget) ||
       !nzchar(build$CPU) ||
       is.na(cpu) ||
       identical(build$CPU, cpu)

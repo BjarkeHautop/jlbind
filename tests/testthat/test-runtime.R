@@ -546,17 +546,3 @@ test_that("on Windows, a bundle's own runtime is put on the PATH", {
     paste0(normalizePath(bin), ";C:\\Windows")
   )
 })
-
-test_that("on Windows, a bundle's runtime may be in bin/julia", {
-  dir <- withr::local_tempdir()
-  lib <- file.path(dir, .library_file())
-  bin <- file.path(dir, "jlbind-bundle", "bin", "julia")
-  dir.create(bin, recursive = TRUE)
-  file.create(file.path(bin, "libjulia.dll"))
-  withr::local_envvar(PATH = "C:\\Windows")
-  .add_julia_bindir(lib, windows = TRUE)
-  expect_equal(
-    Sys.getenv("PATH"),
-    paste0(normalizePath(bin), ";C:\\Windows")
-  )
-})
