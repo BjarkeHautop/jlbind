@@ -6,14 +6,7 @@
 # Windows).
 
 test_that("a pruned pre-built library is downloaded and runs without Julia", {
-  skip_on_cran()
-  skip_if_not(
-    identical(Sys.getenv("JLBIND_TEST_BINARY"), "true"),
-    "set JLBIND_TEST_BINARY=true to build a pre-built library"
-  )
-  skip_if_not_installed("callr")
-  julia <- tryCatch(.find_julia(), error = function(e) NULL)
-  skip_if(is.null(julia), "Julia >= 1.13 not found")
+  julia <- skip_unless_build("JLBIND_TEST_BINARY")
   # Released JuliaC can't privatize a runtime on Windows; JuliaC.jl#151 can.
   if (.Platform$OS.type == "windows" && !nzchar(.juliac())) {
     withr::local_envvar(JLBIND_JULIAC = .juliac_windows)

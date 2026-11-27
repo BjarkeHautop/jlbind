@@ -12,6 +12,7 @@ on:
       - R/download.R
       - inst/julia/build.jl
       - inst/templates/binaries.yaml
+      - tests/clients/hellojl/**
       - tests/testthat/test-prebuilt.R
       - tests/testthat/fixtures/prebuilt/**
       - .github/workflows/prebuilt.yaml

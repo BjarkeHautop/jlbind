@@ -55,10 +55,11 @@ JLBind-reference-up-to-date checks, and JETLS
 package namespace, so call internal functions directly rather than via
 `jlbind:::` (jarl flags it).
 
-The integration test (`tests/testthat/test-integration.R`) installs the two
+The integration test (`tests/testthat/test-integration.R`) installs the three
 clients in `tests/clients/` into a temp library, compiles them into one library
-and calls them from a fresh R process. It takes a minute or more and only runs
-with Julia >= 1.13 and `JLBIND_TEST_BUILD=true`:
+once for the file and calls them from fresh R processes, a test per area. It
+takes a minute or more and only runs with Julia >= 1.13 and
+`JLBIND_TEST_BUILD=true`:
 
 ```sh
 JLBIND_TEST_BUILD=true Rscript -e 'devtools::test(filter = "integration")'
@@ -194,10 +195,15 @@ reference's external pointer has the tag `jlbind_ref` and, as its protected
 value, a symbol naming the runtime that made it (`_runtime()`), so a live
 reference from another (private) runtime is rejected.
 
-The test clients in `tests/clients/{hellojl,counterjl}` are scaffolded output:
-their `R/zzz.R` and `R/jlbind-wrappers.R` correspond to `inst/templates/` and
-`update_entrypoints()`. When changing a template or the header generator, update
-the test clients to match.
+The test clients in `tests/clients/` each cover one area: `hellojl` is a hello
+world, kept small because the tests that build a library of one client (no-trim,
+bundle, `load_all()`, private, pre-built) use it; `convertjl` has the
+conversions between R and Julia and their errors; `counterjl` has Julia objects
+held by R (`RRef`, saving, `@narrow`). Add new entrypoints to the client of
+their area, not to `hellojl`. The clients are scaffolded output: their `R/zzz.R`
+and `R/jlbind-wrappers.R` correspond to `inst/templates/` and
+`update_entrypoints()`, and their `NAMESPACE` exports every entrypoint. When
+changing a template or the header generator, update the test clients to match.
 
 ## Constraints to keep in mind
 
