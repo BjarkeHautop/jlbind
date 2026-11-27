@@ -42,6 +42,11 @@ correspond to `inst/templates/` and `update_entrypoints()`, and their
 `NAMESPACE` exports every entrypoint. When you change a template or the wrapper
 generator, update the test clients to match.
 
+## Compatibility with built libraries
+
+Bump `.library_abi` in `R/runtime.R` when a change to `src/call.c`,
+`src/state.c` or JLBind breaks libraries built by an earlier jlbind.
+
 ## Code style and git hooks
 
 This repo uses the following hooks:

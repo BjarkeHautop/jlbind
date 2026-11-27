@@ -87,9 +87,9 @@ takes more disk space and memory, or build it into a separate library with
 \code{vignette("libraries", "jlbind")} for how these compare.
 
 A library is rebuilt only if it is out of date: built from other versions
-of the packages or their Julia code, by another version of jlbind or Julia,
-or with other options. If a library is already loaded, restart R to use the
-new one.
+of the packages or their Julia code, with another version of Julia, by an
+incompatible version of jlbind, or with other options. If a library is
+already loaded, restart R to use the new one.
 
 With \code{method = "download"}, packages that offer a pre-built library get it
 downloaded instead, so you don't need Julia; see

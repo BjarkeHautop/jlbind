@@ -5,7 +5,7 @@ windows <- .Platform$OS.type == "windows"
 fake_archive <- function(
   pkg = "a",
   version = "1.0",
-  abi = .binary_abi,
+  abi = .library_abi,
   salt = .salt(pkg),
   bundle = TRUE,
   cpu_target = "generic",

@@ -16,6 +16,9 @@ into one library, since an R process can host only one Julia image.
 """
 module JLBind
 
+# Changing how jlbind calls compiled libraries? Bump `.library_abi` in
+# R/runtime.R.
+
 import Dates
 using Dates: Date, DateTime
 

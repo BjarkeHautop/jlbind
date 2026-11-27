@@ -180,14 +180,14 @@ test_that("builds keep pre-built private libraries", {
   expect_true(.is_downloaded(.read_build(.private_dir("a"))))
 })
 
-test_that("a pre-built library is stale for another interface version only", {
+test_that("a library is stale for another interface version only", {
   build <- list(
     jlbind = "0.0.1",
     Julia = "1.14.0",
     Bundle = "TRUE",
     Private = "jlabc",
     CpuTarget = "generic",
-    ABI = as.character(.binary_abi),
+    ABI = as.character(.library_abi),
     Download = "https://example.com/a.tar.gz",
     Develop = ""
   )
@@ -195,7 +195,9 @@ test_that("a pre-built library is stale for another interface version only", {
   build$ABI <- "0"
   expect_match(.build_reasons(build, NA), "version 0 of jlbind's interface")
   build$Download <- ""
-  expect_match(.build_reasons(build, NA), "built by jlbind 0.0.1", all = FALSE)
+  expect_match(.build_reasons(build, NA), "version 0 of jlbind's interface")
+  build$ABI <- as.character(.library_abi)
+  expect_length(.build_reasons(build, NA), 0L)
 })
 
 test_that("the hint for a stale pre-built library is to download it again", {

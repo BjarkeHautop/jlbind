@@ -16,9 +16,9 @@
 #' `vignette("libraries", "jlbind")` for how these compare.
 #'
 #' A library is rebuilt only if it is out of date: built from other versions
-#' of the packages or their Julia code, by another version of jlbind or Julia,
-#' or with other options. If a library is already loaded, restart R to use the
-#' new one.
+#' of the packages or their Julia code, with another version of Julia, by an
+#' incompatible version of jlbind, or with other options. If a library is
+#' already loaded, restart R to use the new one.
 #'
 #' With `method = "download"`, packages that offer a pre-built library get it
 #' downloaded instead, so you don't need Julia; see
@@ -869,7 +869,7 @@ build_library <- function(
       JuliaArgs = paste(julia_args, collapse = " "),
       Bundle = bundle || !is.null(salt),
       Private = if (is.null(salt)) "" else salt,
-      ABI = .binary_abi,
+      ABI = .library_abi,
       JuliaC = .juliac()
     ),
     file.path(out, "build")
@@ -969,6 +969,25 @@ build_library <- function(
   as.data.frame(read.dcf(file), stringsAsFactors = FALSE)
 }
 
+# Why a library built as `build` (.read_build()) can't be used by this
+# jlbind, as "built for ...", or NULL if it can.
+.abi_mismatch <- function(build) {
+  if (identical(unname(build$ABI), as.character(.library_abi))) {
+    return(NULL)
+  }
+  paste0(
+    "built for ",
+    if (!nzchar(build$ABI)) {
+      "an older version"
+    } else {
+      paste0("version ", build$ABI)
+    },
+    " of jlbind's interface to libraries, not ",
+    .library_abi,
+    ", the version of this jlbind"
+  )
+}
+
 # How the library in `dir` was built (a list with jlbind, Julia, Built, Trim,
 # Develop, CpuTarget, CPU, JuliaArgs, Bundle, Private, ABI and JuliaC, and for
 # a pre-built library install_library(method = "download") installed, Download
@@ -999,7 +1018,7 @@ build_library <- function(
   as.list(build)
 }
 
-# Was the library in `dir` built by this version of jlbind and Julia version
+# Was the library in `dir` built for this jlbind's interface and Julia version
 # `julia`, for `cpu_target`, with `julia_args`, as a bundle or not (`bundle`),
 # with the private runtime salt `private` ("" for none), from exactly these
 # versions of these clients, with the same binding package files (counting
@@ -1070,22 +1089,8 @@ build_library <- function(
 ) {
   bundled <- identical(build$Bundle, "TRUE")
   julia_args <- if (!is.null(julia_args)) paste(julia_args, collapse = " ")
-  jlbind <- as.character(utils::packageVersion("jlbind"))
   c(
-    # A pre-built library is not rebuilt for another version of jlbind, only
-    # for another interface between the two.
-    if (.is_downloaded(build)) {
-      if (!identical(unname(build$ABI), as.character(.binary_abi))) {
-        paste0(
-          "built for version ",
-          build$ABI,
-          " of jlbind's interface to libraries, not ",
-          .binary_abi
-        )
-      }
-    } else if (!identical(build$jlbind, jlbind)) {
-      paste0("built by jlbind ", build$jlbind, ", not ", jlbind)
-    },
+    .abi_mismatch(build),
     if (
       !bundled && !is.na(julia) && !identical(build$Julia, as.character(julia))
     ) {

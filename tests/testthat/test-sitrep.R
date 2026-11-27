@@ -26,6 +26,7 @@ fake_library <- function(
   write.dcf(
     data.frame(
       jlbind = as.character(utils::packageVersion("jlbind")),
+      ABI = .library_abi,
       Julia = julia,
       Built = "2026-10-01 12:00:00 UTC",
       Trim = TRUE,

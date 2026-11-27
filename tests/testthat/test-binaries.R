@@ -148,6 +148,7 @@ test_that("record_binaries() lists a release's libraries with their hashes", {
 test_that("JuliaC from JLBIND_JULIAC is passed to the build and recorded", {
   build <- list(
     jlbind = as.character(utils::packageVersion("jlbind")),
+    ABI = as.character(.library_abi),
     Develop = "",
     CpuTarget = "",
     CPU = "",

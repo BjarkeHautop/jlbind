@@ -163,15 +163,17 @@ Three layers, spread across R, Julia and C:
   its hash before unpacking and the library after (`.binary_problem()`), and
   installs it as the client's private library (recorded as private), with
   `Download`/`SHA256` in its `build` file. Builds leave such libraries alone.
-  Pre-built libraries are checked against `.binary_abi`, not the jlbind version:
-  bump it when a library built by an earlier jlbind wouldn't work with this one.
-  `binaries.R`: `build_binary()` and `record_binaries()`, the author's side, run
-  by the `use_jlbind_binaries()` workflow (`inst/templates/binaries.yaml`).
-  `sitrep.R`: `jlbind_sitrep()`, a report on Julia, the library and each client
-  that works before a library has loaded. `scaffold.R`: `use_jlbind()` and
-  `update_entrypoints()`, which scans `@rcall` declarations (with
-  comments/strings blanked, so they must be literal top-level `@rcall`s) and
-  writes `R/jlbind-wrappers.R`. `julia.R`: locating Julia.
+  Every library is checked against `.library_abi` (`runtime.R`), not the jlbind
+  version: one for another interface is neither loaded nor kept by builds. Bump
+  it when a library built by an earlier jlbind wouldn't work with this one (or
+  has a JLBind bug users shouldn't keep). `binaries.R`: `build_binary()` and
+  `record_binaries()`, the author's side, run by the `use_jlbind_binaries()`
+  workflow (`inst/templates/binaries.yaml`). `sitrep.R`: `jlbind_sitrep()`, a
+  report on Julia, the library and each client that works before a library has
+  loaded. `scaffold.R`: `use_jlbind()` and `update_entrypoints()`, which scans
+  `@rcall` declarations (with comments/strings blanked, so they must be literal
+  top-level `@rcall`s) and writes `R/jlbind-wrappers.R`. `julia.R`: locating
+  Julia.
 
 Clients are pure R packages, so a fix to how they call the library needs only a
 jlbind update. `R/jlbind-wrappers.R` defines `.jlbind_module`, `.jlbind_entries`

@@ -27,6 +27,11 @@
 .state$private <- list()
 .state$libraries <- list()
 
+# The interface version between jlbind (src/call.c, src/state.c) and the
+# JLBind code compiled into a library. Only libraries built for it are loaded.
+# Bump it when older libraries would break with this jlbind.
+.library_abi <- 1L
+
 # The library to load: JLBIND_LIBRARY, else one built into the sources of
 # `pkg` (.dev_library()), else the private library install_library() built
 # for `pkg`, else the shared one it builds.
@@ -230,10 +235,26 @@
     )
     return(FALSE)
   }
+  build <- .read_build(dirname(path))
+  why <- if (is.null(build) || is.null(.read_clients(dirname(path)))) {
+    "not built by jlbind"
+  } else {
+    .abi_mismatch(build)
+  }
+  if (!is.null(why)) {
+    lib$problem <- paste0(
+      "The compiled Julia library (",
+      path,
+      ") was ",
+      why,
+      ". ",
+      .rebuild_hint(pkg, lib)
+    )
+    return(FALSE)
+  }
   # A library compiled for another computer's CPU can crash R with an illegal
   # instruction. It is loaded anyway, as it may well run, but with a warning,
   # since a crash leaves no error to explain it.
-  build <- .read_build(dirname(path))
   mismatch <- .cpu_mismatch(build)
   if (!is.null(mismatch)) {
     warning(
@@ -492,13 +513,9 @@ bind_client <- function(pkg) {
 }
 
 # Why the loaded library with state `lib` cannot serve `pkg`, or NULL if it
-# can. A library that records no clients (one built some other way) is
-# trusted.
+# can.
 .bind_problem <- function(pkg, lib = .state) {
   built <- lib$clients
-  if (is.null(built)) {
-    return(NULL)
-  }
   version <- as.character(getNamespaceVersion(pkg))
   row <- built[built$Package == pkg, , drop = FALSE]
   excluded <- lib$excluded

@@ -16,14 +16,6 @@
 # hashed into the library's record, so that the hashes can be added after the
 # libraries are built.
 
-# The version of the interface between jlbind and a compiled library: the C
-# routines that call the library (src/call.c, src/state.c) and the JLBind
-# code compiled into it. A pre-built library records the version it was built
-# for, and is only installed and kept by a jlbind with the same one, while
-# other jlbind versions build their libraries themselves. Bump it whenever a
-# library built by an earlier jlbind would not work with this one.
-.binary_abi <- 1L
-
 # The platform pre-built libraries are chosen by, as in `jlbind/binaries`.
 .platform <- function() {
   c(OS = Sys.info()[["sysname"]], Arch = R.version$arch)
@@ -392,18 +384,9 @@
       version
     ))
   }
-  if (!identical(unname(build$ABI), as.character(.binary_abi))) {
-    return(paste0(
-      "it was built for ",
-      if (!nzchar(build$ABI)) {
-        "an older version"
-      } else {
-        paste0("version ", build$ABI)
-      },
-      " of jlbind's interface to libraries, not ",
-      .binary_abi,
-      ", the version of this jlbind"
-    ))
+  abi <- .abi_mismatch(build)
+  if (!is.null(abi)) {
+    return(paste0("it was ", abi))
   }
   if (!identical(unname(build$Bundle), "TRUE")) {
     return("it has no Julia runtime of its own (built without `bundle`)")

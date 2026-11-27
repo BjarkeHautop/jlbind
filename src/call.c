@@ -13,6 +13,8 @@
  *
  * Every entrypoint (see `@rcall` in JLBind) has the signature
  * `SEXP f(SEXP *args, int n)`, and checks `n` itself.
+ *
+ * Changing how libraries are called? Bump `.library_abi` in R/runtime.R.
  */
 
 #include <R.h>

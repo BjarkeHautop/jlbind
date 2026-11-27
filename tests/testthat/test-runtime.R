@@ -40,6 +40,7 @@ test_that("a library is up to date only for the same clients, jlbind, Julia", {
   write.dcf(
     data.frame(
       jlbind = as.character(utils::packageVersion("jlbind")),
+      ABI = .library_abi,
       Julia = "1.13.1"
     ),
     file.path(dir, "build")
@@ -50,7 +51,16 @@ test_that("a library is up to date only for the same clients, jlbind, Julia", {
   expect_false(.up_to_date(dir, clients[1, ], "1.13.1"))
   clients$version[[1]] <- "1.0"
   expect_false(.up_to_date(dir, clients, "1.13.2"))
-  write.dcf(data.frame(jlbind = "0.0.0"), file.path(dir, "build"))
+  # Another version of jlbind is no reason, another interface is.
+  write.dcf(
+    data.frame(jlbind = "0.0.0", Julia = "1.13.1", ABI = .library_abi),
+    file.path(dir, "build")
+  )
+  expect_true(.up_to_date(dir, clients, "1.13.1"))
+  write.dcf(
+    data.frame(jlbind = "0.0.0", Julia = "1.13.1", ABI = 0L),
+    file.path(dir, "build")
+  )
   expect_false(.up_to_date(dir, clients, "1.13.1"))
 })
 
@@ -66,6 +76,7 @@ test_that("a library built with local checkouts is never up to date", {
     write.dcf(
       data.frame(
         jlbind = as.character(utils::packageVersion("jlbind")),
+        ABI = .library_abi,
         Julia = "1.13.1",
         Develop = develop
       ),
@@ -89,6 +100,7 @@ test_that("clients left out of a build count towards being up to date", {
   write.dcf(
     data.frame(
       jlbind = as.character(utils::packageVersion("jlbind")),
+      ABI = .library_abi,
       Julia = "1.13.1"
     ),
     file.path(dir, "build")
@@ -137,11 +149,54 @@ test_that("a missing or unloadable library is reported", {
 
   writeLines("not a library", missing)
   expect_false(.load_library())
+  expect_match(.state$problem, "not built by jlbind", fixed = TRUE)
+
+  dir <- dirname(missing)
+  write.dcf(data.frame(ABI = .library_abi), file.path(dir, "build"))
+  expect_false(.load_library())
+  expect_match(.state$problem, "not built by jlbind", fixed = TRUE)
+  write.dcf(
+    data.frame(Package = "a", Version = "1.0", Module = "A"),
+    file.path(dir, "clients")
+  )
+  expect_false(.load_library())
   expect_match(.state$problem, "could not be loaded", fixed = TRUE)
 
   # Once loaded, it is not looked for again.
   .state$dll <- list(name = "jlbind")
   expect_true(.load_library())
+})
+
+test_that("a library for another interface is not loaded", {
+  local_state()
+  .state$dll <- NULL
+  dir <- withr::local_tempdir()
+  path <- file.path(dir, .library_file())
+  writeLines("not a library", path)
+  withr::local_envvar(JLBIND_LIBRARY = path)
+  local_mocked_bindings(.dyn_load = function(...) stop("loaded"))
+  write.dcf(
+    data.frame(Package = "a", Version = "1.0", Module = "A"),
+    file.path(dir, "clients")
+  )
+  write.dcf(data.frame(jlbind = "0.0.1", ABI = 0L), file.path(dir, "build"))
+  expect_false(.load_library())
+  expect_match(
+    .state$problem,
+    "built for version 0 of jlbind's interface to libraries",
+    fixed = TRUE
+  )
+  write.dcf(data.frame(jlbind = "0.0.1"), file.path(dir, "build"))
+  expect_false(.load_library())
+  expect_match(.state$problem, "built for an older version", fixed = TRUE)
+
+  # Another jlbind version with the same interface is loaded.
+  write.dcf(
+    data.frame(jlbind = "0.0.1", ABI = .library_abi),
+    file.path(dir, "build")
+  )
+  expect_false(.load_library())
+  expect_match(.state$problem, "could not be loaded", fixed = TRUE)
 })
 
 test_that("a library compiled for another CPU is loaded with a warning", {
@@ -151,8 +206,12 @@ test_that("a library compiled for another CPU is loaded with a warning", {
   path <- file.path(dir, .library_file())
   writeLines("not a library", path)
   write.dcf(
-    data.frame(CpuTarget = "native", CPU = "Other CPU"),
+    data.frame(CpuTarget = "native", CPU = "Other CPU", ABI = .library_abi),
     file.path(dir, "build")
+  )
+  write.dcf(
+    data.frame(Package = "a", Version = "1.0", Module = "A"),
+    file.path(dir, "clients")
   )
   withr::local_envvar(JLBIND_LIBRARY = path)
   local_mocked_bindings(.cpu_model = function(...) "This CPU")
@@ -171,10 +230,7 @@ test_that("a library compiled for another CPU is loaded with a warning", {
 
 test_that("a client is bound only to a library built from its version", {
   local_state()
-  .state$clients <- NULL
   .state$excluded <- NULL
-  expect_null(.bind_problem("stats"))
-
   version <- as.character(getNamespaceVersion("stats"))
   .state$clients <- data.frame(Package = "stats", Version = version)
   expect_null(.bind_problem("stats"))
@@ -291,6 +347,7 @@ fake_dev_library <- function(src, dir, version = NULL, hash = NULL) {
   write.dcf(
     data.frame(
       jlbind = as.character(utils::packageVersion("jlbind")),
+      ABI = .library_abi,
       Julia = "1.14.0",
       Develop = "/some/checkout",
       CpuTarget = "generic",
@@ -466,6 +523,7 @@ test_that("a library is out of date once a client's Julia code changes", {
   write.dcf(
     data.frame(
       jlbind = as.character(utils::packageVersion("jlbind")),
+      ABI = .library_abi,
       Julia = "1.13.1"
     ),
     file.path(dir, "build")
