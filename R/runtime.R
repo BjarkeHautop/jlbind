@@ -254,11 +254,6 @@
   }
   # The library links against the Julia that built it, so it stops loading
   # if that Julia is removed (e.g. by a juliaup update).
-  # PATH is needed only while loading: Julia loads the libraries of JLLs later
-  # by absolute path, so it is restored rather than left changed for the
-  # session.
-  old_path <- Sys.getenv("PATH")
-  on.exit(Sys.setenv(PATH = old_path), add = TRUE)
   .add_julia_bindir(path)
   dll <- tryCatch(.dyn_load(path), error = identity)
   if (inherits(dll, "error")) {
@@ -349,8 +344,13 @@
 
 # On Windows the library has no RUNPATH, so the directory of the Julia
 # runtime it links against (recorded by build.jl next to it, or in its bundle)
-# is put on the PATH, where Windows finds libjulia.dll and its dependencies,
-# while the library loads.
+# is put on the PATH, where Windows finds libjulia.dll and its dependencies.
+# It stays there for the session: Julia opens some runtime libraries later,
+# by file name only (PCRE2 at startup and for any Regex, GMP, MPFR), and
+# Windows looks for those next to R.exe and on the PATH, not next to
+# libjulia. It goes first, so another program's copy (Git's or Rtools'
+# ucrt64/bin has a libpcre2-8-0.dll) is not loaded instead. JuliaCall does the
+# same.
 # A bundle's DLLs are in `bin`, or in `bin/julia` if it was built with Julia
 # >= 1.14 started through its 8.3 short path, as R starts programs on Windows
 # (JuliaC compares the two spellings as different directories); build.jl
