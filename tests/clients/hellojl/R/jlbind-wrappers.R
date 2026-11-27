@@ -46,7 +46,9 @@
   "group_means",
   "uneven",
   "maybes",
-  "fill_grid"
+  "fill_grid",
+  "count_matches",
+  "big_digits"
 )
 .jlbind <- new.env(parent = emptyenv())
 
@@ -98,3 +100,7 @@ maybes <- function(a, b, c, d) {
 fill_grid <- function(nrow, ncol) {
   .External(.jlbind$.call, .jlbind$fill_grid, nrow, ncol)
 }
+count_matches <- function(pattern, s) {
+  .External(.jlbind$.call, .jlbind$count_matches, pattern, s)
+}
+big_digits <- function(n) .External(.jlbind$.call, .jlbind$big_digits, n)

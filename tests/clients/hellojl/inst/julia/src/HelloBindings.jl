@@ -68,6 +68,10 @@ function fill_grid(nrow, ncol)
     end
     return out
 end
+# Julia opens PCRE2 (for a Regex) and GMP (for a BigInt) by file name when
+# first used, which on Windows needs the Julia runtime on the PATH.
+count_matches(pattern, s) = Int64(count(Regex(pattern), s))
+big_digits(n) = Int64(ndigits(factorial(big(n))))
 
 @rcall greet(name::String)::String
 @rcall shift(x::Vector{Float64}, by::Union{Nothing,Float64} = nothing)::Vector{Float64}
@@ -132,5 +136,7 @@ end
     d::Union{Nothing,Int64},
 )::String
 @rcall fill_grid(nrow::Int64, ncol::Int64)::SEXP
+@rcall count_matches(pattern::String, s::String)::Int64
+@rcall big_digits(n::Int64)::Int64
 
 end # module HelloBindings

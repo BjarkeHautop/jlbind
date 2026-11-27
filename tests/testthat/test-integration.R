@@ -383,6 +383,40 @@ test_that("two clients share one compiled library", {
   expect_lte(res$live, 5)
   expect_equal(sort(res$sitrep$clients$package), c("counterjl", "hellojl"))
   expect_true(is.numeric(res$sitrep$library$objects))
+
+  # Julia opens some runtime libraries by file name after it starts (PCRE2,
+  # GMP), which on Windows are found only through the PATH. setup-julia puts
+  # Julia's bin directory there, and Git's ucrt64/bin and others hold a copy of
+  # PCRE2, so a new R session gets a PATH with neither, as with juliaup.
+  sep <- .Platform$path.sep
+  path <- strsplit(Sys.getenv("PATH"), sep, fixed = TRUE)[[1L]]
+  runtime <- vapply(
+    path,
+    function(dir) {
+      length(list.files(dir, "^(libjulia|libpcre2-8)", ignore.case = TRUE)) > 0
+    },
+    TRUE
+  )
+  res <- callr::r(
+    function() {
+      library(hellojl)
+      err <- function(expr) tryCatch(expr, error = conditionMessage)
+      list(
+        regex = err(count_matches("a.", "abacad")),
+        bigint = err(big_digits(30L))
+      )
+    },
+    libpath = libpath,
+    env = c(
+      callr::rcmd_safe_env(),
+      R_USER_CACHE_DIR = data,
+      R_USER_CONFIG_DIR = file.path(data, "config"),
+      PATH = paste(path[!runtime], collapse = sep)
+    ),
+    show = TRUE
+  )
+  expect_equal(res$regex, 3)
+  expect_equal(res$bigint, 33)
 })
 
 # A client that sets Config/jlbind/trim: false makes the library build without
