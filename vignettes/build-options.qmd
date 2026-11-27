@@ -50,25 +50,16 @@ is in the jlbind repository.
   | --------------------         | ----------------- | -----------: | ---------: | ---------: | ----------: |
   | `"native"` (default)         | This CPU model    |       8.9 MB |         1× |         1× |          1× |
   | `"generic"`                  | Any CPU           |       8.8 MB |         1× |   1.7–2.8× |        1.1× |
-  | Several targets              | The CPUs you list |        21 MB |   1.0–1.1× |   1.0–1.1× |        0.9× |
-  | `"generic;native,clone_all"` | This CPU model    |      13.7 MB |         1× |         1× |        2.1× |
+  | `"sysimage"`                 | Any CPU           |        21 MB |   1.0–1.1× |   1.0–1.1× |        0.9× |
+  | `"generic;native,clone_all"` | Any CPU           |      13.7 MB |         1× |         1× |        2.1× |
 
 Sorting and a scalar ODE solver took about the same time with all of them.
 
-The several targets measured here are those of Julia's own system image, which
-keep numeric code fast across x86-64 CPUs:
-
-```r
-jlbind::install_library(
-  cpu_target = paste(
-    "generic",
-    "sandybridge,-xsaveopt,clone_all",
-    "haswell,-rdrnd,base(1)",
-    "x86-64-v4,-rdrnd,base(1)",
-    sep = ";"
-  )
-)
-```
+`"sysimage"` (JuliaC's shorthand) compiles for the same CPUs as Julia's own
+system image, a generic fallback plus copies for newer CPUs, which keeps numeric
+code fast across CPUs. On x86-64 that is
+`generic;sandybridge,-xsaveopt,clone_all;haswell,-rdrnd,base(1);x86-64-v4,-rdrnd,base(1)`;
+you can also list CPUs yourself.
 
 Build options count towards whether the library is up to date, so calling
 `install_library()` without them rebuilds the library with the defaults. To keep
@@ -117,28 +108,92 @@ takes the same disk space as a bundle.
 A bundle holds the runtime libraries Julia declares it needs, and those of the
 standard libraries in the packages' Julia environment. With Julia 1.14 or later,
 jlbind leaves out the libraries JuliaC copies for standard libraries that
-nothing in the image depends on, such as OpenBLAS (36 MB) when no package
+nothing in the image depends on, such as OpenBLAS (36–39 MB) when no package
 depends on `LinearAlgebra` or `OpenBLAS_jll`. Any dependency that declares
 `LinearAlgebra` keeps OpenBLAS in the bundle, whether or not the compiled code
 calls BLAS; when it is unused, [remove it by hand](#removing-more-by-hand).
-These sizes are for the whole directory, with `cpu_target = "generic"` on the
-computer above, for CausalStructures.jl (whose dependencies declare
-`LinearAlgebra`, while its compiled code runs without BLAS) and for a tiny
-package:
+These sizes are for the whole directory, with `cpu_target = "generic"`, for
+CausalStructures.jl (whose dependencies declare `LinearAlgebra`, though it never
+calls BLAS) and for a tiny package:
 
-  | Library                       | CausalStructures.jl | Tiny package |
-  | ----------------------------- | ------------------: | -----------: |
-  | Not bundled (needs Julia)     |               11 MB |       2.0 MB |
-  | Bundled, or a private library |               85 MB |        29 MB |
-  | Bundled and removed by hand   |               17 MB |       8.8 MB |
+  | Library                        | CausalStructures.jl, Linux | Windows | Tiny package, Linux | Windows |
+  | ------------------------------ | -------------------------: | ------: | ------------------: | ------: |
+  | Not bundled (needs Julia)      |                     9.8 MB |  9.3 MB |              1.9 MB |  1.9 MB |
+  | Bundled, or a private library  |                      88 MB |  116 MB |               29 MB |   62 MB |
+  | Bundled and removed by hand    |                      17 MB |   16 MB |              9.0 MB |  9.1 MB |
+  | The same, archived (`.tar.gz`) |                     6.8 MB |  5.8 MB |              4.4 MB |  3.4 MB |
 
 ### Removing more by hand
 
-To get the last row, delete `jlbind-bundle/share`, and everything in
+To get the last rows, delete `jlbind-bundle/share`, and everything in
 `jlbind-bundle/lib` and `jlbind-bundle/lib/julia` except `libjulia`,
 `libjulia-internal`, `libunwind`, `libz`, `libzstd`, `libatomic`, `libgcc_s` and
-`libopenlibm`, then run `strip` on the library. In a private library, under
+`libopenlibm`. In a private library, under
 `tools::R_user_dir("jlbind", "cache")`, the names of `libjulia` and
-`libjulia-internal` start with the library's salt, such as `jl0f5ce2_`. A call
-that needs a removed library gives an error that names it. Test every package
-after removing anything.
+`libjulia-internal` start with the library's salt, such as `jl0f5ce2_`.
+
+Then run `strip` on the library itself (`jlbind.so` or `jlbind.dylib`) on Linux
+and macOS, and on the DLLs in `jlbind-bundle` on Windows, most of whose size is
+debug info. Strip only those: a stripped Linux runtime crashes R, and a stripped
+`jlbind.dll` no longer loads. For a pre-built library, `build_binary()` does
+this stripping for you.
+
+A call that needs a removed library gives an error that names it. Test every
+package after removing anything: code that calls BLAS, even through another
+package, also needs `libblastrampoline`, `libopenblas64_`, `libgfortran` and
+`libquadmath`.
+
+## Offering pre-built libraries
+
+A client can offer pre-built libraries that users install with
+`install_library(method = "download")`. For a package on GitHub:
+
+```r
+jlbind::use_jlbind_binaries()
+```
+
+This writes `.github/workflows/binaries.yaml`. For a release, run it by hand
+(`gh workflow run binaries.yaml`): on Linux, macOS and Windows, it builds the
+library with `build_binary()` and attaches it to a draft GitHub release. Then
+run
+
+```r
+jlbind::record_binaries()
+```
+
+which downloads the libraries and writes their URLs and SHA-256 hashes to
+`inst/jlbind/binaries` in your package. Commit that file and publish the release
+on that commit. Users' downloads are checked against these hashes, so they come
+from the package rather than the download site.
+
+The workflow also gives each library a [build provenance
+attestation](https://docs.github.com/en/actions/how-tos/secure-your-work/use-artifact-attestations/use-artifact-attestations),
+so anyone can check that a library was built by the workflow, and from which
+commit, rather than uploaded by hand:
+
+```sh
+gh attestation verify mypkg_0.1.0_Linux-x86_64.tar.gz --repo owner/mypkg
+```
+
+`install_library()` doesn't check attestations; the hashes already decide which
+library it accepts. A private repository needs GitHub Enterprise Cloud for
+attestations; otherwise remove the `actions/attest` step.
+
+`build_binary()` builds a [private library](libraries.html#private-libraries)
+for any CPU, runs the package's tests against it without Julia, and archives it.
+Its default `cpu_target = "sysimage"` compiles for the same CPUs as Julia's own
+system image, so it runs on any CPU and keeps the vector instructions of newer
+ones. If your package's code isn't numeric, such as graph algorithms,
+`cpu_target = "generic"` gives a smaller library at about the same speed (see
+the [CPU target](#cpu-target) table):
+
+```r
+jlbind::build_binary(cpu_target = "generic")
+```
+
+To [remove what it doesn't use](#removing-more-by-hand), add
+`tools/prune-binary.R`, whose value is a function of the library's directory;
+the tests catch anything removed that is needed. On Windows, the workflow builds
+with the unreleased JuliaC of
+[JuliaC.jl#151](https://github.com/JuliaLang/JuliaC.jl/pull/151)
+(`JLBIND_JULIAC`), which can give a library a private runtime there.

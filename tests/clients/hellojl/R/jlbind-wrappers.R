@@ -7,94 +7,18 @@
 .jlbind_entries <- c(
   "greet",
   "shift",
-  "describe",
   "fail",
   "threads",
-  "upper",
-  "evens",
-  "negate",
-  "with_nul",
-  "na_doubles",
-  "na_wholes",
-  "na_ints",
-  "na_bools",
-  "na_strings",
-  "maybe_double",
-  "maybe_string",
-  "ints",
-  "transposed",
-  "cube",
-  "strings",
-  "reverse_raw",
-  "conjugate",
-  "view_sum",
-  "view_same",
-  "list_lengths",
-  "pair",
-  "columns",
-  "counts",
-  "int_min",
-  "dates",
-  "next_day",
-  "times",
-  "na_complex",
-  "maybe_complex",
-  "symbol_counts",
-  "singles",
-  "shorts",
-  "small_types",
-  "group_means",
-  "uneven",
-  "maybes",
-  "fill_grid"
+  "count_matches",
+  "big_digits"
 )
 .jlbind <- new.env(parent = emptyenv())
 
 greet <- function(name) .External(.jlbind$.call, .jlbind$greet, name)
 shift <- function(x, by = NULL) .External(.jlbind$.call, .jlbind$shift, x, by)
-describe <- function(x) .External(.jlbind$.call, .jlbind$describe, x)
 fail <- function(msg) invisible(.External(.jlbind$.call, .jlbind$fail, msg))
 threads <- function() .External(.jlbind$.call, .jlbind$threads)
-upper <- function(xs) .External(.jlbind$.call, .jlbind$upper, xs)
-evens <- function(n) .External(.jlbind$.call, .jlbind$evens, n)
-negate <- function(x) .External(.jlbind$.call, .jlbind$negate, x)
-with_nul <- function(s) .External(.jlbind$.call, .jlbind$with_nul, s)
-na_doubles <- function(x) .External(.jlbind$.call, .jlbind$na_doubles, x)
-na_wholes <- function(x) .External(.jlbind$.call, .jlbind$na_wholes, x)
-na_ints <- function(x) .External(.jlbind$.call, .jlbind$na_ints, x)
-na_bools <- function(x) .External(.jlbind$.call, .jlbind$na_bools, x)
-na_strings <- function(x) .External(.jlbind$.call, .jlbind$na_strings, x)
-maybe_double <- function(x) .External(.jlbind$.call, .jlbind$maybe_double, x)
-maybe_string <- function(x) .External(.jlbind$.call, .jlbind$maybe_string, x)
-ints <- function(x) .External(.jlbind$.call, .jlbind$ints, x)
-transposed <- function(x) .External(.jlbind$.call, .jlbind$transposed, x)
-cube <- function(x) .External(.jlbind$.call, .jlbind$cube, x)
-strings <- function(x) .External(.jlbind$.call, .jlbind$strings, x)
-reverse_raw <- function(x) .External(.jlbind$.call, .jlbind$reverse_raw, x)
-conjugate <- function(x) .External(.jlbind$.call, .jlbind$conjugate, x)
-view_sum <- function(x) .External(.jlbind$.call, .jlbind$view_sum, x)
-view_same <- function(x) .External(.jlbind$.call, .jlbind$view_same, x)
-list_lengths <- function(x) .External(.jlbind$.call, .jlbind$list_lengths, x)
-pair <- function(x) .External(.jlbind$.call, .jlbind$pair, x)
-columns <- function(df) .External(.jlbind$.call, .jlbind$columns, df)
-counts <- function(x) .External(.jlbind$.call, .jlbind$counts, x)
-int_min <- function() .External(.jlbind$.call, .jlbind$int_min)
-dates <- function(x) .External(.jlbind$.call, .jlbind$dates, x)
-next_day <- function(x) .External(.jlbind$.call, .jlbind$next_day, x)
-times <- function(x) .External(.jlbind$.call, .jlbind$times, x)
-na_complex <- function(x) .External(.jlbind$.call, .jlbind$na_complex, x)
-maybe_complex <- function(x) .External(.jlbind$.call, .jlbind$maybe_complex, x)
-symbol_counts <- function(x) .External(.jlbind$.call, .jlbind$symbol_counts, x)
-singles <- function(x) .External(.jlbind$.call, .jlbind$singles, x)
-shorts <- function(x) .External(.jlbind$.call, .jlbind$shorts, x)
-small_types <- function(a, b, c, d) {
-  .External(.jlbind$.call, .jlbind$small_types, a, b, c, d)
+count_matches <- function(pattern, s) {
+  .External(.jlbind$.call, .jlbind$count_matches, pattern, s)
 }
-group_means <- function(df) .External(.jlbind$.call, .jlbind$group_means, df)
-uneven <- function() .External(.jlbind$.call, .jlbind$uneven)
-maybes <- function(a, b, c, d) {
-  .External(.jlbind$.call, .jlbind$maybes, a, b, c, d)
-}
-fill_grid <- function(nrow, ncol) {
-  .External(.jlbind$.call, .jlbind$fill_grid, nrow, ncol)
-}
+big_digits <- function(n) .External(.jlbind$.call, .jlbind$big_digits, n)

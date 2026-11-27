@@ -42,3 +42,10 @@ reference:
       - use_jlbind
       - update_entrypoints
       - use_jlbind_ci
+
+  - title: "Pre-built libraries"
+    desc: "Offer libraries that users download instead of building."
+    contents:
+      - use_jlbind_binaries
+      - build_binary
+      - record_binaries

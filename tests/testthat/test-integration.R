@@ -1,258 +1,259 @@
-# Builds a library from the two test clients in tests/clients and calls them
-# from one R process. Compiling takes a minute or more, so it only runs when
-# JLBIND_TEST_BUILD=true.
+# Builds libraries from the test clients in tests/clients and calls them from
+# fresh R processes: hellojl (a hello world, for the tests that build a library
+# of one client), convertjl (conversions between R and Julia) and counterjl
+# (Julia objects held by R). Compiling takes a minute or more, so it only runs
+# when JLBIND_TEST_BUILD=true.
 
-test_that("two clients share one compiled library", {
-  skip_on_cran()
-  skip_if_not(
-    identical(Sys.getenv("JLBIND_TEST_BUILD"), "true"),
-    "set JLBIND_TEST_BUILD=true to compile a library"
-  )
-  skip_if_not_installed("callr")
-  julia <- tryCatch(.find_julia(), error = function(e) NULL)
-  skip_if(is.null(julia), "Julia >= 1.13 not found")
+test_that("three clients share one compiled library", {
+  lib <- shared_library()
+  expect_match(lib$built$before, "check_bound")
+  expect_equal(lib$built$found, test_clients)
 
-  data <- withr::local_tempdir()
-  clients <- test_path("..", "clients")
-  libpath <- local_install(
-    file.path(clients, "hellojl"),
-    file.path(clients, "counterjl")
-  )
+  res <- call_shared(function() {
+    library(convertjl)
+    library(counterjl)
+    library(hellojl)
+    utils::capture.output({
+      report <- jlbind::jlbind_sitrep()
+    })
+    list(
+      bound = vapply(
+        c("convertjl", "counterjl", "hellojl"),
+        jlbind::is_bound,
+        TRUE
+      ),
+      threads = threads(),
+      report = report
+    )
+  })
+  expect_true(all(res$bound))
+  expect_equal(res$threads, 2)
+  expect_equal(res$report$library$how, "loaded")
+  expect_equal(res$report$library$problems, character())
+  expect_true(is.numeric(res$report$library$objects))
+  expect_true(res$report$threads$fixed)
+  ours <- res$report$clients[res$report$clients$package %in% test_clients, ]
+  expect_equal(sort(ours$package), test_clients)
+  expect_equal(ours$status, rep("ok", 3))
+  expect_true(all(ours$bound))
+})
 
-  res <- callr::r(
-    function() {
-      library(hellojl)
-      library(counterjl)
-      before <- tryCatch(greet("x"), error = conditionMessage)
-      found <- jlbind::jlbind_clients()$package
-      suppressMessages(jlbind::install_library(ask = FALSE))
-      # Fail with the reason a client is not bound, if one is not.
-      jlbind::check_bound("hellojl")
-      jlbind::check_bound("counterjl")
-      c1 <- new_counter(10)
-      increment(c1, 5)
-      for (i in 1:2000) {
-        increment(new_counter(i))
-      }
-      gc()
-      invisible(new_counter(0)) # drops the released handles
-      f <- tempfile()
-      saveRDS(c1, f)
-      err <- function(expr) tryCatch(expr, error = conditionMessage)
-      bytes <- "\xe9"
-      Encoding(bytes) <- "bytes"
-      # Arguments R itself cannot convert must fail in Julia, not by an R
-      # error unwinding through Julia, after which the next Julia exception
-      # (`fail` below) crashes R.
-      bad <- list(
-        raw = err(evens(as.raw(4))),
-        list = err(evens(list(4))),
-        string = err(evens("4")),
-        warn2 = local({
-          op <- options(warn = 2)
-          on.exit(options(op))
-          err(evens("x"))
-        }),
-        logical_number = err(negate(1)),
-        logical_raw = err(negate(as.raw(1))),
-        logical_na = err(negate(NA)),
-        bytes = err(greet(bytes)),
-        nul = err(with_nul("a")),
-        # A call that does not match the declaration, as from out-of-date
-        # wrappers.
-        nargs = local({
-          jl <- asNamespace("hellojl")$.jlbind
-          err(.External(jl$.call, jl$greet))
-        })
-      )
-      ints_vec <- 1:3
-      conv <- list(
-        na_doubles = na_doubles(c(1, NA, NaN)),
-        na_doubles_int = na_doubles(c(1L, NA)),
-        na_doubles_lgl = na_doubles(c(NA, NA)),
-        na_wholes = na_wholes(c(1, NA)),
-        na_ints = na_ints(c(1L, NA)),
-        na_bools = na_bools(c(TRUE, NA, FALSE)),
-        na_strings = na_strings(c("a", NA)),
-        na_factor = na_strings(factor(c("b", NA, "a"))),
-        maybe_na = maybe_double(NA),
-        maybe_nan = maybe_double(NaN),
-        maybe_value = maybe_double(2L),
-        maybe_string = maybe_string(NA),
-        ints = ints(c(1, 2)),
-        transposed = transposed(matrix(1:6, 2)),
-        cube = cube(array(1:24 / 2, c(2, 3, 4))),
-        factor = strings(factor(c("x", "y", "x"))),
-        raw = reverse_raw(as.raw(1:3)),
-        conjugate = conjugate(c(1 + 2i, 3)),
-        conjugate_real = conjugate(c(1, 2)),
-        conjugate_nan = conjugate(complex(real = NaN, imaginary = 1)),
-        view_sum = view_sum(c(1, 2, 3.5)),
-        view_same = identical(view_same(ints_vec), ints_vec),
-        list_lengths = list_lengths(list(1, c(1, 2), numeric())),
-        pair = pair(list("a", 2)),
-        columns = columns(data.frame(b = factor(c("x", "y")), a = c(1, 2))),
-        counts = counts(list(b = 2, a = 1L)),
-        counts_empty = counts(list()),
-        dates = dates(as.Date(c("2024-02-29", NA, "1969-12-31"))),
-        dates_frac = dates(structure(c(19000.7, -0.5), class = "Date")),
-        dates_int = dates(structure(19000L, class = "Date")),
-        next_day = next_day(as.Date("2024-02-28")),
-        times = times(.POSIXct(c(1704164645.25, NA), tz = "UTC")),
-        times_ny = times(.POSIXct(1704164645, tz = "America/New_York")),
-        na_complex = na_complex(c(1 + 2i, NA)),
-        na_complex_real = na_complex(c(1, NA)),
-        maybe_complex = maybe_complex(NA),
-        symbol_counts = symbol_counts(list(b = 2, a = 1)),
-        singles = singles(c(1.5, 2L)),
-        shorts = shorts(c(1L, NA, -32768)),
-        small_types = small_types(-128L, 65535, 4e9, 0.5),
-        group_means = group_means(
-          data.frame(x = c(1, 2, NA), group = factor(c("b", "a", "b")))
-        )
-      )
-      conv_bad <- list(
-        int32 = err(ints(3e9)),
-        int32_na = err(ints(c(1L, NA))),
-        whole_nan = err(na_wholes(NaN)),
-        not_matrix = err(transposed(1:6)),
-        cube_dims = err(cube(matrix(1, 2, 2))),
-        view_int = err(view_sum(1:3)),
-        complex_na = err(conjugate(c(1i, NA))),
-        maybe_long = err(maybe_double(c(NA, NA))),
-        list_elt = err(list_lengths(list(1, "a"))),
-        pair_length = err(pair(list("a"))),
-        pair_elt = err(pair(list("a", 1.5))),
-        missing_col = err(columns(list(a = 1))),
-        extra_col = err(columns(list(a = 1, b = "x", c = 2))),
-        dup_col = err(columns(setNames(list(1, "x", 2), c("a", "b", "a")))),
-        unnamed = err(counts(list(1))),
-        dup_key = err(counts(setNames(list(1, 2), c("a", "a")))),
-        dict_elt = err(counts(list(a = "x"))),
-        unnamed_col = err(columns(list(a = 1, "x"))),
-        empty_lgl = err(na_strings(logical())),
-        int_min = err(int_min()),
-        not_date = err(dates(19000)),
-        time_as_date = err(next_day(Sys.time())),
-        date_na = err(next_day(as.Date(NA))),
-        dates_long = err(next_day(as.Date(c("2024-01-01", "2024-01-02")))),
-        not_time = err(times(as.Date("2024-01-01"))),
-        not_complex = err(maybe_complex("a")),
-        # Not a literal such as 1e300, which R on macOS parses to a
-        # neighbouring double, changing the message.
-        single_range = err(singles(.Machine$double.xmax)),
-        short_range = err(shorts(40000)),
-        unsigned_range = err(small_types(0L, 0, -1, 0)),
-        not_frame = err(group_means(list(x = 1, group = "a"))),
-        frame_col = err(group_means(data.frame(x = 1, group = "a", y = 2))),
-        uneven = err(uneven())
-      )
-      list(
-        conv = conv,
-        conv_bad = conv_bad,
-        bad = bad,
-        int_arg = evens(4L),
-        negate = negate(TRUE),
-        before = before,
-        found = sort(found),
-        bound = c(jlbind::is_bound("hellojl"), jlbind::is_bound("counterjl")),
-        greet = greet("R"),
-        shift = shift(1:3, 0.5),
-        shift_null = shift(c(1, 2)),
-        describe = describe(c(1, 5, 9)),
-        upper = upper(c("a", "bé")),
-        evens = evens(6),
-        threads = threads(),
-        fail = tryCatch(fail("custom failure"), error = conditionMessage),
-        bad_type = tryCatch(greet(1), error = conditionMessage),
-        na = tryCatch(shift(c(1, NA)), error = conditionMessage),
-        nan = shift(c(1, NaN)),
-        nan_by = shift(1, NaN),
-        class = class(c1),
-        counter = increment(c1),
-        counters = vapply(counters(3), increment, 1, by = 100),
-        wrong_ref = tryCatch(increment(list(), 1), error = conditionMessage),
-        total = total(list(c1, c1)),
-        total_bad = tryCatch(total(list(c1, 1)), error = conditionMessage),
-        reloaded = tryCatch(increment(readRDS(f)), error = conditionMessage),
-        live = live(),
-        maybes = c(
-          maybes(1, NULL, NA, 4),
-          maybes(NULL, 2.5, "c", NULL),
-          maybes(NULL, NULL, NA, NULL)
-        ),
-        grid = fill_grid(2, 3),
-        grid_empty = fill_grid(0, 2),
-        value = c(value(c1), value(new_point(1.5))),
-        counter_value = err(counter_value(new_point(1.5))),
-        value_bad = err(value(list())),
-        saved = local({
-          p <- new_point(2.5)
-          file <- tempfile()
-          saveRDS(list(p = p, again = p, others = points(2)), file)
-          loaded <- readRDS(file)
-          other <- unserialize(serialize(new_point(7), NULL))
-          before <- live()
-          different <- !identical(loaded$p, other)
-          x <- point_x(loaded$p)
-          after <- live()
-          list(
-            different = different,
-            x = x,
-            again = point_x(loaded$again),
-            others = vapply(loaded$others, point_x, 1),
-            rebuilt_once = after - before,
-            resaved = point_x(unserialize(serialize(loaded$p, NULL))),
-            no_state = err(point_x(unserialize(serialize(
-              p,
-              NULL,
-              version = 2
-            )))),
-            as_counter = err(increment(loaded$p))
-          )
-        }),
-        sitrep = local({
-          utils::capture.output({
-            report <- jlbind::jlbind_sitrep()
-          })
-          report
-        })
-      )
-    },
-    libpath = libpath,
-    env = c(
-      callr::rcmd_safe_env(),
-      R_USER_CACHE_DIR = data,
-      R_USER_CONFIG_DIR = file.path(data, "config"),
-      JULIA_NUM_THREADS = "2"
-    ),
-    show = TRUE
-  )
-
-  expect_match(res$before, "check_bound")
-  expect_equal(res$found, c("counterjl", "hellojl"))
-  expect_equal(res$sitrep$library$how, "loaded")
-  expect_equal(res$sitrep$library$problems, character())
-  expect_equal(res$sitrep$clients$status, c("ok", "ok"))
-  expect_true(all(res$sitrep$clients$bound))
-  expect_true(res$sitrep$threads$fixed)
-  expect_equal(res$bound, c(TRUE, TRUE))
+test_that("hellojl calls its Julia code", {
+  res <- call_shared(function() {
+    library(hellojl)
+    err <- function(expr) tryCatch(expr, error = conditionMessage)
+    list(
+      greet = greet("R"),
+      shift = shift(1:3, 0.5),
+      shift_null = shift(c(1, 2)),
+      nan = shift(c(1, NaN)),
+      nan_by = shift(1, NaN),
+      na = err(shift(c(1, NA))),
+      bad_type = err(greet(1)),
+      fail = err(fail("custom failure"))
+    )
+  })
   expect_equal(res$greet, "Hello, R!")
   expect_equal(res$shift, c(1.5, 2.5, 3.5))
   expect_equal(res$shift_null, c(1, 2))
-  expect_equal(res$maybes, c("1--4", "-2.5c-", "----"))
-  expect_identical(res$grid, outer(1:2 * 10, 1:3, `+`) + 0)
-  expect_identical(dim(res$grid_empty), c(0L, 2L))
-  expect_equal(res$value, c(16, 1.5))
-  expect_equal(res$counter_value, "expected Counter")
-  expect_equal(res$value_bad, "expected a `thing` object")
+  expect_identical(res$nan, c(1, NaN))
+  expect_identical(res$nan_by, NaN)
+  expect_equal(res$na, "expected numbers, not NA")
+  expect_equal(res$bad_type, "expected a character string")
+  expect_equal(res$fail, "custom failure")
+})
+
+test_that("values convert between R and Julia", {
+  res <- call_shared(function() {
+    library(convertjl)
+    ints_vec <- 1:3
+    list(
+      describe = describe(c(1, 5, 9)),
+      upper = upper(c("a", "bé")),
+      evens = evens(6),
+      int_arg = evens(4L),
+      negate = negate(TRUE),
+      na_doubles = na_doubles(c(1, NA, NaN)),
+      na_doubles_int = na_doubles(c(1L, NA)),
+      na_doubles_lgl = na_doubles(c(NA, NA)),
+      na_wholes = na_wholes(c(1, NA)),
+      na_ints = na_ints(c(1L, NA)),
+      na_bools = na_bools(c(TRUE, NA, FALSE)),
+      na_strings = na_strings(c("a", NA)),
+      na_factor = na_strings(factor(c("b", NA, "a"))),
+      maybe_na = maybe_double(NA),
+      maybe_nan = maybe_double(NaN),
+      maybe_value = maybe_double(2L),
+      maybe_string = maybe_string(NA),
+      ints = ints(c(1, 2)),
+      transposed = transposed(matrix(1:6, 2)),
+      cube = cube(array(1:24 / 2, c(2, 3, 4))),
+      factor = strings(factor(c("x", "y", "x"))),
+      raw = reverse_raw(as.raw(1:3)),
+      conjugate = conjugate(c(1 + 2i, 3)),
+      conjugate_real = conjugate(c(1, 2)),
+      conjugate_nan = conjugate(complex(real = NaN, imaginary = 1)),
+      view_sum = view_sum(c(1, 2, 3.5)),
+      view_same = identical(view_same(ints_vec), ints_vec),
+      list_lengths = list_lengths(list(1, c(1, 2), numeric())),
+      pair = pair(list("a", 2)),
+      columns = columns(data.frame(b = factor(c("x", "y")), a = c(1, 2))),
+      counts = counts(list(b = 2, a = 1L)),
+      counts_empty = counts(list()),
+      dates = dates(as.Date(c("2024-02-29", NA, "1969-12-31"))),
+      dates_frac = dates(structure(c(19000.7, -0.5), class = "Date")),
+      dates_int = dates(structure(19000L, class = "Date")),
+      next_day = next_day(as.Date("2024-02-28")),
+      times = times(.POSIXct(c(1704164645.25, NA), tz = "UTC")),
+      times_ny = times(.POSIXct(1704164645, tz = "America/New_York")),
+      na_complex = na_complex(c(1 + 2i, NA)),
+      na_complex_real = na_complex(c(1, NA)),
+      maybe_complex = maybe_complex(NA),
+      symbol_counts = symbol_counts(list(b = 2, a = 1)),
+      singles = singles(c(1.5, 2L)),
+      shorts = shorts(c(1L, NA, -32768)),
+      small_types = small_types(-128L, 65535, 4e9, 0.5),
+      group_means = group_means(
+        data.frame(x = c(1, 2, NA), group = factor(c("b", "a", "b")))
+      ),
+      maybes = c(
+        maybes(1, NULL, NA, 4),
+        maybes(NULL, 2.5, "c", NULL),
+        maybes(NULL, NULL, NA, NULL)
+      ),
+      grid = fill_grid(2, 3),
+      grid_empty = fill_grid(0, 2)
+    )
+  })
   expect_equal(res$describe, list(n = 3, mean = 5, range = c(1, 9)))
   expect_equal(res$upper, c("A", "BÉ"))
   expect_identical(res$evens, c(2L, 4L, 6L))
-  expect_equal(res$threads, 2)
-  expect_equal(res$fail, "custom failure")
+  expect_identical(res$int_arg, c(2L, 4L))
+  expect_false(res$negate)
+  expect_identical(res$na_doubles, c(1, NA, NaN))
+  expect_identical(res$na_doubles_int, c(1, NA))
+  expect_identical(res$na_doubles_lgl, c(NA_real_, NA_real_))
+  expect_identical(res$na_wholes, c(1, NA))
+  expect_identical(res$na_ints, c(1L, NA))
+  expect_identical(res$na_bools, c(TRUE, NA, FALSE))
+  expect_identical(res$na_strings, c("a", NA))
+  expect_identical(res$na_factor, c("b", NA, "a"))
+  expect_identical(res$maybe_na, NA_real_)
+  expect_identical(res$maybe_nan, NaN)
+  expect_identical(res$maybe_value, 2)
+  expect_identical(res$maybe_string, NA_character_)
+  expect_identical(res$ints, 1:2)
+  expect_identical(res$transposed, t(matrix(1:6, 2)))
+  expect_identical(res$cube, array(1:24 / 2, c(2, 3, 4)))
+  expect_identical(res$factor, c("x", "y", "x"))
+  expect_identical(res$raw, as.raw(3:1))
+  expect_identical(res$conjugate, c(1 - 2i, 3 + 0i))
+  expect_identical(res$conjugate_real, c(1 + 0i, 2 + 0i))
+  expect_identical(res$conjugate_nan, complex(real = NaN, imaginary = -1))
+  expect_identical(res$view_sum, 6.5)
+  expect_true(res$view_same)
+  expect_identical(res$list_lengths, c(1, 2, 0))
+  expect_identical(res$pair, list("a", 2))
+  expect_identical(res$columns, list(a = c(1, 2), b = c("x", "y")))
+  expect_identical(res$counts, list(a = 1, b = 2))
+  expect_length(res$counts_empty, 0)
+  expect_identical(res$dates, as.Date(c("2024-02-29", NA, "1969-12-31")))
+  expect_identical(res$dates_frac, as.Date(c(19000, -1)))
+  expect_identical(res$dates_int, as.Date(19000))
+  expect_identical(res$next_day, as.Date("2024-02-29"))
+  expect_identical(res$times, .POSIXct(c(1704164645.25, NA), tz = "UTC"))
+  expect_identical(res$times_ny, .POSIXct(1704164645, tz = "UTC"))
+  expect_identical(res$na_complex, c(1 + 2i, NA_complex_))
+  expect_identical(res$na_complex_real, c(1 + 0i, NA_complex_))
+  expect_identical(res$maybe_complex, NA_complex_)
+  expect_identical(res$symbol_counts, list(a = 1, b = 2))
+  expect_identical(res$singles, c(3, 4))
+  expect_identical(res$shorts, c(1L, NA, -32768L))
+  expect_identical(res$small_types, list(-128L, 65535L, 4e9, 0.5))
+  expect_identical(
+    res$group_means,
+    data.frame(
+      group = c("a", "b"),
+      mean = c(2, NA),
+      first = as.Date(c("2024-01-01", "2024-01-01"))
+    )
+  )
+  expect_equal(res$maybes, c("1--4", "-2.5c-", "----"))
+  expect_identical(res$grid, outer(1:2 * 10, 1:3, `+`) + 0)
+  expect_identical(dim(res$grid_empty), c(0L, 2L))
+})
+
+test_that("values that don't convert give errors", {
+  res <- call_shared(function() {
+    library(convertjl)
+    library(hellojl)
+    err <- function(expr) tryCatch(expr, error = conditionMessage)
+    bytes <- "\xe9"
+    Encoding(bytes) <- "bytes"
+    # Arguments R itself cannot convert must fail in Julia, not by an R error
+    # unwinding through Julia, after which the next Julia exception (`fail`
+    # at the end) crashes R.
+    args <- list(
+      raw = err(evens(as.raw(4))),
+      list = err(evens(list(4))),
+      string = err(evens("4")),
+      warn2 = local({
+        op <- options(warn = 2)
+        on.exit(options(op))
+        err(evens("x"))
+      }),
+      logical_number = err(negate(1)),
+      logical_raw = err(negate(as.raw(1))),
+      logical_na = err(negate(NA)),
+      bytes = err(greet(bytes)),
+      nul = err(with_nul("a")),
+      # A call that does not match the declaration, as from out-of-date
+      # wrappers.
+      nargs = local({
+        jl <- asNamespace("convertjl")$.jlbind
+        err(.External(jl$.call, jl$evens))
+      })
+    )
+    values <- list(
+      int32 = err(ints(3e9)),
+      int32_na = err(ints(c(1L, NA))),
+      whole_nan = err(na_wholes(NaN)),
+      not_matrix = err(transposed(1:6)),
+      cube_dims = err(cube(matrix(1, 2, 2))),
+      view_int = err(view_sum(1:3)),
+      complex_na = err(conjugate(c(1i, NA))),
+      maybe_long = err(maybe_double(c(NA, NA))),
+      list_elt = err(list_lengths(list(1, "a"))),
+      pair_length = err(pair(list("a"))),
+      pair_elt = err(pair(list("a", 1.5))),
+      missing_col = err(columns(list(a = 1))),
+      extra_col = err(columns(list(a = 1, b = "x", c = 2))),
+      dup_col = err(columns(setNames(list(1, "x", 2), c("a", "b", "a")))),
+      unnamed = err(counts(list(1))),
+      dup_key = err(counts(setNames(list(1, 2), c("a", "a")))),
+      dict_elt = err(counts(list(a = "x"))),
+      unnamed_col = err(columns(list(a = 1, "x"))),
+      empty_lgl = err(na_strings(logical())),
+      int_min = err(int_min()),
+      not_date = err(dates(19000)),
+      time_as_date = err(next_day(Sys.time())),
+      date_na = err(next_day(as.Date(NA))),
+      dates_long = err(next_day(as.Date(c("2024-01-01", "2024-01-02")))),
+      not_time = err(times(as.Date("2024-01-01"))),
+      not_complex = err(maybe_complex("a")),
+      # Not a literal such as 1e300, which R on macOS parses to a neighbouring
+      # double, changing the message.
+      single_range = err(singles(.Machine$double.xmax)),
+      short_range = err(shorts(40000)),
+      unsigned_range = err(small_types(0L, 0, -1, 0)),
+      not_frame = err(group_means(list(x = 1, group = "a"))),
+      frame_col = err(group_means(data.frame(x = 1, group = "a", y = 2))),
+      uneven = err(uneven())
+    )
+    list(args = args, values = values, fail = err(fail("custom failure")))
+  })
   expect_equal(
-    res$bad,
+    res$args,
     list(
       raw = "expected a number",
       list = "expected a number",
@@ -263,60 +264,11 @@ test_that("two clients share one compiled library", {
       logical_na = "expected TRUE or FALSE, not NA",
       bytes = "expected text, not a string in \"bytes\" encoding",
       nul = "cannot return a string containing NUL to R",
-      nargs = "greet() takes 1 argument, but was given 0"
+      nargs = "evens() takes 1 argument, but was given 0"
     )
   )
-  conv <- res$conv
-  expect_identical(conv$na_doubles, c(1, NA, NaN))
-  expect_identical(conv$na_doubles_int, c(1, NA))
-  expect_identical(conv$na_doubles_lgl, c(NA_real_, NA_real_))
-  expect_identical(conv$na_wholes, c(1, NA))
-  expect_identical(conv$na_ints, c(1L, NA))
-  expect_identical(conv$na_bools, c(TRUE, NA, FALSE))
-  expect_identical(conv$na_strings, c("a", NA))
-  expect_identical(conv$na_factor, c("b", NA, "a"))
-  expect_identical(conv$maybe_na, NA_real_)
-  expect_identical(conv$maybe_nan, NaN)
-  expect_identical(conv$maybe_value, 2)
-  expect_identical(conv$maybe_string, NA_character_)
-  expect_identical(conv$ints, 1:2)
-  expect_identical(conv$transposed, t(matrix(1:6, 2)))
-  expect_identical(conv$cube, array(1:24 / 2, c(2, 3, 4)))
-  expect_identical(conv$factor, c("x", "y", "x"))
-  expect_identical(conv$raw, as.raw(3:1))
-  expect_identical(conv$conjugate, c(1 - 2i, 3 + 0i))
-  expect_identical(conv$conjugate_real, c(1 + 0i, 2 + 0i))
-  expect_identical(conv$conjugate_nan, complex(real = NaN, imaginary = -1))
-  expect_identical(conv$view_sum, 6.5)
-  expect_true(conv$view_same)
-  expect_identical(conv$list_lengths, c(1, 2, 0))
-  expect_identical(conv$pair, list("a", 2))
-  expect_identical(conv$columns, list(a = c(1, 2), b = c("x", "y")))
-  expect_identical(conv$counts, list(a = 1, b = 2))
-  expect_length(conv$counts_empty, 0)
-  expect_identical(conv$dates, as.Date(c("2024-02-29", NA, "1969-12-31")))
-  expect_identical(conv$dates_frac, as.Date(c(19000, -1)))
-  expect_identical(conv$dates_int, as.Date(19000))
-  expect_identical(conv$next_day, as.Date("2024-02-29"))
-  expect_identical(
-    conv$group_means,
-    data.frame(
-      group = c("a", "b"),
-      mean = c(2, NA),
-      first = as.Date(c("2024-01-01", "2024-01-01"))
-    )
-  )
-  expect_identical(conv$times, .POSIXct(c(1704164645.25, NA), tz = "UTC"))
-  expect_identical(conv$times_ny, .POSIXct(1704164645, tz = "UTC"))
-  expect_identical(conv$na_complex, c(1 + 2i, NA_complex_))
-  expect_identical(conv$na_complex_real, c(1 + 0i, NA_complex_))
-  expect_identical(conv$maybe_complex, NA_complex_)
-  expect_identical(conv$symbol_counts, list(a = 1, b = 2))
-  expect_identical(conv$singles, c(3, 4))
-  expect_identical(conv$shorts, c(1L, NA, -32768L))
-  expect_identical(conv$small_types, list(-128L, 65535L, 4e9, 0.5))
   expect_equal(
-    res$conv_bad,
+    res$values,
     list(
       int32 = "expected a whole number between -2147483647 and 2147483647, not 3.0e9",
       int32_na = "expected numbers, not NA",
@@ -358,12 +310,36 @@ test_that("two clients share one compiled library", {
       )
     )
   )
-  expect_identical(res$int_arg, c(2L, 4L))
-  expect_false(res$negate)
-  expect_equal(res$bad_type, "expected a character string")
-  expect_equal(res$na, "expected numbers, not NA")
-  expect_identical(res$nan, c(1, NaN))
-  expect_identical(res$nan_by, NaN)
+  expect_equal(res$fail, "custom failure")
+})
+
+test_that("R holds Julia objects", {
+  res <- call_shared(function() {
+    library(counterjl)
+    err <- function(expr) tryCatch(expr, error = conditionMessage)
+    c1 <- new_counter(10)
+    increment(c1, 5)
+    for (i in 1:2000) {
+      increment(new_counter(i))
+    }
+    gc()
+    invisible(new_counter(0)) # drops the released handles
+    f <- tempfile()
+    saveRDS(c1, f)
+    list(
+      class = class(c1),
+      counter = increment(c1),
+      counters = vapply(counters(3), increment, 1, by = 100),
+      wrong_ref = err(increment(list(), 1)),
+      total = total(list(c1, c1)),
+      total_bad = err(total(list(c1, 1))),
+      reloaded = err(increment(readRDS(f))),
+      live = live(),
+      value = c(value(c1), value(new_point(1.5))),
+      counter_value = err(counter_value(new_point(1.5))),
+      value_bad = err(value(list()))
+    )
+  })
   expect_equal(res$class, "counter")
   expect_equal(res$counter, 16)
   expect_equal(res$counters, c(101, 102, 103))
@@ -371,32 +347,81 @@ test_that("two clients share one compiled library", {
   expect_equal(res$total, 32)
   expect_equal(res$total_bad, "element 2: expected a `counter` object")
   expect_match(res$reloaded, "no longer exists")
-  expect_true(res$saved$different)
-  expect_equal(res$saved$x, 2.5)
-  expect_equal(res$saved$again, 2.5)
-  expect_equal(res$saved$others, c(1, 2))
-  expect_equal(res$saved$rebuilt_once, 1)
-  expect_equal(res$saved$resaved, 2.5)
-  expect_match(res$saved$no_state, "saved without its contents")
-  expect_equal(res$saved$as_counter, "expected a `counter` object")
   # c1, the last stored, and the three from counters() unless collected.
   expect_lte(res$live, 5)
-  expect_equal(sort(res$sitrep$clients$package), c("counterjl", "hellojl"))
-  expect_true(is.numeric(res$sitrep$library$objects))
+  expect_equal(res$value, c(16, 1.5))
+  expect_equal(res$counter_value, "expected Counter")
+  expect_equal(res$value_bad, "expected a `thing` object")
+})
+
+test_that("a saved Julia object is restored when loaded", {
+  res <- call_shared(function() {
+    library(counterjl)
+    err <- function(expr) tryCatch(expr, error = conditionMessage)
+    p <- new_point(2.5)
+    file <- tempfile()
+    saveRDS(list(p = p, again = p, others = points(2)), file)
+    loaded <- readRDS(file)
+    other <- unserialize(serialize(new_point(7), NULL))
+    before <- live()
+    different <- !identical(loaded$p, other)
+    x <- point_x(loaded$p)
+    after <- live()
+    list(
+      different = different,
+      x = x,
+      again = point_x(loaded$again),
+      others = vapply(loaded$others, point_x, 1),
+      rebuilt_once = after - before,
+      resaved = point_x(unserialize(serialize(loaded$p, NULL))),
+      no_state = err(point_x(unserialize(serialize(p, NULL, version = 2)))),
+      as_counter = err(increment(loaded$p))
+    )
+  })
+  expect_true(res$different)
+  expect_equal(res$x, 2.5)
+  expect_equal(res$again, 2.5)
+  expect_equal(res$others, c(1, 2))
+  expect_equal(res$rebuilt_once, 1)
+  expect_equal(res$resaved, 2.5)
+  expect_match(res$no_state, "saved without its contents")
+  expect_equal(res$as_counter, "expected a `counter` object")
+})
+
+test_that("Julia finds its runtime libraries without Julia on the PATH", {
+  # Julia opens some runtime libraries by file name after it starts (PCRE2,
+  # GMP), which on Windows are found only through the PATH. setup-julia puts
+  # Julia's bin directory there, and Git's ucrt64/bin and others hold a copy of
+  # PCRE2, so a new R session gets a PATH with neither, as with juliaup.
+  sep <- .Platform$path.sep
+  path <- strsplit(Sys.getenv("PATH"), sep, fixed = TRUE)[[1L]]
+  runtime <- vapply(
+    path,
+    function(dir) {
+      length(list.files(dir, "^(libjulia|libpcre2-8)", ignore.case = TRUE)) > 0
+    },
+    TRUE
+  )
+  res <- call_shared(
+    function() {
+      library(hellojl)
+      err <- function(expr) tryCatch(expr, error = conditionMessage)
+      list(
+        regex = err(count_matches("a.", "abacad")),
+        bigint = err(big_digits(30L))
+      )
+    },
+    env = c(PATH = paste(path[!runtime], collapse = sep))
+  )
+  expect_equal(res$regex, 3)
+  expect_equal(res$bigint, 33)
 })
 
 # A client that sets Config/jlbind/trim: false makes the library build without
 # --trim. That build is much larger and slower, so it only runs when
 # JLBIND_TEST_NOTRIM=true.
 test_that("a client can turn trimming off", {
-  skip_on_cran()
-  skip_if_not(
-    identical(Sys.getenv("JLBIND_TEST_NOTRIM"), "true"),
-    "set JLBIND_TEST_NOTRIM=true to compile an untrimmed library"
-  )
-  skip_if_not_installed("callr")
-  julia <- tryCatch(.find_julia(), error = function(e) NULL)
-  skip_if(is.null(julia), "Julia >= 1.13 not found")
+  julia <- skip_unless_build("JLBIND_TEST_NOTRIM")
 
   src <- withr::local_tempdir()
   file.copy(test_path("..", "clients", "hellojl"), src, recursive = TRUE)
@@ -423,7 +448,7 @@ test_that("a client can turn trimming off", {
       list(
         bound = jlbind::is_bound("hellojl"),
         greet = greet("R"),
-        evens = evens(6),
+        shift = shift(c(1, 2), 1),
         fail = tryCatch(fail("custom failure"), error = conditionMessage)
       )
     },
@@ -433,21 +458,14 @@ test_that("a client can turn trimming off", {
   )
   expect_true(res$bound)
   expect_equal(res$greet, "Hello, R!")
-  expect_identical(res$evens, c(2L, 4L, 6L))
+  expect_identical(res$shift, c(2, 3))
   expect_equal(res$fail, "custom failure")
 })
 
 # A bundle carries its own Julia runtime, so it still works after being moved,
 # with no Julia to find.
 test_that("a bundled library can be moved and runs without Julia", {
-  skip_on_cran()
-  skip_if_not(
-    identical(Sys.getenv("JLBIND_TEST_BUILD"), "true"),
-    "set JLBIND_TEST_BUILD=true to compile a library"
-  )
-  skip_if_not_installed("callr")
-  julia <- tryCatch(.find_julia(), error = function(e) NULL)
-  skip_if(is.null(julia), "Julia >= 1.13 not found")
+  julia <- skip_unless_build()
 
   pkg <- test_path("..", "clients", "hellojl")
   built <- withr::local_tempdir()
@@ -500,15 +518,8 @@ test_that("a bundled library can be moved and runs without Julia", {
 })
 
 test_that("a client reloaded with pkgload::load_all() is bound again", {
-  skip_on_cran()
-  skip_if_not(
-    identical(Sys.getenv("JLBIND_TEST_BUILD"), "true"),
-    "set JLBIND_TEST_BUILD=true to compile a library"
-  )
-  skip_if_not_installed("callr")
+  julia <- skip_unless_build()
   skip_if_not_installed("pkgload")
-  julia <- tryCatch(.find_julia(), error = function(e) NULL)
-  skip_if(is.null(julia), "Julia >= 1.13 not found")
 
   src <- withr::local_tempdir()
   file.copy(test_path("..", "clients", "hellojl"), src, recursive = TRUE)
@@ -538,15 +549,11 @@ test_that("a client reloaded with pkgload::load_all() is bound again", {
 })
 
 test_that("a private library runs alongside the shared one", {
-  skip_on_cran()
-  skip_on_os("windows")
-  skip_if_not(
-    identical(Sys.getenv("JLBIND_TEST_BUILD"), "true"),
-    "set JLBIND_TEST_BUILD=true to compile a library"
-  )
-  skip_if_not_installed("callr")
-  julia <- tryCatch(.find_julia(), error = function(e) NULL)
-  skip_if(is.null(julia), "Julia >= 1.13 not found")
+  skip_unless_build()
+  # Released JuliaC can't privatize a runtime on Windows; JuliaC.jl#151 can.
+  if (.Platform$OS.type == "windows" && !nzchar(.juliac())) {
+    withr::local_envvar(JLBIND_JULIAC = .juliac_windows)
+  }
 
   data <- withr::local_tempdir()
   clients <- test_path("..", "clients")
@@ -568,6 +575,7 @@ test_that("a private library runs alongside the shared one", {
       library(counterjl)
       library(hellojl)
       suppressMessages(jlbind::install_library(
+        c("counterjl", "hellojl"),
         ask = FALSE,
         private = "counterjl"
       ))
@@ -589,7 +597,7 @@ test_that("a private library runs alongside the shared one", {
         threads = threads(),
         again = tryCatch(
           {
-            jlbind::install_library(ask = FALSE)
+            jlbind::install_library(c("counterjl", "hellojl"), ask = FALSE)
             "built nothing"
           },
           message = conditionMessage
@@ -622,6 +630,7 @@ test_that("a private library runs alongside the shared one", {
   res <- callr::r(
     function() {
       suppressMessages(jlbind::install_library(
+        c("counterjl", "hellojl"),
         ask = FALSE,
         private = character()
       ))

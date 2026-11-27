@@ -10,8 +10,9 @@ use_jlbind(path = ".", module = NULL, dir = "julia")
 \item{path}{Path to the package sources.}
 
 \item{module}{Name of the Julia binding package. Defaults to the package name
-with each \code{.} replaced by \verb{_}, followed by \code{Bindings}. It must be unique across all packages that use
-jlbind, since they're all compiled into one library.}
+with each \code{.} replaced by \verb{_}, followed by \code{Bindings}. It must be unique
+across all packages that use jlbind, since they're all compiled into one
+library.}
 
 \item{dir}{Directory under \verb{inst/} for the binding package.}
 }

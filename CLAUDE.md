@@ -55,10 +55,11 @@ JLBind-reference-up-to-date checks, and JETLS
 package namespace, so call internal functions directly rather than via
 `jlbind:::` (jarl flags it).
 
-The integration test (`tests/testthat/test-integration.R`) installs the two
+The integration test (`tests/testthat/test-integration.R`) installs the three
 clients in `tests/clients/` into a temp library, compiles them into one library
-and calls them from a fresh R process. It takes a minute or more and only runs
-with Julia >= 1.13 and `JLBIND_TEST_BUILD=true`:
+once for the file and calls them from fresh R processes, a test per area. It
+takes a minute or more and only runs with Julia >= 1.13 and
+`JLBIND_TEST_BUILD=true`:
 
 ```sh
 JLBIND_TEST_BUILD=true Rscript -e 'devtools::test(filter = "integration")'
@@ -76,6 +77,12 @@ A second integration test builds a copy of `hellojl` with
 `Config/jlbind/trim: false` (an untrimmed, \~200 MB library); it runs only with
 `JLBIND_TEST_NOTRIM=true`.
 
+`tests/testthat/test-prebuilt.R` builds a pruned pre-built library of a copy of
+`hellojl` with `build_binary()` (its tests and prune script are in
+`tests/testthat/fixtures/prebuilt/`), installs it with
+`install_library(method = "download")` from a `file://` URL and calls it without
+Julia; it runs only with `JLBIND_TEST_BINARY=true`.
+
 jlbind needs Julia >= 1.13, but use 1.14 (its prereleases until it is out):
 Julia 1.13 sometimes compile a `--trim` library that crashes as the runtime
 initializes (`jl_egal_` in `lookup_leafcache`, from
@@ -91,7 +98,10 @@ this library instead of the one `install_library()` builds, or the one
 `build_library()` writes to a `load_all()`ed client's `.jlbind/`),
 `JULIA_NUM_THREADS`, `JULIA_CPU_TARGET` (the default `cpu_target` of builds,
 else `"native"`), `JLBIND_JULIA_ARGS` (the default `julia_args` of builds, split
-at spaces).
+at spaces), `JLBIND_JULIAC` (a JuliaC directory or git URL `#rev` to build with
+instead of release 0.3; recorded in `build`). Windows private libraries need
+JuliaC.jl#151 (`.juliac_windows`), whose manifest finds the runtime DLLs next to
+the library, so `build.jl` moves them up next to `jlbind.dll`.
 
 CI (`.github/workflows/R-CMD-check.yaml`) runs R CMD check with Julia 1.14 on
 Linux/Windows, both with the integration test enabled (the Linux job also sets
@@ -100,7 +110,10 @@ Linux/Windows, both with the integration test enabled (the Linux job also sets
 `test-coverage.yaml` runs covr with Julia 1.14 and `JLBIND_TEST_BUILD=true`, and
 JLBind's tests with Julia coverage (the compiled library records none), and
 uploads both to Codecov (flags `r` and `julia`); `quartodown.yaml` builds the
-site and deploys it from `main`.
+site and deploys it from `main`. `prebuilt.yaml` runs `test-prebuilt.R` on
+Linux, macOS and Windows, on pull requests that change pre-built libraries (its
+`paths`; add new files there) or by hand
+(`gh workflow run prebuilt.yaml --ref <branch>`).
 
 ## Architecture
 
@@ -122,12 +135,13 @@ Three layers, spread across R, Julia and C:
   client's `Manifest.toml` (falling back to `[compat]` resolution), and compiles
   with JuliaC in a separate environment. With `bundle = TRUE` it also copies the
   Julia runtime into `jlbind-bundle/` next to the library, found through a
-  relative RUNPATH (on Windows, `.add_julia_bindir()` puts it on the PATH while
-  the library loads). `--privatize=<salt>` (from `.salt()`) also has JuliaC
-  rename the bundled runtime's symbols, so the library loads alongside others
-  (Linux/macOS only). `prune_bundle()` removes the libraries JuliaC bundles for
-  stdlibs that are only in the compiling Julia's system image (e.g. OpenBLAS),
-  not in the image's environment (Julia >= 1.14).
+  relative RUNPATH (on Windows, `.add_julia_bindir()` puts it on the PATH for
+  the session). `--privatize=<salt>` (from `.salt()`) also has JuliaC rename the
+  bundled runtime's symbols, so the library loads alongside others (on Windows
+  only with the unreleased JuliaC of JuliaC.jl#151, named by `JLBIND_JULIAC`).
+  `prune_bundle()` removes the libraries JuliaC bundles for stdlibs that are
+  only in the compiling Julia's system image (e.g. OpenBLAS), not in the image's
+  environment (Julia >= 1.14).
 - **R side (`R/`)** — `library.R`: `install_library()` / `build_library()`
   (finds clients, runs `build.jl`, stores the library under
   `R_user_dir("jlbind", "cache")/library/` with the client versions and binding
@@ -142,12 +156,24 @@ Three layers, spread across R, Julia and C:
   sets threads, binds a client only if the library was built from its installed
   version. Each library has a state environment: `.state` itself for the shared
   one, `.state$private[[path]]` for privatized ones (`Private` salt in the
-  `build` file); `.library_path()` picks a client's library. `sitrep.R`:
-  `jlbind_sitrep()`, a report on Julia, the library and each client that works
-  before a library has loaded. `scaffold.R`: `use_jlbind()` and
-  `update_entrypoints()`, which scans `@rcall` declarations (with
-  comments/strings blanked, so they must be literal top-level `@rcall`s) and
-  writes `R/jlbind-wrappers.R`. `julia.R`: locating Julia.
+  `build` file); `.library_path()` picks a client's library. `download.R`:
+  `install_library(method = "download")`: downloads the archive a client lists
+  for this platform in `inst/jlbind/binaries` (`Version`, `OS`, `Arch`, `URL`,
+  `SHA256`; outside the binding package, so not in `.binding_hash()`), checks
+  its hash before unpacking and the library after (`.binary_problem()`), and
+  installs it as the client's private library (recorded as private), with
+  `Download`/`SHA256` in its `build` file. Builds leave such libraries alone.
+  Every library is checked against `.library_abi` (`runtime.R`), not the jlbind
+  version: one for another interface is neither loaded nor kept by builds. Bump
+  it when a library built by an earlier jlbind wouldn't work with this one (or
+  has a JLBind bug users shouldn't keep). `binaries.R`: `build_binary()` and
+  `record_binaries()`, the author's side, run by the `use_jlbind_binaries()`
+  workflow (`inst/templates/binaries.yaml`). `sitrep.R`: `jlbind_sitrep()`, a
+  report on Julia, the library and each client that works before a library has
+  loaded. `scaffold.R`: `use_jlbind()` and `update_entrypoints()`, which scans
+  `@rcall` declarations (with comments/strings blanked, so they must be literal
+  top-level `@rcall`s) and writes `R/jlbind-wrappers.R`. `julia.R`: locating
+  Julia.
 
 Clients are pure R packages, so a fix to how they call the library needs only a
 jlbind update. `R/jlbind-wrappers.R` defines `.jlbind_module`, `.jlbind_entries`
@@ -171,10 +197,15 @@ reference's external pointer has the tag `jlbind_ref` and, as its protected
 value, a symbol naming the runtime that made it (`_runtime()`), so a live
 reference from another (private) runtime is rejected.
 
-The test clients in `tests/clients/{hellojl,counterjl}` are scaffolded output:
-their `R/zzz.R` and `R/jlbind-wrappers.R` correspond to `inst/templates/` and
-`update_entrypoints()`. When changing a template or the header generator, update
-the test clients to match.
+The test clients in `tests/clients/` each cover one area: `hellojl` is a hello
+world, kept small because the tests that build a library of one client (no-trim,
+bundle, `load_all()`, private, pre-built) use it; `convertjl` has the
+conversions between R and Julia and their errors; `counterjl` has Julia objects
+held by R (`RRef`, saving, `@narrow`). Add new entrypoints to the client of
+their area, not to `hellojl`. The clients are scaffolded output: their `R/zzz.R`
+and `R/jlbind-wrappers.R` correspond to `inst/templates/` and
+`update_entrypoints()`, and their `NAMESPACE` exports every entrypoint. When
+changing a template or the header generator, update the test clients to match.
 
 ## Constraints to keep in mind
 

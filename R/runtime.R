@@ -27,6 +27,11 @@
 .state$private <- list()
 .state$libraries <- list()
 
+# The interface version between jlbind (src/call.c, src/state.c) and the
+# JLBind code compiled into a library. Only libraries built for it are loaded.
+# Bump it when older libraries would break with this jlbind.
+.library_abi <- 1L
+
 # The library to load: JLBIND_LIBRARY, else one built into the sources of
 # `pkg` (.dev_library()), else the private library install_library() built
 # for `pkg`, else the shared one it builds.
@@ -230,31 +235,48 @@
     )
     return(FALSE)
   }
-  # A library compiled for another computer's CPU can crash R with an illegal
-  # instruction, so it is not loaded.
-  mismatch <- .cpu_mismatch(.read_build(dirname(path)))
-  if (!is.null(mismatch)) {
+  build <- .read_build(dirname(path))
+  why <- if (is.null(build) || is.null(.read_clients(dirname(path)))) {
+    "not built by jlbind"
+  } else {
+    .abi_mismatch(build)
+  }
+  if (!is.null(why)) {
     lib$problem <- paste0(
       "The compiled Julia library (",
       path,
       ") was ",
-      mismatch,
-      ", so it is not loaded: it may crash R on this one. ",
-      .rebuild_hint(pkg),
-      " For a library that runs on any CPU, build it with ",
-      "`cpu_target = \"generic\"`."
+      why,
+      ". ",
+      .rebuild_hint(pkg, lib)
     )
     return(FALSE)
   }
+  # A library compiled for another computer's CPU can crash R with an illegal
+  # instruction. It is loaded anyway, as it may well run, but with a warning,
+  # since a crash leaves no error to explain it.
+  mismatch <- .cpu_mismatch(build)
+  if (!is.null(mismatch)) {
+    warning(
+      "The compiled Julia library (",
+      path,
+      ") was ",
+      mismatch,
+      ", so it may crash R on this one. If it does: ",
+      if (.is_downloaded(build)) {
+        "Run jlbind::install_library() to build it for this CPU, then restart R."
+      } else {
+        .rebuild_hint(pkg, lib)
+      },
+      " For a library that runs on any CPU, build it with ",
+      "`cpu_target = \"generic\"`.",
+      call. = FALSE
+    )
+  }
   # The library links against the Julia that built it, so it stops loading
   # if that Julia is removed (e.g. by a juliaup update).
-  # PATH is needed only while loading: Julia loads the libraries of JLLs later
-  # by absolute path, so it is restored rather than left changed for the
-  # session.
-  old_path <- Sys.getenv("PATH")
-  on.exit(Sys.setenv(PATH = old_path), add = TRUE)
   .add_julia_bindir(path)
-  dll <- tryCatch(dyn.load(path, local = TRUE, now = TRUE), error = identity)
+  dll <- tryCatch(.dyn_load(path), error = identity)
   if (inherits(dll, "error")) {
     lib$problem <- paste0(
       "The compiled Julia library (",
@@ -329,22 +351,35 @@
   n
 }
 
+# R loads a DLL with plain LoadLibrary(), which doesn't look for the DLL's
+# dependencies in its own directory. A private library on Windows keeps its
+# runtime there: its manifest redirects only libjulia*, which need the
+# runtime's other DLLs (libgcc, libstdc++, ...), so R is told to look there.
+.dyn_load <- function(path, windows = .Platform$OS.type == "windows") {
+  if (windows) {
+    dyn.load(path, local = TRUE, now = TRUE, DLLpath = dirname(path))
+  } else {
+    dyn.load(path, local = TRUE, now = TRUE)
+  }
+}
+
 # On Windows the library has no RUNPATH, so the directory of the Julia
 # runtime it links against (recorded by build.jl next to it, or in its bundle)
-# is put on the PATH, where Windows finds libjulia.dll and its dependencies,
-# while the library loads.
-# JuliaC puts a bundle's DLLs in `bin/julia` with Julia >= 1.14, and in `bin`
-# before that.
+# is put on the PATH, where Windows finds libjulia.dll and its dependencies.
+# It stays there for the session: Julia opens some runtime libraries later,
+# by file name only (PCRE2 at startup and for any Regex, GMP, MPFR), and
+# Windows looks for those next to R.exe and on the PATH, not next to
+# libjulia. It goes first, so another program's copy (Git's or Rtools'
+# ucrt64/bin has a libpcre2-8-0.dll) is not loaded instead. JuliaCall does the
+# same.
 .add_julia_bindir <- function(path, windows = .Platform$OS.type == "windows") {
   if (!windows) {
     return(invisible(NULL))
   }
   record <- file.path(dirname(path), "julia_bindir")
   bin <- file.path(dirname(path), "jlbind-bundle", "bin")
-  bundled <- c(file.path(bin, "julia"), bin)
-  bundled <- bundled[file.exists(file.path(bundled, "libjulia.dll"))]
-  if (length(bundled)) {
-    bindir <- normalizePath(bundled[[1L]])
+  if (file.exists(file.path(bin, "libjulia.dll"))) {
+    bindir <- normalizePath(bin)
   } else if (file.exists(record)) {
     bindir <- normalizePath(
       readLines(record, warn = FALSE)[[1L]],
@@ -472,13 +507,9 @@ bind_client <- function(pkg) {
 }
 
 # Why the loaded library with state `lib` cannot serve `pkg`, or NULL if it
-# can. A library that records no clients (one built some other way) is
-# trusted.
+# can.
 .bind_problem <- function(pkg, lib = .state) {
   built <- lib$clients
-  if (is.null(built)) {
-    return(NULL)
-  }
   version <- as.character(getNamespaceVersion(pkg))
   row <- built[built$Package == pkg, , drop = FALSE]
   excluded <- lib$excluded
@@ -518,6 +549,16 @@ bind_client <- function(pkg) {
 # `lib`, which cannot be replaced in a running process once loaded.
 .rebuild_hint <- function(pkg, lib = .state) {
   path <- lib$path
+  build <- lib$build
+  if (is.null(build) && !is.null(path)) {
+    build <- .read_build(dirname(path))
+  }
+  if (.is_downloaded(build)) {
+    return(paste0(
+      "Run jlbind::install_library(method = \"download\") to download it ",
+      "again, or jlbind::install_library() to build it, then restart R."
+    ))
+  }
   if (
     identical(path, file.path(.library_dir(), .library_file())) ||
       (!is.null(pkg) && identical(path, .private_library(pkg)))
@@ -589,8 +630,7 @@ check_bound <- function(pkg) {
   }
   problem <- .state$problems[[pkg]]
   if (is.null(problem)) {
-    lib <- .state$libraries[[pkg]]
-    problem <- if (is.null(lib)) .state$problem else lib$problem
+    problem <- .state$libraries[[pkg]]$problem
   }
   stop(
     problem,

@@ -8,6 +8,8 @@
  *
  * R looks the class up by name when reading a file, loading the package named
  * here, so the class must not be in the library, which may not be available.
+ *
+ * Changing how libraries are called? Bump `.library_abi` in R/runtime.R.
  */
 
 #include <R.h>

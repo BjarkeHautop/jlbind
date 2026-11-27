@@ -13,23 +13,24 @@ clients conflict](using-clients.html#when-clients-conflict)). Such a client can
 instead get a private library of its own, or go into a separate library that you
 select for the R sessions that use it. This vignette compares the three.
 
-  |                        | [Shared](#the-shared-library) | [Private](#private-libraries)      | [Separate](#separate-libraries)        |
-  | ---------------------- | ----------------------------- | ---------------------------------- | -------------------------------------- |
-  | Set up with            | `install_library()`           | `install_library(private = "pkg")` | `build_library()` and `JLBIND_LIBRARY` |
-  | Clients in one session | Those in the library          | All                                | Those in the selected library          |
-  | Disk space overhead    | 2 MB                          | 29 MB or more per private client   | 2 MB per library                       |
-  | Julia runtimes         | One                           | One per library                    | One                                    |
-  | Rebuilt by             | `install_library()`           | `install_library()`                | You                                    |
-  | Systems                | All                           | Linux, macOS                       | All                                    |
+  |                        | [Shared](#the-shared-library) | [Private](#private-libraries)       | [Separate](#separate-libraries)        |
+  | ---------------------- | ----------------------------- | ----------------------------------  | -------------------------------------- |
+  | Set up with            | `install_library()`           | `install_library(private = "pkg")`  | `build_library()` and `JLBIND_LIBRARY` |
+  | Clients in one session | Those in the library          | All                                 | Those in the selected library          |
+  | Disk space overhead    | 2 MB                          | 27–60 MB or more per private client | 2 MB per library                       |
+  | Julia runtimes         | One                           | One per library                     | One                                    |
+  | Rebuilt by             | `install_library()`           | `install_library()`                 | You                                    |
+  | Systems                | All                           | All[^windows]                       | All                                    |
 
 The overhead comes on top of each client's compiled code, which every layout
 holds (about 9 MB for CausalStructures.jl; see [Bundle
 sizes](build-options.html#bundle-sizes)). A private library's copy of the
-runtime grows with the standard libraries its dependencies use, to 76 MB for
-CausalStructures.jl, whose dependencies need OpenBLAS. With private or separate
-libraries, a dependency that several clients share is compiled into each of
-their libraries. Thus, we recommend you to use the default with shared
-libraries, unless impossible due to conflicts.
+runtime is larger on Windows (60 MB) than on Linux (27 MB), and grows with the
+standard libraries its dependencies use: a private library of
+CausalStructures.jl, whose dependencies need OpenBLAS, is 88 MB on Linux and 116
+MB on Windows. With private or separate libraries, a dependency that several
+clients share is compiled into each of their libraries. Thus, we recommend you
+to use the default with shared libraries, unless impossible due to conflicts.
 
 ## The shared library
 
@@ -48,15 +49,18 @@ jlbind::install_library(packages = c("pkgA", "pkgC"))
 
 ## Private libraries
 
-On Linux and macOS[^windows], a client can get a library of its own:
+A client can get a library of its own:
 
 ```r
 jlbind::install_library(private = "pkgB")
 ```
 
-[^windows]: JuliaC gives a library a private Julia runtime on Linux and macOS.
-    Windows support is in progress in
-    [JuliaC.jl#151](https://github.com/JuliaLang/JuliaC.jl/pull/151).
+[^windows]: Released JuliaC gives a library a private Julia runtime on Linux and
+    macOS. On Windows, that needs the JuliaC of
+    [JuliaC.jl#151](https://github.com/JuliaLang/JuliaC.jl/pull/151), not yet
+    released; to build with it, set `JLBIND_JULIAC` first:
+    `Sys.setenv(JLBIND_JULIAC = "https://github.com/asinghvi17/JuliaC.jl#as/windows-privatize")`.
+    Pre-built libraries for Windows are built with it.
 
 This builds the shared library from the other clients, and a library for `pkgB`
 with its dependencies resolved for it alone. The private library has its own
@@ -71,6 +75,10 @@ The runtime copy makes the library a
 installed. It takes disk space, and in each session its own memory and
 `JULIA_NUM_THREADS` threads. Julia objects that `pkgB` returns work with the
 functions of `pkgB` only.
+
+A [pre-built library](using-clients.html#pre-built-libraries), installed with
+`install_library(method = "download")`, is a private library too, compiled for
+any CPU. Later builds leave it alone unless you name its package in `packages`.
 
 ## Separate libraries
 

@@ -12,7 +12,7 @@ environment variables:
 
   | Variable                  | Runs                                                                                                                                                                             |
   | ------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-  | `JLBIND_TEST_BUILD=true`  | `test-integration.R`: installs the clients in `tests/clients/` into a temporary library, compiles them into one library and calls them from a fresh R process (a minute or more) |
+  | `JLBIND_TEST_BUILD=true`  | `test-integration.R`: installs the clients in `tests/clients/` into a temporary library, compiles them into one library and calls them from fresh R processes (a minute or more) |
   | `JLBIND_TEST_NOTRIM=true` | builds a copy of `hellojl` with `Config/jlbind/trim: false`, an untrimmed \~200 MB library                                                                                       |
 
 ```sh
@@ -31,10 +31,21 @@ On Linux, R may fail to start inside Julia without `R_HOME/lib` on the library
 path, and exit without printing why. Run the tests with
 `LD_LIBRARY_PATH="$(R RHOME)/lib"` set.
 
-The test clients in `tests/clients/{hellojl,counterjl}` are scaffolded output:
-their `R/zzz.R` and `R/jlbind-wrappers.R` correspond to `inst/templates/` and
-`update_entrypoints()`. When you change a template or the wrapper generator,
-update the test clients to match.
+Each test client in `tests/clients/` covers one area:
+
+- `hellojl` is a hello world.
+- `convertjl` has the conversions between R and Julia and their errors.
+- `counterjl` has Julia objects held by R.
+
+The clients are scaffolded output: their `R/zzz.R` and `R/jlbind-wrappers.R`
+correspond to `inst/templates/` and `update_entrypoints()`, and their
+`NAMESPACE` exports every entrypoint. When you change a template or the wrapper
+generator, update the test clients to match.
+
+## Compatibility with built libraries
+
+Bump `.library_abi` in `R/runtime.R` when a change to `src/call.c`,
+`src/state.c` or JLBind breaks libraries built by an earlier jlbind.
 
 ## Code style and git hooks
 

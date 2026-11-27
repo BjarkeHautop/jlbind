@@ -30,8 +30,8 @@
 #'     `"Julia code changed"` or `"not installed"`), `bound` and `library`
 #'     (the path of its library).
 #'   * `threads`: a list with `count` (from `JULIA_NUM_THREADS`, in each
-#'     library; `NA` for `"auto"`, the CPU threads available) and `fixed` (`TRUE` once a library is loaded, after which the
-#'     count cannot change).
+#'     library; `NA` for `"auto"`, the CPU threads available) and `fixed`
+#'     (`TRUE` once a library is loaded, after which the count cannot change).
 #' @export
 #' @examples
 #' jlbind_sitrep()
@@ -148,7 +148,8 @@ jlbind_sitrep <- function(julia = NULL) {
       "CPU",
       "JuliaArgs",
       "Bundle",
-      "Private"
+      "Private",
+      "Download"
     )],
     problems = problems,
     objects = if (!is.null(lib$dll)) .object_count(lib)
@@ -259,7 +260,12 @@ object_count <- function() {
     if (!stale || !any(rows)) {
       return(NULL)
     }
-    if (installed) {
+    if (installed && .is_downloaded(lib$build)) {
+      paste0(
+        "Run jlbind::install_library(method = \"download\") to download ",
+        "the library again, or jlbind::install_library() to build it"
+      )
+    } else if (installed) {
       "Run jlbind::install_library() to rebuild the library"
     } else {
       "Rebuild the library with jlbind::build_library()"
@@ -336,6 +342,9 @@ object_count <- function() {
         ", bundled"
       }
     )
+    if (.is_downloaded(build)) {
+      line("  pre-built, downloaded from ", build$Download)
+    }
   }
   if (!is.null(lib$objects)) {
     line(

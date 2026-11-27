@@ -98,10 +98,11 @@ package's files or your package's version have changed since it was built.
 
 ::: {.callout-note title="The development library is only used when your package loads first"}
 A library that has loaded cannot be replaced, so the `.jlbind/` library is used
-only if your package is the first jlbind client loaded in the R session. On
-Linux and macOS, `build_library(private = TRUE)` gives the development library
-its own copy of the Julia runtime, so it loads alongside the shared library
-whatever the order.
+only if your package is the first jlbind client loaded in the R session.
+`build_library(private = TRUE)` gives the development library its own copy of
+the Julia runtime, so it loads alongside the shared library whatever the order.
+On Windows, that needs an unreleased JuliaC (see [private
+libraries](libraries.html#private-libraries)).
 :::
 
 If you need to use a library stored elsewhere, set the `JLBIND_LIBRARY`

@@ -20,6 +20,7 @@ Imports:
     utils
 Suggests:
     callr,
+    openssl,
     pkgload,
     quarto,
     testthat (>= 3.0.0),

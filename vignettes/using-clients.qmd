@@ -31,7 +31,8 @@ report that the library needs to be rebuilt.
 ## Using a package built on jlbind
 
 You need [Julia](https://julialang.org/install/) 1.13 or later to build the
-shared library.
+shared library, unless the package offers a [pre-built
+library](#pre-built-libraries).
 
 After installing or updating an R package that uses jlbind, run:
 
@@ -47,6 +48,21 @@ Julia cannot be restarted within an R session. If the old library has already
 been loaded, rebuilding it on disk does not replace the copy in memory. Restart
 R to use the new library.
 :::
+
+### Pre-built libraries
+
+Some packages offer pre-built libraries, so you don't need Julia:
+
+```r
+jlbind::install_library(method = "download")
+```
+
+This downloads the library of each package that offers one for your system,
+checked against a SHA-256 hash that comes with the installed package. Run it
+again after updating the package. A pre-built library is a [private
+library](libraries.html#private-libraries) compiled for any CPU, so it is larger
+(20--60 MB) and numeric code can be slower than in one you build. Later builds
+leave it alone, unless you name its package in `packages`.
 
 ### If something doesn't work correctly
 
@@ -81,9 +97,10 @@ jlbind::install_library(force = TRUE)
 You can select the Julia installation to use by setting the `JULIA` environment
 variable or by passing `julia =` to `install_library()`.
 
-The library is compiled for the building machine's CPU, and jlbind won't load it
-on another. If one R library is used from computers with different CPUs, see
-[CPU target](build-options.html#cpu-target).
+The library is compiled for the building machine's CPU, and may crash R on
+another; jlbind warns before loading it on another CPU model. If one R library
+is used from computers with different CPUs, see [CPU
+target](build-options.html#cpu-target).
 
 ### Threads
 
@@ -111,7 +128,7 @@ If a client's `[compat]` bounds conflict with those of the clients listed before
 it by `jlbind_clients()`, the build leaves it out; `check_bound()` says which
 clients it conflicts with. You can then choose which clients to build the shared
 library from, give the conflicting client a [private
-library](libraries.html#private-libraries) (Linux and macOS), or build [separate
+library](libraries.html#private-libraries), or build [separate
 libraries](libraries.html#separate-libraries) for separate R sessions. [Shared,
 private and separate libraries](libraries.html) compares these and explains when
 to use each.

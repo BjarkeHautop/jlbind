@@ -16,8 +16,9 @@
 #'
 #' @param path Path to the package sources.
 #' @param module Name of the Julia binding package. Defaults to the package name
-#'   with each `.` replaced by `_`, followed by `Bindings`. It must be unique across all packages that use
-#'   jlbind, since they're all compiled into one library.
+#'   with each `.` replaced by `_`, followed by `Bindings`. It must be unique
+#'   across all packages that use jlbind, since they're all compiled into one
+#'   library.
 #' @param dir Directory under `inst/` for the binding package.
 #'
 #' @return `path`, invisibly.
@@ -142,11 +143,44 @@ use_jlbind <- function(path = ".", module = NULL, dir = "julia") {
 #'
 #' unlink(pkg, recursive = TRUE)
 use_jlbind_ci <- function(path = ".", overwrite = FALSE) {
+  invisible(.use_workflow(path, "R-CMD-check.yaml", overwrite))
+}
+
+#' Offer pre-built libraries with GitHub Actions
+#'
+#' Writes `.github/workflows/binaries.yaml`, which builds the package's
+#' pre-built libraries for a release with [build_binary()] on Linux, macOS and
+#' Windows, and attaches them to a draft GitHub release. Then run
+#' [record_binaries()], commit `inst/jlbind/binaries`, and publish the release on
+#' that commit. See `vignette("build-options", "jlbind")`.
+#'
+#' @inheritParams use_jlbind_ci
+#' @param overwrite If `TRUE`, replace an existing
+#'   `.github/workflows/binaries.yaml`.
+#'
+#' @return The path to the workflow, invisibly.
+#' @export
+#' @examples
+#' # A package in a temporary directory
+#' pkg <- tempfile("mypkg")
+#' dir.create(pkg)
+#' writeLines(c("Package: mypkg", "Version: 0.1.0"), file.path(pkg, "DESCRIPTION"))
+#'
+#' file <- use_jlbind_binaries(pkg)
+#' head(readLines(file), 20)
+use_jlbind_binaries <- function(path = ".", overwrite = FALSE) {
+  file <- .use_workflow(path, "binaries.yaml", overwrite)
+  .add_line(file.path(path, ".Rbuildignore"), "^tools$")
+  invisible(file)
+}
+
+# Writes the workflow template `name` into the package at `path`.
+.use_workflow <- function(path, name, overwrite) {
   if (!file.exists(file.path(path, "DESCRIPTION"))) {
     stop("No package found in ", path, ".", call. = FALSE)
   }
   dir <- file.path(path, ".github", "workflows")
-  file <- file.path(dir, "R-CMD-check.yaml")
+  file <- file.path(dir, name)
   if (file.exists(file) && !overwrite) {
     stop(
       file,
@@ -155,10 +189,10 @@ use_jlbind_ci <- function(path = ".", overwrite = FALSE) {
     )
   }
   dir.create(dir, recursive = TRUE, showWarnings = FALSE)
-  writeLines(.template("R-CMD-check.yaml"), file)
+  writeLines(.template(name), file)
   .add_line(file.path(path, ".Rbuildignore"), "^\\.github$")
   message("Wrote ", file, ".")
-  invisible(file)
+  file
 }
 
 #' Update the list of Julia functions R can call

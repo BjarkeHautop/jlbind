@@ -12,9 +12,13 @@ types. Julia objects that cannot cross into R as values do so as external
 pointers, through [`RRef`](@ref).
 
 The jlbind R package compiles the binding packages of every installed client
-into one library, since an R process can host only one Julia image.
+into one shared library, since an R process can host only one Julia runtime
+unless it is privatized.
 """
 module JLBind
+
+# Changing how jlbind calls compiled libraries? Bump `.library_abi` in
+# R/runtime.R.
 
 import Dates
 using Dates: Date, DateTime

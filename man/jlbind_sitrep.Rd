@@ -33,8 +33,8 @@ that a library was built for, with the columns \code{package}, \code{version}
 \code{"Julia code changed"} or \code{"not installed"}), \code{bound} and \code{library}
 (the path of its library).
 \item \code{threads}: a list with \code{count} (from \code{JULIA_NUM_THREADS}, in each
-library; \code{NA} for \code{"auto"}, the CPU threads available) and \code{fixed} (\code{TRUE} once a library is loaded, after which the
-count cannot change).
+library; \code{NA} for \code{"auto"}, the CPU threads available) and \code{fixed}
+(\code{TRUE} once a library is loaded, after which the count cannot change).
 }
 }
 \description{

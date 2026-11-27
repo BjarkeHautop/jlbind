@@ -8,11 +8,12 @@
  * entry made by jlbind_entries() when jlbind::bind_client() binds the client:
  * an external pointer to the library's `jlbind<n>_<module>_<name>` (see
  * .entry_symbols() in R/runtime.R), or a null one while the client is not
- * bound. Its tag is the client's name, for the error when it
- * is not bound.
+ * bound. Its tag is the client's name, for the error when it is not bound.
  *
  * Every entrypoint (see `@rcall` in JLBind) has the signature
  * `SEXP f(SEXP *args, int n)`, and checks `n` itself.
+ *
+ * Changing how libraries are called? Bump `.library_abi` in R/runtime.R.
  */
 
 #include <R.h>
@@ -64,9 +65,9 @@ SEXP jlbind_entries(SEXP handle, SEXP symbols, SEXP package)
     return out;
 }
 
-/* Sets the number of Julia threads with a library's
- * jlbind_set_julia_threads() (set_threads.c in JLBind), the entry `address`, before
- * its Julia starts: 0 if it did, else nonzero. */
+/* Sets the number of Julia threads with a library's jlbind_set_julia_threads()
+ * (set_threads.c in JLBind), the entry `address`, before its Julia starts:
+ * 0 if it did, else nonzero. */
 SEXP jlbind_set_threads(SEXP address, SEXP threads)
 {
     typedef void (*set_fn)(int *, int *);

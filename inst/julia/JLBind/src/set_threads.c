@@ -3,8 +3,9 @@
  *
  * A juliac library fixes its options when it is compiled (one thread, Julia
  * signal handling off) and ignores JULIA_NUM_THREADS, so the jlbind R package
- * calls this (with .C) right after loading the library and before the first
- * entrypoint, which is what initializes Julia.
+ * calls this (through jlbind_set_threads() in its src/call.c) right after
+ * loading the library and before the first entrypoint, which is what
+ * initializes Julia.
  * Adapted from Ribasim's set_julia_threads.c; see
  * https://github.com/JuliaLang/JuliaC.jl/issues/152.
  *

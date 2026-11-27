@@ -26,6 +26,7 @@ fake_library <- function(
   write.dcf(
     data.frame(
       jlbind = as.character(utils::packageVersion("jlbind")),
+      ABI = .library_abi,
       Julia = julia,
       Built = "2026-10-01 12:00:00 UTC",
       Trim = TRUE,
@@ -141,7 +142,6 @@ test_that("only a native library on a known other CPU is a mismatch", {
   expect_null(.cpu_mismatch(native, NA))
   expect_null(.cpu_mismatch(list(CpuTarget = "generic", CPU = "A"), "B"))
   expect_null(.cpu_mismatch(list(CpuTarget = "native", CPU = ""), "B"))
-  expect_null(.cpu_mismatch(NULL, "B"))
   # With a generic fallback, it runs anywhere.
   expect_null(
     .cpu_mismatch(list(CpuTarget = "generic;native,clone_all", CPU = "A"), "B")
