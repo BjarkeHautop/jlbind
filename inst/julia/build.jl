@@ -42,8 +42,9 @@ import TOML
 # relative to libjulia's directory, so with the long paths Julia lists them by,
 # they would all land in `bin/julia`, where neither the loader nor `--privatize`
 # finds them. Run again through the long path (`Sys.BINDIR`), once.
-if Sys.iswindows() && !haskey(ENV, "JLBIND_LONG_PATH") &&
-        dirname(Libdl.dlpath("libjulia")) != Sys.BINDIR
+if Sys.iswindows() &&
+   !haskey(ENV, "JLBIND_LONG_PATH") &&
+   dirname(Libdl.dlpath("libjulia")) != Sys.BINDIR
     cmd = `$(Base.julia_cmd()) $(PROGRAM_FILE) $ARGS`
     exit(something(run(ignorestatus(addenv(cmd, "JLBIND_LONG_PATH" => "1"))).exitcode, 1))
 end
@@ -292,7 +293,13 @@ quietly() do io
         Pkg.develop(Pkg.PackageSpec(path = abspath(JULIAC)); io)
     else
         url, rev = occursin('#', JULIAC) ? split(JULIAC, '#'; limit = 2) : (JULIAC, nothing)
-        Pkg.add(Pkg.PackageSpec(; url = String(url), rev = rev === nothing ? nothing : String(rev)); io)
+        Pkg.add(
+            Pkg.PackageSpec(;
+                url = String(url),
+                rev = rev === nothing ? nothing : String(rev),
+            );
+            io,
+        )
     end
 end
 
@@ -379,12 +386,15 @@ if BUNDLE
             isdir(dir) || continue
             for f in readdir(dir)
                 p = joinpath(dir, f)
-                isfile(p) && endswith(lowercase(f), ".dll") && mv(p, joinpath(OUT, f); force = true)
+                isfile(p) &&
+                    endswith(lowercase(f), ".dll") &&
+                    mv(p, joinpath(OUT, f); force = true)
             end
         end
     end
     # (On Windows with a private runtime, the library came up with them.)
-    ispath(link.outname) && mv(link.outname, joinpath(OUT, basename(link.outname)); force = true)
+    ispath(link.outname) &&
+        mv(link.outname, joinpath(OUT, basename(link.outname)); force = true)
     rm(joinpath(OUT, "julia_bindir"); force = true)
 else
     # Record where the Julia runtime the library links against lives. A Windows
