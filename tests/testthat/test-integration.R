@@ -2,6 +2,8 @@
 # from one R process. Compiling takes a minute or more, so it only runs when
 # JLBIND_TEST_BUILD=true.
 
+test_clients <- c("counterjl", "hellojl")
+
 test_that("two clients share one compiled library", {
   skip_on_cran()
   skip_if_not(
@@ -24,8 +26,11 @@ test_that("two clients share one compiled library", {
       library(hellojl)
       library(counterjl)
       before <- tryCatch(greet("x"), error = conditionMessage)
-      found <- jlbind::jlbind_clients()$package
-      suppressMessages(jlbind::install_library(ask = FALSE))
+      found <- jlbind::jlbind_clients(.libPaths()[[1L]])$package
+      suppressMessages(jlbind::install_library(
+        c("counterjl", "hellojl"),
+        ask = FALSE
+      ))
       # Fail with the reason a client is not bound, if one is not.
       jlbind::check_bound("hellojl")
       jlbind::check_bound("counterjl")
@@ -230,11 +235,13 @@ test_that("two clients share one compiled library", {
   )
 
   expect_match(res$before, "check_bound")
-  expect_equal(res$found, c("counterjl", "hellojl"))
+  expect_equal(res$found, test_clients)
   expect_equal(res$sitrep$library$how, "loaded")
   expect_equal(res$sitrep$library$problems, character())
-  expect_equal(res$sitrep$clients$status, c("ok", "ok"))
-  expect_true(all(res$sitrep$clients$bound))
+  ours <- res$sitrep$clients[res$sitrep$clients$package %in% test_clients, ]
+  expect_equal(sort(ours$package), test_clients)
+  expect_equal(ours$status, c("ok", "ok"))
+  expect_true(all(ours$bound))
   expect_true(res$sitrep$threads$fixed)
   expect_equal(res$bound, c(TRUE, TRUE))
   expect_equal(res$greet, "Hello, R!")
@@ -381,7 +388,6 @@ test_that("two clients share one compiled library", {
   expect_equal(res$saved$as_counter, "expected a `counter` object")
   # c1, the last stored, and the three from counters() unless collected.
   expect_lte(res$live, 5)
-  expect_equal(sort(res$sitrep$clients$package), c("counterjl", "hellojl"))
   expect_true(is.numeric(res$sitrep$library$objects))
 
   # Julia opens some runtime libraries by file name after it starts (PCRE2,
@@ -605,6 +611,7 @@ test_that("a private library runs alongside the shared one", {
       library(counterjl)
       library(hellojl)
       suppressMessages(jlbind::install_library(
+        c("counterjl", "hellojl"),
         ask = FALSE,
         private = "counterjl"
       ))
@@ -626,7 +633,7 @@ test_that("a private library runs alongside the shared one", {
         threads = threads(),
         again = tryCatch(
           {
-            jlbind::install_library(ask = FALSE)
+            jlbind::install_library(c("counterjl", "hellojl"), ask = FALSE)
             "built nothing"
           },
           message = conditionMessage
@@ -659,6 +666,7 @@ test_that("a private library runs alongside the shared one", {
   res <- callr::r(
     function() {
       suppressMessages(jlbind::install_library(
+        c("counterjl", "hellojl"),
         ask = FALSE,
         private = character()
       ))
