@@ -248,7 +248,7 @@ install_library <- function(
         " with ",
         julia,
         "? Julia downloads their Julia dependencies into its package depot, ",
-        "and compiling takes several minutes. The ",
+        "and compiling can take a few minutes. The ",
         if (length(todo) > 1L) "libraries are" else "library is",
         " written to ",
         tools::R_user_dir("jlbind", "cache"),
@@ -877,11 +877,6 @@ build_library <- function(
   invisible(out)
 }
 
-# `x`, with NULL and NA as "".
-.na_empty <- function(x) {
-  if (is.null(x) || is.na(x)) "" else x
-}
-
 # The clients build.jl left out, as a list from package name to the names of
 # the packages it conflicts with. build.jl writes one line per binding
 # package: its name, a tab and the comma-separated names it conflicts with.
@@ -975,9 +970,9 @@ build_library <- function(
 }
 
 # How the library in `dir` was built (a list with jlbind, Julia, Built, Trim,
-# Develop, CpuTarget, CPU, JuliaArgs, Bundle, Private and ABI, and for a
-# pre-built library install_library(method = "download") installed, Download
-# and SHA256; NA where not recorded), or NULL if it records nothing.
+# Develop, CpuTarget, CPU, JuliaArgs, Bundle, Private, ABI and JuliaC, and for
+# a pre-built library install_library(method = "download") installed, Download
+# and SHA256; "" where not recorded), or NULL if it records nothing.
 .read_build <- function(dir) {
   file <- file.path(dir, "build")
   if (!file.exists(file)) {
@@ -999,7 +994,9 @@ build_library <- function(
     "Download",
     "SHA256"
   )
-  as.list(read.dcf(file, fields = fields)[1L, ])
+  build <- read.dcf(file, fields = fields)[1L, ]
+  build[is.na(build)] <- ""
+  as.list(build)
 }
 
 # Was the library in `dir` built by this version of jlbind and Julia version
@@ -1071,18 +1068,7 @@ build_library <- function(
   bundle = NA,
   private = NA
 ) {
-  # Libraries from before `julia_args` were built with none.
-  built_args <- build$JuliaArgs
-  if (is.null(built_args) || is.na(built_args)) {
-    built_args <- ""
-  }
-  # Likewise, libraries from before `bundle` aren't bundles.
-  bundled <- identical(unname(build$Bundle), "TRUE")
-  # And libraries from before `private` have no private runtime.
-  salt <- build$Private
-  if (is.null(salt) || is.na(salt)) {
-    salt <- ""
-  }
+  bundled <- identical(build$Bundle, "TRUE")
   julia_args <- if (!is.null(julia_args)) paste(julia_args, collapse = " ")
   jlbind <- as.character(utils::packageVersion("jlbind"))
   c(
@@ -1108,7 +1094,7 @@ build_library <- function(
     if (!is.na(bundle) && !identical(bundled, bundle)) {
       if (bundled) "built as a bundle" else "not built as a bundle"
     },
-    if (!is.na(private) && !identical(unname(salt), private)) {
+    if (!is.na(private) && !identical(build$Private, private)) {
       if (nzchar(private)) {
         "built without its own Julia runtime"
       } else {
@@ -1117,28 +1103,24 @@ build_library <- function(
     },
     if (!is.na(cpu_target) && !identical(build$CpuTarget, cpu_target)) {
       paste0(
-        "built for ",
-        if (is.na(build$CpuTarget)) {
-          "Julia's default CPU targets"
-        } else {
-          paste0("CPU target \"", build$CpuTarget, "\"")
-        },
-        ", not \"",
+        "built for CPU target \"",
+        build$CpuTarget,
+        "\", not \"",
         cpu_target,
         "\""
       )
     },
     .cpu_mismatch(build),
-    if (!is.null(julia_args) && !identical(built_args, julia_args)) {
+    if (!is.null(julia_args) && !identical(build$JuliaArgs, julia_args)) {
       paste0(
         "built with Julia arguments \"",
-        built_args,
+        build$JuliaArgs,
         "\", not \"",
         julia_args,
         "\""
       )
     },
-    if (!is.na(build$Develop) && nzchar(build$Develop)) {
+    if (nzchar(build$Develop)) {
       "built with local checkouts (`develop`)"
     },
     # Libraries from before JLBIND_JULIAC were built with released JuliaC.
@@ -1149,11 +1131,11 @@ build_library <- function(
     if (
       !.is_downloaded(build) &&
         nzchar(.juliac()) &&
-        !identical(unname(.na_empty(build$JuliaC)), .juliac())
+        !identical(unname(build$JuliaC), .juliac())
     ) {
       paste0(
         "built with JuliaC ",
-        if (nzchar(.na_empty(build$JuliaC))) build$JuliaC else "0.3",
+        if (nzchar(build$JuliaC)) build$JuliaC else "0.3",
         ", not ",
         .juliac(),
         " (JLBIND_JULIAC)"
@@ -1174,13 +1156,9 @@ build_library <- function(
 # it was compiled for the native CPU of a computer with another CPU model.
 # NULL if not, or if either CPU is unknown.
 .cpu_mismatch <- function(build, cpu = .cpu_model()) {
-  target <- build$CpuTarget
   if (
-    is.null(target) ||
-      is.na(target) ||
-      !.native_only(target) ||
-      is.null(build$CPU) ||
-      is.na(build$CPU) ||
+    is.null(build) ||
+      !.native_only(build$CpuTarget) ||
       !nzchar(build$CPU) ||
       is.na(cpu) ||
       identical(build$CPU, cpu)

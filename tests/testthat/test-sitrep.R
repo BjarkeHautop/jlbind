@@ -90,11 +90,6 @@ test_that("a stale library says why", {
 test_that("a library for another CPU target, or another CPU, is stale", {
   clients <- fake_clients()
   dir <- fake_library(clients)
-  # As recorded by jlbind before it chose a CPU target.
-  expect_equal(
-    .stale_reasons(dir, clients, NA, "native"),
-    "built for Julia's default CPU targets, not \"native\""
-  )
   build <- read.dcf(file.path(dir, "build"))
   write.dcf(
     cbind(build, CpuTarget = "native", CPU = "Old CPU"),
@@ -116,7 +111,6 @@ test_that("a library for another CPU target, or another CPU, is stale", {
 test_that("a library built with other Julia arguments is stale", {
   clients <- fake_clients()
   dir <- fake_library(clients)
-  # Libraries from before `julia_args` were built with none.
   expect_equal(.stale_reasons(dir, clients, NA, NA, character()), character())
   expect_equal(
     .stale_reasons(dir, clients, NA, NA, c("-O3", "-g1")),
@@ -147,7 +141,7 @@ test_that("only a native library on a known other CPU is a mismatch", {
   expect_null(.cpu_mismatch(native, NA))
   expect_null(.cpu_mismatch(list(CpuTarget = "generic", CPU = "A"), "B"))
   expect_null(.cpu_mismatch(list(CpuTarget = "native", CPU = ""), "B"))
-  expect_null(.cpu_mismatch(list(CpuTarget = NA, CPU = NA), "B"))
+  expect_null(.cpu_mismatch(NULL, "B"))
   # With a generic fallback, it runs anywhere.
   expect_null(
     .cpu_mismatch(list(CpuTarget = "generic;native,clone_all", CPU = "A"), "B")
@@ -237,7 +231,6 @@ test_that("jlbind_sitrep() reports a missing Julia and library", {
 test_that("a bundle is stale only for `bundle`, not for the installed Julia", {
   clients <- fake_clients()
   dir <- fake_library(clients)
-  # Libraries from before `bundle` aren't bundles.
   expect_equal(.stale_reasons(dir, clients, NA, NA, NULL, FALSE), character())
   expect_equal(
     .stale_reasons(dir, clients, NA, NA, NULL, TRUE),

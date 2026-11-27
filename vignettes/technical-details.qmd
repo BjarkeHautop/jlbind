@@ -253,7 +253,8 @@ provides helpers for building R objects directly, such as `JLBind.data_frame()`
 for a data frame whose columns are not known when the library is compiled, and
 `JLBind.alloc()` and `JLBind.alloc_matrix()` for a vector or matrix to fill in
 place, without a copy in Julia first. The [JLBind
-reference](articles/jlbind-reference.qmd) documents all of them.
+reference](https://bjarkehautop.github.io/jlbind/vignettes/articles/jlbind-reference.html)
+documents all of them.
 
 ::: {.callout-warning title="Avoid type piracy"}
 By default, every client is compiled into the same library, so a pirated method
@@ -422,7 +423,7 @@ The solution is to take the argument with `@nospecialize` and branch on the
 concrete types, making the call inside each branch, where the type is known.
 `@narrow s (A, B, ...) expr` does that: it evaluates `expr` with `s` narrowed to
 whichever of the listed types it is (see its
-[reference](articles/jlbind-reference.qmd#macro-narrow)):
+[reference](https://bjarkehautop.github.io/jlbind/vignettes/articles/jlbind-reference.html#macro-narrow)):
 
 ```julia
 circle(radius) = Circle(radius)

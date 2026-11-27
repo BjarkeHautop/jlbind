@@ -194,7 +194,7 @@ test_that("a pre-built library is stale for another interface version only", {
   expect_length(.build_reasons(build, NA), 0L)
   build$ABI <- "0"
   expect_match(.build_reasons(build, NA), "version 0 of jlbind's interface")
-  build$Download <- NA
+  build$Download <- ""
   expect_match(.build_reasons(build, NA), "built by jlbind 0.0.1", all = FALSE)
 })
 

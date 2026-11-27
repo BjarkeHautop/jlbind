@@ -23,7 +23,9 @@
 #'   files, which the library records to tell when it is out of date).
 #' @export
 #' @examples
+#' \donttest{
 #' jlbind_clients()
+#' }
 jlbind_clients <- function(lib.loc = NULL) {
   pkgs <- utils::installed.packages(lib.loc = lib.loc, fields = .field)
   pkgs <- pkgs[!is.na(pkgs[, .field]), , drop = FALSE]
@@ -78,14 +80,10 @@ jlbind_clients <- function(lib.loc = NULL) {
 
 # The `Config/jlbind/trim` field: trimmed unless it says otherwise.
 .parse_trim <- function(value, package) {
-  if (is.na(value)) {
+  if (is.na(value) || value == "true") {
     return(TRUE)
   }
-  value <- tolower(trimws(value))
-  if (value %in% c("true", "yes")) {
-    return(TRUE)
-  }
-  if (value %in% c("false", "no")) {
+  if (value == "false") {
     return(FALSE)
   }
   stop(

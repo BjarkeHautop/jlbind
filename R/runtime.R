@@ -61,7 +61,7 @@
     return(TRUE)
   }
   private <- .read_build(dirname(path))$Private
-  !is.null(private) && !is.na(private) && nzchar(private)
+  !is.null(private) && nzchar(private)
 }
 
 # The state of the library at `path`: its own for a private library, else the
@@ -167,21 +167,14 @@
   message(why, " Rebuilding it.")
   # Rebuilt the way it was built.
   build <- .read_build(dir)
-  develop <- if (!is.na(build$Develop) && nzchar(build$Develop)) {
-    strsplit(build$Develop, "\n", fixed = TRUE)[[1L]]
-  }
-  cpu_target <- if (!is.na(build$CpuTarget)) build$CpuTarget
-  julia_args <- if (!is.na(build$JuliaArgs)) {
-    strsplit(build$JuliaArgs, " ", fixed = TRUE)[[1L]]
-  }
   res <- tryCatch(
     build_library(
       src,
       out = dir,
-      develop = develop,
-      cpu_target = cpu_target,
-      julia_args = julia_args,
-      bundle = identical(unname(build$Bundle), "TRUE"),
+      develop = strsplit(build$Develop, "\n", fixed = TRUE)[[1L]],
+      cpu_target = build$CpuTarget,
+      julia_args = strsplit(build$JuliaArgs, " ", fixed = TRUE)[[1L]],
+      bundle = identical(build$Bundle, "TRUE"),
       private = .is_private(path)
     ),
     error = identity
@@ -211,7 +204,7 @@
   client <- .client_table(list(.client_info(src)))
   status <- .client_status(client, built, excluded)
   status <- status[status$package == client$package, , drop = FALSE]
-  build$Develop <- NA
+  build$Develop <- ""
   c(
     .build_reasons(build, NA),
     status$status[!status$status %in% c("ok", "left out")]
@@ -261,6 +254,11 @@
   }
   # The library links against the Julia that built it, so it stops loading
   # if that Julia is removed (e.g. by a juliaup update).
+  # PATH is needed only while loading: Julia loads the libraries of JLLs later
+  # by absolute path, so it is restored rather than left changed for the
+  # session.
+  old_path <- Sys.getenv("PATH")
+  on.exit(Sys.setenv(PATH = old_path), add = TRUE)
   .add_julia_bindir(path)
   dll <- tryCatch(.dyn_load(path), error = identity)
   if (inherits(dll, "error")) {
@@ -351,7 +349,8 @@
 
 # On Windows the library has no RUNPATH, so the directory of the Julia
 # runtime it links against (recorded by build.jl next to it, or in its bundle)
-# is put on the PATH, where Windows finds libjulia.dll and its dependencies.
+# is put on the PATH, where Windows finds libjulia.dll and its dependencies,
+# while the library loads.
 # A bundle's DLLs are in `bin`, or in `bin/julia` if it was built with Julia
 # >= 1.14 started through its 8.3 short path, as R starts programs on Windows
 # (JuliaC compares the two spellings as different directories); build.jl
@@ -562,9 +561,7 @@ bind_client <- function(pkg) {
       identical(path, .dev_library(pkg)) &&
       identical(lib$clients$Package, pkg)
   ) {
-    return(paste0(
-      "Restart R and run devtools::load_all() again, which rebuilds it."
-    ))
+    return("Restart R and run devtools::load_all() again, which rebuilds it.")
   }
   paste0(
     "Rebuild it (",

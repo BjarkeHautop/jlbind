@@ -76,8 +76,10 @@ const CPU_TARGET = let a = findlast(startswith("--cpu-target="), ARGS)
     a === nothing ? nothing : String(chopprefix(ARGS[a], "--cpu-target="))
 end
 const SOURCES = [abspath(a) for a in ARGS[2:end] if !startswith(a, "--")]
-const DEVELOP = [abspath(chopprefix(a, "--develop=")) for a in ARGS if startswith(a, "--develop=")]
-const JULIA_ARGS = [String(chopprefix(a, "--julia-arg=")) for a in ARGS if startswith(a, "--julia-arg=")]
+const DEVELOP =
+    [abspath(chopprefix(a, "--develop=")) for a in ARGS if startswith(a, "--develop=")]
+const JULIA_ARGS =
+    [String(chopprefix(a, "--julia-arg=")) for a in ARGS if startswith(a, "--julia-arg=")]
 const JULIAC = let a = findlast(startswith("--juliac="), ARGS)
     a === nothing ? nothing : String(chopprefix(ARGS[a], "--juliac="))
 end
@@ -145,12 +147,15 @@ const SKIPPED = Set([JLBIND_UUID; [c.uuid for c in clients]])
 function write_image(cs, base)
     rm(IMAGE; recursive = true, force = true)
     mkpath(joinpath(IMAGE, "src"))
-    write(joinpath(IMAGE, "src", "JLBindImage.jl"), """
-        module JLBindImage
-        import JLBind
-        $(join(("import " * c.name for c in cs), "\n"))
-        end
-        """)
+    write(
+        joinpath(IMAGE, "src", "JLBindImage.jl"),
+        """
+module JLBindImage
+import JLBind
+$(join(("import " * c.name for c in cs), "\n"))
+end
+""",
+    )
     deps = Dict{String,Any}()
     if base !== nothing
         for (name, uuid) in get(base.project, "deps", Dict())
@@ -166,12 +171,15 @@ function write_image(cs, base)
         open(io -> TOML.print(io, manifest), joinpath(IMAGE, "Manifest.toml"), "w")
     end
     open(joinpath(IMAGE, "Project.toml"), "w") do io
-        TOML.print(io, Dict(
-            "name" => "JLBindImage",
-            "uuid" => "8dd3c9ef-211f-46b0-9785-0c10c04cf634",
-            "version" => "0.1.0",
-            "deps" => deps,
-        ))
+        TOML.print(
+            io,
+            Dict(
+                "name" => "JLBindImage",
+                "uuid" => "8dd3c9ef-211f-46b0-9785-0c10c04cf634",
+                "version" => "0.1.0",
+                "deps" => deps,
+            ),
+        )
     end
 end
 
@@ -201,7 +209,7 @@ function resolve(cs)
         # back to resolving from the compat bounds rather than not building.
         base === nothing && rethrow()
         @warn "Could not use the Manifest.toml of $(base.name); resolving " *
-            "from the binding packages' [compat] bounds instead." exception = e
+              "from the binding packages' [compat] bounds instead." exception = e
         rm(joinpath(IMAGE, "Manifest.toml"))
         quietly() do io
             Pkg.develop(specs; io)
@@ -211,13 +219,14 @@ function resolve(cs)
     return base
 end
 
-resolves(cs) = try
-    resolve(cs)
-    true
-catch e
-    e isa Pkg.Resolve.ResolverError || rethrow()
-    false
-end
+resolves(cs) =
+    try
+        resolve(cs)
+        true
+    catch e
+        e isa Pkg.Resolve.ResolverError || rethrow()
+        false
+    end
 
 # There is one environment, so one version of each dependency. If the clients'
 # bounds conflict, they are added in order and a client that conflicts with
@@ -232,11 +241,12 @@ function choose_clients(clients)
         if resolves([kept; c])
             push!(kept, c)
         else
-            excluded[c.name] = resolves([c]) ?
-                [k.name for k in kept if !resolves([k, c])] : String[]
-            @warn "Leaving $(c.name) out of the library: its dependencies " *
-                (isempty(excluded[c.name]) ? "cannot be resolved." :
-                 "conflict with those of $(join(excluded[c.name], ", ")).")
+            excluded[c.name] =
+                resolves([c]) ? [k.name for k in kept if !resolves([k, c])] : String[]
+            @warn "Leaving $(c.name) out of the library: its dependencies " * (
+                isempty(excluded[c.name]) ? "cannot be resolved." :
+                "conflict with those of $(join(excluded[c.name], ", "))."
+            )
         end
     end
     isempty(kept) && error("The dependencies of no binding package can be resolved.")
@@ -266,8 +276,10 @@ for c in clients
         r = get(resolved, get(e, "uuid", ""), nothing)
         v === nothing || r === nothing || v == r || push!(differ, "$name $r (manifest: $v)")
     end
-    isempty(differ) || @info "Dependencies of $(c.name) built with other versions than its " *
-        "Manifest.toml has:\n  " * join(sort!(differ), "\n  ")
+    isempty(differ) ||
+        @info "Dependencies of $(c.name) built with other versions than its " *
+              "Manifest.toml has:\n  " *
+              join(sort!(differ), "\n  ")
 end
 cp(joinpath(IMAGE, "Manifest.toml"), joinpath(OUT, "Manifest.toml"); force = true)
 
@@ -324,10 +336,12 @@ function prune_bundle(dir, image)
     sysimage = [m.name for m in Base._sysimage_modules]
     bundled = unique([used; intersect(PC._STDLIBS, sysimage)])
     names(libs) = Set{String}(basename.(libs))
-    keep = names([
-        JuliaC.runtime_libraries(; codegen = !TRIM);
-        [l for s in used for l in JuliaC.stdlib_libraries(s)]
-    ])
+    keep = names(
+        [
+            JuliaC.runtime_libraries(; codegen = !TRIM);
+            [l for s in used for l in JuliaC.stdlib_libraries(s)]
+        ],
+    )
     unused = [l for s in setdiff(bundled, used) for l in JuliaC.stdlib_libraries(s)]
     drop = setdiff(names(unused), keep)
     removed = 0
@@ -337,7 +351,9 @@ function prune_bundle(dir, image)
         removed += islink(p) ? 0 : filesize(p)
         rm(p)
     end
-    removed > 0 && println("Removed $(round(removed / 2^20; digits = 1)) MiB of unused libraries from the bundle.")
+    removed > 0 && println(
+        "Removed $(round(removed / 2^20; digits = 1)) MiB of unused libraries from the bundle.",
+    )
 end
 rm(BUNDLE_DIR; force = true, recursive = true)
 link = JuliaC.LinkRecipe(;
@@ -347,11 +363,13 @@ link = JuliaC.LinkRecipe(;
 )
 JuliaC.link_products(link)
 if BUNDLE
-    JuliaC.bundle_products(JuliaC.BundleRecipe(;
-        link_recipe = link,
-        output_dir = BUNDLE_DIR,
-        privatize = something(PRIVATIZE, false),
-    ))
+    JuliaC.bundle_products(
+        JuliaC.BundleRecipe(;
+            link_recipe = link,
+            output_dir = BUNDLE_DIR,
+            privatize = something(PRIVATIZE, false),
+        ),
+    )
     prune_bundle(BUNDLE_DIR, image)
     if Sys.iswindows() && PRIVATIZE !== nothing
         # A private runtime on Windows is resolved through a manifest in the

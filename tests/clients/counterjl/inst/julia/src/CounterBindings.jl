@@ -26,7 +26,8 @@ end
 
 JLBind.r_class(::Type{Point}) = "point"
 JLBind.r_saved_by(::Type{Point}) = "counterjl"
-JLBind.r_restore(::Type{Point}, state::SEXP) = Point(from_sexp(Float64, JLBind.vector_elt(state, 0)))
+JLBind.r_restore(::Type{Point}, state::SEXP) =
+    Point(from_sexp(Float64, JLBind.vector_elt(state, 0)))
 
 new_point(x) = Point(x)
 points(n) = [Point(i) for i = 1:n]

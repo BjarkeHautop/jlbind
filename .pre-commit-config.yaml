@@ -16,6 +16,15 @@ repos:
     hooks:
       - id: jarl-check
 
+  - repo: https://github.com/domluna/JuliaFormatter.jl
+    rev: v2.14.12
+    hooks:
+      - id: julia-formatter
+        # panache formats Markdown and Quarto; the excluded files are a template
+        # with placeholders and a parser fixture.
+        files: '\.jl$'
+        exclude: '^(inst/templates/|tests/testthat/fixtures/)'
+
   - repo: local
     hooks:
       - id: needs-roxygenize
@@ -33,4 +42,17 @@ repos:
           vignettes/articles/jlbind-reference/build.jl --check
         language: system
         files: '^(inst/julia/JLBind/src/|vignettes/articles/jlbind-reference)'
+        pass_filenames: false
+      - id: jetls
+        name: JETLS finds no problems in JLBind
+        # Skipped with a message when JETLS isn't installed.
+        entry: >
+          Rscript -e 'jetls <- Sys.which("jetls");
+          if (!nzchar(jetls)) {
+            message("jetls not found; skipping (install JETLS to run this check)")
+            quit(status = 0)
+          };
+          quit(status = system2(jetls, c("check", "inst/julia/JLBind/src/JLBind.jl")))'
+        language: system
+        files: '^(inst/julia/JLBind/src/|\.JETLSConfig\.toml$)'
         pass_filenames: false

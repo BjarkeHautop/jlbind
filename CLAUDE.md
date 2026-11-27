@@ -36,6 +36,9 @@ a new vignette must be added there (`build_site()` warns about one that isn't).
 
 ## Commands
 
+`.github/CONTRIBUTING.md` covers tests, hooks and the website for human
+contributors; keep it in sync with this section.
+
 ```r
 devtools::document() # regenerate man/ and NAMESPACE from roxygen
 devtools::test() # unit tests (no Julia needed)
@@ -44,9 +47,12 @@ devtools::check() # R CMD check
 ```
 
 Git hooks are managed with [prek](https://github.com/j178/prek) from
-`.pre-commit-config.yaml`: panache (Markdown), air (R formatting), jarl (R lint)
-and a roxygen-up-to-date check. Run them with `prek run --all-files`. Tests run
-in the package namespace, so call internal functions directly rather than via
+`.pre-commit-config.yaml`: panache (Markdown), air (R formatting), jarl (R
+lint), JuliaFormatter (Julia formatting), roxygen- and
+JLBind-reference-up-to-date checks, and JETLS
+(`jetls check inst/julia/JLBind/src/JLBind.jl`, configured in
+`.JETLSConfig.toml`). Run them with `prek run --all-files`. Tests run in the
+package namespace, so call internal functions directly rather than via
 `jlbind:::` (jarl flags it).
 
 The integration test (`tests/testthat/test-integration.R`) installs the two
@@ -56,6 +62,14 @@ with Julia >= 1.13 and `JLBIND_TEST_BUILD=true`:
 
 ```sh
 JLBIND_TEST_BUILD=true Rscript -e 'devtools::test(filter = "integration")'
+```
+
+JLBind has its own tests (`inst/julia/JLBind/test/runtests.jl`), run in a Julia
+session with R embedded by RCall, against which JLBind's `ccall`s resolve. They
+need R (and jlbind installed for the saved-reference tests):
+
+```sh
+julia --project=inst/julia/JLBind -e 'using Pkg; Pkg.test()'
 ```
 
 A second integration test builds a copy of `hellojl` with
@@ -92,10 +106,12 @@ CI (`.github/workflows/R-CMD-check.yaml`) runs R CMD check with Julia 1.14 on
 Linux/Windows, both with the integration test enabled (the Linux job also sets
 `JLBIND_TEST_NOTRIM`), and once on Linux without Julia, which is what CRAN sees
 — everything except the integration test must pass without Julia.
-`test-coverage.yaml` runs covr with Julia 1.14 and `JLBIND_TEST_BUILD=true` and
-uploads to Codecov; `altdoc.yaml` builds and deploys the site. `prebuilt.yaml`
-runs `test-prebuilt.R` on Linux, macOS and Windows, on pull requests that change
-pre-built libraries (its `paths`; add new files there) or by hand
+`test-coverage.yaml` runs covr with Julia 1.14 and `JLBIND_TEST_BUILD=true`, and
+JLBind's tests with Julia coverage (the compiled library records none), and
+uploads both to Codecov (flags `r` and `julia`); `quartodown.yaml` builds the
+site and deploys it from `main`. `prebuilt.yaml` runs `test-prebuilt.R` on
+Linux, macOS and Windows, on pull requests that change pre-built libraries (its
+`paths`; add new files there) or by hand
 (`gh workflow run prebuilt.yaml --ref <branch>`).
 
 ## Architecture
@@ -118,13 +134,13 @@ Three layers, spread across R, Julia and C:
   client's `Manifest.toml` (falling back to `[compat]` resolution), and compiles
   with JuliaC in a separate environment. With `bundle = TRUE` it also copies the
   Julia runtime into `jlbind-bundle/` next to the library, found through a
-  relative RUNPATH (on Windows, `.add_julia_bindir()` puts it on the PATH).
-  `--privatize=<salt>` (from `.salt()`) also has JuliaC rename the bundled
-  runtime's symbols, so the library loads alongside others (on Windows only with
-  the unreleased JuliaC of JuliaC.jl#151, named by `JLBIND_JULIAC`).
-  `prune_bundle()` removes the libraries JuliaC bundles for stdlibs that are
-  only in the compiling Julia's system image (e.g. OpenBLAS), not in the image's
-  environment (Julia >= 1.14).
+  relative RUNPATH (on Windows, `.add_julia_bindir()` puts it on the PATH while
+  the library loads). `--privatize=<salt>` (from `.salt()`) also has JuliaC
+  rename the bundled runtime's symbols, so the library loads alongside others
+  (on Windows only with the unreleased JuliaC of JuliaC.jl#151, named by
+  `JLBIND_JULIAC`). `prune_bundle()` removes the libraries JuliaC bundles for
+  stdlibs that are only in the compiling Julia's system image (e.g. OpenBLAS),
+  not in the image's environment (Julia >= 1.14).
 - **R side (`R/`)** — `library.R`: `install_library()` / `build_library()`
   (finds clients, runs `build.jl`, stores the library under
   `R_user_dir("jlbind", "cache")/library/` with the client versions and binding

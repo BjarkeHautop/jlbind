@@ -17,3 +17,9 @@
 ^_quarto$
 ^_quartodown$
 ^\.JETLSConfig\.toml$
+^LICENSE\.md$
+^inst/julia/JLBind/test$
+^inst/julia/JLBind/Manifest\.toml$
+^cran-comments\.md$
+^\.JuliaFormatter\.toml$
+^CRAN-SUBMISSION$

@@ -55,4 +55,6 @@ list.files(pkg, recursive = TRUE)
 
 # The Julia binding package, with its example entrypoint
 writeLines(readLines(file.path(pkg, "inst/julia/src/mypkgBindings.jl")))
+
+unlink(pkg, recursive = TRUE)
 }

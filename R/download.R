@@ -82,8 +82,7 @@
 # Whether the library recorded as `build` (.read_build()) was installed by
 # install_library(method = "download").
 .is_downloaded <- function(build) {
-  d <- build$Download
-  !is.null(d) && !is.na(d) && nzchar(d)
+  isTRUE(nzchar(build$Download))
 }
 
 # Which of `packages` have a pre-built private library.
@@ -396,7 +395,7 @@
   if (!identical(unname(build$ABI), as.character(.binary_abi))) {
     return(paste0(
       "it was built for ",
-      if (is.na(build$ABI)) {
+      if (!nzchar(build$ABI)) {
         "an older version"
       } else {
         paste0("version ", build$ABI)
@@ -409,7 +408,7 @@
   if (!identical(unname(build$Bundle), "TRUE")) {
     return("it has no Julia runtime of its own (built without `bundle`)")
   }
-  private <- unname(.na_empty(build$Private))
+  private <- unname(build$Private)
   if (!nzchar(private)) {
     return(
       "it has no private Julia runtime (build it with `private = TRUE`)"
